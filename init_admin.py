@@ -4,16 +4,14 @@ from models import User
 
 def create_default_admin():
     with app.app_context():
-        # Check if admin exists
+        # Xóa admin cũ nếu tồn tại
         admin = User.query.filter_by(email='admin@dragon.com').first()
-        
-        # Delete existing admin if exists
         if admin:
             db.session.delete(admin)
             db.session.commit()
-            print("Existing admin account deleted")
-            
-        # Create new admin
+            print("Đã xóa tài khoản admin cũ")
+        
+        # Tạo admin mới
         admin = User(
             username='admin',
             email='admin@dragon.com',
@@ -25,7 +23,9 @@ def create_default_admin():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
-        print("New admin account created!")
+        print("Đã tạo tài khoản admin mới!")
+        print("Email: admin@dragon.com")
+        print("Password: admin123")
 
 if __name__ == '__main__':
     create_default_admin()
