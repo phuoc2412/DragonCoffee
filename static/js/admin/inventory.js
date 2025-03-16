@@ -291,7 +291,7 @@ function setupStockHistoryCharts() {
             data: {
                 labels: dates,
                 datasets: [{
-                    label: 'Stock Level',
+                    label: 'Mức tồn kho',
                     data: quantities,
                     borderColor: '#4e73df',
                     backgroundColor: 'rgba(78, 115, 223, 0.05)',
@@ -307,13 +307,13 @@ function setupStockHistoryCharts() {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Quantity'
+                            text: 'Số lượng'
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: 'Date'
+                            text: 'Ngày'
                         }
                     }
                 }
