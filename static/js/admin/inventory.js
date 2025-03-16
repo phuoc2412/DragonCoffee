@@ -161,15 +161,15 @@ function handleBatchFormSubmit(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Inventory updated successfully');
+            alert('Cập nhật tồn kho thành công');
             window.location.reload();
         } else {
-            alert('Error updating inventory: ' + data.message);
+            alert('Lỗi cập nhật tồn kho: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to update inventory. Please try again.');
+        alert('Không thể cập nhật tồn kho. Vui lòng thử lại.');
     });
 }
 
@@ -201,7 +201,7 @@ function loadMoreProductsForBatchUpdate(button) {
                 
                 // Update or remove the "Show More" button
                 if (data.has_more) {
-                    lastRow.querySelector('button').textContent = 'Show More Products';
+                    lastRow.querySelector('button').textContent = 'Xem thêm sản phẩm';
                 } else {
                     lastRow.remove();
                 }
@@ -211,7 +211,7 @@ function loadMoreProductsForBatchUpdate(button) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to load more products');
+            alert('Không thể tải thêm sản phẩm');
         });
 }
 
@@ -245,7 +245,7 @@ function setupStockUpdateForms() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to update stock. Please try again.');
+                alert('Không thể cập nhật tồn kho. Vui lòng thử lại.');
             });
         });
     });

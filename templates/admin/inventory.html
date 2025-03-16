@@ -169,14 +169,15 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="historyModalLabel{{ item.id }}">Stock History - {{ item.product.name }}</h5>
+                                <h5 class="modal-title" id="historyModalLabel{{ item.id }}">Lịch sử tồn kho - {{ item.product.name }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <p>Stock history is not available at the moment.</p>
+                                <p>Dữ liệu lịch sử không có sẵn tại thời điểm này.</p>
+                                <div id="stockChart{{ item.id }}" style="height: 300px;"></div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                             </div>
                         </div>
                     </div>
@@ -188,9 +189,9 @@
     {% else %}
     <div class="text-center py-5">
         <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
-        <h4>No inventory items found</h4>
-        <p class="text-muted">Start by adding products to your menu.</p>
-        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary mt-2">Add Product</a>
+        <h4>Không tìm thấy sản phẩm nào trong kho</h4>
+        <p class="text-muted">Bắt đầu bằng cách thêm sản phẩm vào menu.</p>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary mt-2">Thêm sản phẩm</a>
     </div>
     {% endif %}
 </div>
@@ -200,15 +201,15 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="batchUpdateModalLabel">Batch Update Inventory</h5>
+                <h5 class="modal-title" id="batchUpdateModalLabel">Cập Nhật Hàng Loạt</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="batchUpdateForm" action="/admin/inventory/batch-update" method="POST">
                     <div class="mb-3">
-                        <label for="batchFile" class="form-label">Upload Inventory CSV</label>
+                        <label for="batchFile" class="form-label">Tải lên file CSV</label>
                         <input class="form-control" type="file" id="batchFile" accept=".csv">
-                        <div class="form-text">Upload a CSV file with columns: product_id, quantity</div>
+                        <div class="form-text">Tải lên file CSV với cột: product_id, quantity</div>
                     </div>
                     
                     <h5 class="mt-4">Hoặc Nhập Thủ Công</h5>
