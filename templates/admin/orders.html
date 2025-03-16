@@ -1,0 +1,199 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Order Management{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Order Management</h1>
+    <div class="d-flex align-items-center">
+        <a href="{{ url_for('admin.pos') }}" class="btn btn-primary me-2">
+            <i class="fas fa-cash-register me-1"></i> POS System
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-1"></i> Export
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                <li><a class="dropdown-item" href="#">Export All Orders (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Export Filtered Orders (CSV)</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center me-3 mb-3 mb-md-0">
+            <span class="me-2">Filter by status:</span>
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('admin.orders', status='all') }}" class="btn btn-outline-secondary {{ 'active' if current_filter == 'all' or not current_filter }}">All</a>
+                <a href="{{ url_for('admin.orders', status='pending') }}" class="btn btn-outline-warning {{ 'active' if current_filter == 'pending' }}">Pending</a>
+                <a href="{{ url_for('admin.orders', status='processing') }}" class="btn btn-outline-info {{ 'active' if current_filter == 'processing' }}">Processing</a>
+                <a href="{{ url_for('admin.orders', status='completed') }}" class="btn btn-outline-success {{ 'active' if current_filter == 'completed' }}">Completed</a>
+                <a href="{{ url_for('admin.orders', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if current_filter == 'cancelled' }}">Cancelled</a>
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search orders..." id="orderSearch">
+                <button class="btn btn-outline-secondary" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="admin-table" id="ordersTable">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Order Type</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if order.customer %}
+                        {{ order.customer.first_name }} {{ order.customer.last_name }}
+                        {% else %}
+                        Guest
+                        {% endif %}
+                    </td>
+                    <td>{{ order.order_type|capitalize }}</td>
+                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>
+                        <span class="status-badge {{ order.status }}">{{ order.status|capitalize }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ order.payment_status }}">{{ order.payment_status|capitalize }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="table-action view" data-bs-toggle="tooltip" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if order.status != 'completed' and order.status != 'cancelled' %}
+                        <a href="#" class="table-action edit" data-bs-toggle="tooltip" title="Process Order">
+                            <i class="fas fa-tasks"></i>
+                        </a>
+                        {% endif %}
+                        <a href="#" class="table-action" data-bs-toggle="tooltip" title="Print Invoice">
+                            <i class="fas fa-print"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+        <h4>No orders found</h4>
+        <p class="text-muted">There are no orders matching your filter criteria.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-card">
+    <h4 class="mb-4">Order Statistics</h4>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Orders</h5>
+                    <h3 class="mb-0">{{ orders|length }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Revenue</h5>
+                    <h3 class="mb-0">${{ "%.2f"|format(orders|sum(attribute='total_amount')) }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Average Order</h5>
+                    <h3 class="mb-0">
+                        {% if orders|length > 0 %}
+                        ${{ "%.2f"|format(orders|sum(attribute='total_amount') / orders|length) }}
+                        {% else %}
+                        $0.00
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Pending Orders</h5>
+                    <h3 class="mb-0">{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Order search functionality
+        const orderSearch = document.getElementById('orderSearch');
+        const ordersTable = document.getElementById('ordersTable');
+        
+        if (orderSearch && ordersTable) {
+            orderSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = ordersTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const orderNumber = row.querySelector('td:first-child').textContent.toLowerCase();
+                    const customer = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    
+                    if (orderNumber.includes(searchTerm) || customer.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

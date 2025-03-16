@@ -1,0 +1,295 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Dashboard</h1>
+    <div class="d-flex align-items-center">
+        <div class="dropdown me-2">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-1"></i> Export
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                <li><a class="dropdown-item" href="#">Sales Report (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Inventory Report (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Customer Report (CSV)</a></li>
+            </ul>
+        </div>
+        <button class="btn btn-primary">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon sales">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Total Revenue</h5>
+                <h3>${{ "%.2f"|format(total_revenue) }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon orders">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Total Orders</h5>
+                <h3>{{ total_orders }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon products">
+                <i class="fas fa-coffee"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Products</h5>
+                <h3>{{ total_products }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon customers">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Users</h5>
+                <h3>{{ total_users }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sales Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="admin-card">
+            <h4 class="mb-4">Sales Overview (Last 7 Days)</h4>
+            <canvas id="salesChart" height="300" data-chart='{{ sales_data|tojson }}'></canvas>
+        </div>
+    </div>
+    
+    <!-- Top Products -->
+    <div class="col-lg-4 mb-4">
+        <div class="admin-card">
+            <h4 class="mb-4">Top Selling Products</h4>
+            {% if top_products %}
+            <div class="list-group">
+                {% for product, total_sold in top_products %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">{{ product.name }}</h6>
+                        <small class="text-muted">{{ product.category.name }}</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ total_sold }} sold</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center text-muted">No sales data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-12 mb-4">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Recent Orders</h4>
+                <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            
+            {% if recent_orders %}
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if order.customer %}
+                                {{ order.customer.first_name }} {{ order.customer.last_name }}
+                                {% else %}
+                                Guest
+                                {% endif %}
+                            </td>
+                            <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                <span class="status-badge {{ order.status }}">{{ order.status|capitalize }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="table-action view" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted">No orders available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Alerts -->
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Inventory Alerts</h4>
+                <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-primary">View Inventory</a>
+            </div>
+            
+            {% if low_inventory_items %}
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Current Stock</th>
+                            <th>Minimum Stock</th>
+                            <th>Status</th>
+                            <th>Last Restocked</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in low_inventory_items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.min_quantity }}</td>
+                            <td>
+                                {% if item.quantity == 0 %}
+                                <span class="status-badge cancelled">Out of Stock</span>
+                                {% elif item.quantity < item.min_quantity %}
+                                <span class="status-badge pending">Low Stock</span>
+                                {% else %}
+                                <span class="status-badge completed">In Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.last_restocked %}
+                                {{ item.last_restocked.strftime('%Y-%m-%d') }}
+                                {% else %}
+                                Never
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.inventory') }}" class="table-action edit" data-bs-toggle="tooltip" title="Update Stock">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i> All inventory items are at adequate levels.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const salesChartCanvas = document.getElementById('salesChart');
+        if (salesChartCanvas) {
+            const chartData = JSON.parse(salesChartCanvas.dataset.chart || '{"labels":[],"values":[]}');
+            
+            new Chart(salesChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Sales',
+                        data: chartData.values,
+                        backgroundColor: 'rgba(139, 0, 0, 0.1)',
+                        borderColor: '#8B0000',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointBackgroundColor: '#8B0000',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD'
+                                        }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

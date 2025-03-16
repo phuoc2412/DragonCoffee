@@ -1,0 +1,179 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Menu Management{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Menu Management</h1>
+    <div class="d-flex align-items-center">
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus me-1"></i> Add Product
+        </a>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-outline-primary">
+            <i class="fas fa-folder-plus me-1"></i> Add Category
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Categories Section -->
+    <div class="col-lg-4 mb-4">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Categories</h4>
+                <span class="badge bg-primary">{{ categories|length }}</span>
+            </div>
+            
+            {% if categories %}
+            <div class="list-group">
+                {% for category in categories %}
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">{{ category.name }}</h6>
+                        <small class="text-muted">{{ category.products.count() }} products</small>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('admin.edit_category', category_id=category.id) }}" class="table-action edit me-1" data-bs-toggle="tooltip" title="Edit Category">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ url_for('admin.delete_category', category_id=category.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="table-action delete" data-bs-toggle="tooltip" title="Delete Category" 
+                                    data-confirm="Are you sure you want to delete this category? This action cannot be undone."
+                                    {% if category.products.count() > 0 %}disabled{% endif %}>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No categories available.</p>
+                <a href="{{ url_for('admin.add_category') }}" class="btn btn-sm btn-primary">Add First Category</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Products Section -->
+    <div class="col-lg-8 mb-4">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Products</h4>
+                <span class="badge bg-primary">{{ products|length }}</span>
+            </div>
+            
+            <div class="input-group mb-4">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="productSearch" placeholder="Search products...">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Filter By</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#">All Products</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">Featured Products</a></li>
+                    <li><a class="dropdown-item" href="#">Available Products</a></li>
+                    <li><a class="dropdown-item" href="#">Unavailable Products</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for category in categories %}
+                    <li><a class="dropdown-item" href="#">{{ category.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            {% if products %}
+            <div class="table-responsive">
+                <table class="admin-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Featured</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ product.name }}" width="40" height="40" class="rounded me-2" style="object-fit: cover;">
+                                    <div>
+                                        <h6 class="mb-0">{{ product.name }}</h6>
+                                        <small class="text-muted">{{ product.description|truncate(30) }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td>${{ "%.2f"|format(product.price) }}</td>
+                            <td>
+                                {% if product.is_available %}
+                                <span class="status-badge completed">Available</span>
+                                {% else %}
+                                <span class="status-badge cancelled">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_featured %}
+                                <span class="badge bg-warning"><i class="fas fa-star"></i> Featured</span>
+                                {% else %}
+                                <span class="badge bg-light text-dark">Regular</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="table-action edit me-1" data-bs-toggle="tooltip" title="Edit Product">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('admin.delete_product', product_id=product.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="table-action delete" data-bs-toggle="tooltip" title="Delete Product" 
+                                            data-confirm="Are you sure you want to delete this product? This action cannot be undone.">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No products available.</p>
+                <a href="{{ url_for('admin.add_product') }}" class="btn btn-sm btn-primary">Add First Product</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Product search functionality
+        const productSearch = document.getElementById('productSearch');
+        const productsTable = document.getElementById('productsTable');
+        
+        if (productSearch && productsTable) {
+            productSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = productsTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const productName = row.querySelector('td:first-child h6').textContent.toLowerCase();
+                    const productDescription = row.querySelector('td:first-child small').textContent.toLowerCase();
+                    const category = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    
+                    if (productName.includes(searchTerm) || productDescription.includes(searchTerm) || category.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Employee Management{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Employee Management</h1>
+    <div class="d-flex align-items-center">
+        <a href="{{ url_for('admin.add_employee') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-1"></i> Add Employee
+        </a>
+    </div>
+</div>
+
+<div class="admin-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">Staff Members</h4>
+        <div class="input-group" style="width: 300px;">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" id="employeeSearch" placeholder="Search employees...">
+        </div>
+    </div>
+    
+    {% if employees %}
+    <div class="table-responsive">
+        <table class="admin-table" id="employeesTable">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Position</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Hire Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                {{ employee.user.first_name[0] }}{{ employee.user.last_name[0] }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ employee.user.first_name }} {{ employee.user.last_name }}</h6>
+                                <small class="text-muted">{{ employee.user.username }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ employee.position }}</td>
+                    <td>{{ employee.user.email }}</td>
+                    <td>{{ employee.user.phone or 'N/A' }}</td>
+                    <td>{{ employee.hire_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if employee.is_active %}
+                        <span class="status-badge completed">Active</span>
+                        {% else %}
+                        <span class="status-badge cancelled">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.edit_employee', employee_id=employee.id) }}" class="table-action edit me-1" data-bs-toggle="tooltip" title="Edit Employee">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ url_for('admin.toggle_employee_status', employee_id=employee.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="table-action {{ 'delete' if employee.is_active else 'view' }}" data-bs-toggle="tooltip" 
+                                    title="{{ 'Deactivate' if employee.is_active else 'Activate' }} Employee">
+                                <i class="fas {{ 'fa-user-slash' if employee.is_active else 'fa-user-check' }}"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+        <h4>No employees found</h4>
+        <p class="text-muted">Start by adding your first employee to the system.</p>
+        <a href="{{ url_for('admin.add_employee') }}" class="btn btn-primary mt-2">Add First Employee</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-card">
+    <h4 class="mb-4">Staff Statistics</h4>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Staff</h5>
+                    <h3 class="mb-0">{{ employees|length }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Active Staff</h5>
+                    <h3 class="mb-0">{{ employees|selectattr('is_active', 'equalto', true)|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Baristas</h5>
+                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Barista')|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Managers</h5>
+                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Manager')|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Form Modal -->
+<div class="modal fade" id="employeeFormModal" tabindex="-1" aria-labelledby="employeeFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="employeeFormModalLabel">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="#" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstName" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" name="last_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="position" class="form-label">Position</label>
+                            <select class="form-select" id="position" name="position" required>
+                                <option value="">Select a position</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Barista">Barista</option>
+                                <option value="Cashier">Cashier</option>
+                                <option value="Kitchen Staff">Kitchen Staff</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="hireDate" class="form-label">Hire Date</label>
+                            <input type="date" class="form-control" id="hireDate" name="hire_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="salary" class="form-label">Salary</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="salary" name="salary" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isAdmin" name="is_admin">
+                        <label class="form-check-label" for="isAdmin">
+                            Administrator Access
+                        </label>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Employee search functionality
+        const employeeSearch = document.getElementById('employeeSearch');
+        const employeesTable = document.getElementById('employeesTable');
+        
+        if (employeeSearch && employeesTable) {
+            employeeSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = employeesTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const name = row.querySelector('td:first-child').textContent.toLowerCase();
+                    const position = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || position.includes(searchTerm) || email.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

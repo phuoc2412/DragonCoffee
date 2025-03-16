@@ -1,0 +1,295 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Inventory Management{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Inventory Management</h1>
+    <div class="d-flex align-items-center">
+        <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#batchUpdateModal">
+            <i class="fas fa-upload me-1"></i> Batch Update
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-1"></i> Export
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                <li><a class="dropdown-item" href="#">Export Inventory (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Export Low Stock Items (CSV)</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon products">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Total Products</h5>
+                <h3>{{ inventory_items|length }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon sales">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Low Stock Items</h5>
+                <h3>{{ inventory_items|selectattr('quantity', 'lt', 'min_quantity')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon orders">
+                <i class="fas fa-ban"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Out of Stock</h5>
+                <h3>{{ inventory_items|selectattr('quantity', 'equalto', 0)|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="admin-card stats-card">
+            <div class="stats-icon customers">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stats-info">
+                <h5>Adequate Stock</h5>
+                <h3>{{ inventory_items|selectattr('quantity', 'ge', 'min_quantity')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">Inventory Status</h4>
+        <div class="d-flex">
+            <div class="input-group me-2">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="inventorySearch" placeholder="Search inventory...">
+            </div>
+            <select class="form-select" id="inventoryFilter" style="width: auto;">
+                <option value="all">All Items</option>
+                <option value="low">Low Stock</option>
+                <option value="out">Out of Stock</option>
+                <option value="adequate">Adequate Stock</option>
+            </select>
+        </div>
+    </div>
+    
+    {% if inventory_items %}
+    <div class="table-responsive">
+        <table class="admin-table inventory-table" id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Current Stock</th>
+                    <th>Minimum Stock</th>
+                    <th>Status</th>
+                    <th>Last Restocked</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory_items %}
+                <tr data-status="{% if item.quantity == 0 %}out{% elif item.quantity < item.min_quantity %}low{% else %}adequate{% endif %}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ item.product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ item.product.name }}" width="40" height="40" class="rounded me-2" style="object-fit: cover;">
+                            {{ item.product.name }}
+                        </div>
+                    </td>
+                    <td>{{ item.product.category.name }}</td>
+                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
+                    <td>{{ item.min_quantity }} {{ item.unit or 'units' }}</td>
+                    <td>
+                        {% if item.quantity == 0 %}
+                        <span class="status-badge cancelled">Out of Stock</span>
+                        {% elif item.quantity < item.min_quantity %}
+                        <span class="status-badge pending">Low Stock</span>
+                        {% else %}
+                        <span class="status-badge completed">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.last_restocked %}
+                        {{ item.last_restocked.strftime('%Y-%m-%d') }}
+                        {% else %}
+                        Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="table-action edit me-1" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ item.id }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="table-action view" data-bs-toggle="modal" data-bs-target="#historyModal{{ item.id }}">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Update Stock Modal -->
+                <div class="modal fade" id="updateStockModal{{ item.id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ item.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateStockModalLabel{{ item.id }}">Update Stock - {{ item.product.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="{{ url_for('admin.update_inventory', inventory_id=item.id) }}" method="POST" class="inventory-update-form" data-inventory-id="{{ item.id }}">
+                                    <div class="mb-3">
+                                        <label for="quantity{{ item.id }}" class="form-label">Current Quantity</label>
+                                        <input type="number" class="form-control" name="quantity" id="quantity{{ item.id }}" value="{{ item.quantity }}" min="0">
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Update Stock</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stock History Modal -->
+                <div class="modal fade" id="historyModal{{ item.id }}" tabindex="-1" aria-labelledby="historyModalLabel{{ item.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="historyModalLabel{{ item.id }}">Stock History - {{ item.product.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Stock history is not available at the moment.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
+        <h4>No inventory items found</h4>
+        <p class="text-muted">Start by adding products to your menu.</p>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary mt-2">Add Product</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Batch Update Modal -->
+<div class="modal fade" id="batchUpdateModal" tabindex="-1" aria-labelledby="batchUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchUpdateModalLabel">Batch Update Inventory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="#" method="POST">
+                    <div class="mb-3">
+                        <label for="batchFile" class="form-label">Upload Inventory CSV</label>
+                        <input class="form-control" type="file" id="batchFile" accept=".csv">
+                        <div class="form-text">Upload a CSV file with columns: product_id, quantity</div>
+                    </div>
+                    
+                    <h5 class="mt-4">Or Enter Values Manually</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Current Stock</th>
+                                    <th>New Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in inventory_items[:5] %}
+                                <tr>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
+                                    <td>
+                                        <input type="number" class="form-control" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="0">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if inventory_items|length > 5 %}
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        <button type="button" class="btn btn-link">Show More Products</button>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Inventory</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inventory search functionality
+        const inventorySearch = document.getElementById('inventorySearch');
+        const inventoryTable = document.getElementById('inventoryTable');
+        const inventoryFilter = document.getElementById('inventoryFilter');
+        
+        if (inventorySearch && inventoryTable) {
+            inventorySearch.addEventListener('input', function() {
+                filterInventory();
+            });
+        }
+        
+        if (inventoryFilter && inventoryTable) {
+            inventoryFilter.addEventListener('change', function() {
+                filterInventory();
+            });
+        }
+        
+        function filterInventory() {
+            const searchTerm = inventorySearch.value.toLowerCase();
+            const filterValue = inventoryFilter.value;
+            const rows = inventoryTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const productName = row.querySelector('td:first-child').textContent.toLowerCase();
+                const category = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const statusMatch = filterValue === 'all' || row.dataset.status === filterValue;
+                
+                if ((productName.includes(searchTerm) || category.includes(searchTerm)) && statusMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

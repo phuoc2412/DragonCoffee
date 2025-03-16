@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Checkout{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">Checkout</h1>
+        
+        <div id="checkout-error" class="alert alert-danger d-none" role="alert"></div>
+        
+        <div class="row">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-4">Order Details</h3>
+                        
+                        <form id="checkout-form" method="POST" action="{{ url_for('order.checkout') }}">
+                            <input type="hidden" id="subtotal-input" name="subtotal" value="{{ total }}">
+                            <input type="hidden" id="tax-input" name="tax" value="{{ total * 0.1 }}">
+                            <input type="hidden" id="total-input" name="total" value="{{ total * 1.1 }}">
+                            
+                            <div class="mb-4">
+                                <h5>Order Type</h5>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeTakeaway" value="takeaway" checked>
+                                    <label class="form-check-label" for="orderTypeTakeaway">Takeaway</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDelivery" value="delivery">
+                                    <label class="form-check-label" for="orderTypeDelivery">Delivery</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDineIn" value="dine-in">
+                                    <label class="form-check-label" for="orderTypeDineIn">Dine-In</label>
+                                </div>
+                            </div>
+                            
+                            <div id="delivery-address-container" class="mb-4 d-none">
+                                <h5>Delivery Address</h5>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Full Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your delivery address"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Contact Information</h5>
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required value="{{ current_user.first_name ~ ' ' ~ current_user.last_name if current_user.is_authenticated else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" required value="{{ current_user.phone if current_user.is_authenticated and current_user.phone else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Payment Method</h5>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked>
+                                    <label class="form-check-label" for="paymentCash">Cash on Pickup/Delivery</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCard" value="card">
+                                    <label class="form-check-label" for="paymentCard">Credit/Debit Card</label>
+                                </div>
+                            </div>
+                            
+                            <div id="card-details-container" class="mb-4 d-none">
+                                <h5>Card Details</h5>
+                                <div class="mb-3">
+                                    <label for="card_number" class="form-label">Card Number</label>
+                                    <input type="text" class="form-control" id="card_number" name="card_number" placeholder="•••• •••• •••• ••••">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_name" class="form-label">Cardholder Name</label>
+                                        <input type="text" class="form-control" id="card_name" name="card_name">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="card_expiry" class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-control" id="card_expiry" name="card_expiry" placeholder="MM/YY">
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="card_cvv" class="form-label">CVV</label>
+                                        <input type="text" class="form-control" id="card_cvv" name="card_cvv" placeholder="•••">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Additional Notes</h5>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any special instructions for your order?"></textarea>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-4">Order Summary</h3>
+                        
+                        {% for item in cart_items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <span class="fw-bold">{{ item.quantity }}x</span> {{ item.name }}
+                                {% if item.notes %}
+                                <br><small class="text-muted">{{ item.notes }}</small>
+                                {% endif %}
+                            </div>
+                            <div>${{ "%.2f"|format(item.subtotal) }}</div>
+                        </div>
+                        {% if not loop.last %}<hr class="my-2">{% endif %}
+                        {% endfor %}
+                        
+                        <hr class="my-3">
+                        
+                        <div class="summary-item">
+                            <span>Subtotal</span>
+                            <span>${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <span>Tax (10%)</span>
+                            <span>${{ "%.2f"|format(total * 0.1) }}</span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="summary-item">
+                            <span class="fw-bold">Total</span>
+                            <span class="summary-total">${{ "%.2f"|format(total * 1.1) }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3">We Accept</h5>
+                        <div class="d-flex gap-2">
+                            <div class="payment-icon"><i class="fab fa-cc-visa fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-mastercard fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-amex fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-paypal fa-2x"></i></div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <h5 class="mb-3">Need Help?</h5>
+                        <p class="mb-0">
+                            <i class="fas fa-phone me-2"></i> Call us at: (123) 456-7890<br>
+                            <i class="fas fa-envelope me-2"></i> Email: support@dragoncoffee.com
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}
+{% endblock %}

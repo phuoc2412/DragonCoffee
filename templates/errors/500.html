@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Server Error{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container text-center py-5">
+        <i class="fas fa-fire fa-5x text-danger mb-4"></i>
+        <h1 class="section-title">500 - Server Error</h1>
+        <p class="lead mb-5">Oops! It seems our dragon is breathing a bit too much fire right now. Our team has been notified and is working to fix the issue.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i> Return Home
+            </a>
+            <a href="{{ url_for('main.contact') }}" class="btn btn-outline-primary">
+                <i class="fas fa-envelope me-2"></i> Contact Support
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

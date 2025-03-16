@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Order Online{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">Order Online</h1>
+        
+        <div class="row mt-4">
+            <div class="col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Categories</h5>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('main.menu') }}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                                All Products
+                            </a>
+                            {% for category in categories %}
+                            <a href="{{ url_for('main.menu', category=category.id) }}" class="list-group-item list-group-item-action {% if current_category and current_category.id == category.id %}active{% endif %}">
+                                {{ category.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Order Type</h5>
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action active">
+                                <i class="fas fa-shopping-bag me-2"></i> Takeaway
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-utensils me-2"></i> Dine-in
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-motorcycle me-2"></i> Delivery
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Your Cart</h5>
+                        
+                        {% if session.get('cart') and session.get('cart')|length > 0 %}
+                        <div class="small">
+                            {% for item in session.get('cart') %}
+                            {% set product = get_product(item.product_id) %}
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                <div>
+                                    <span class="fw-bold">{{ item.quantity }}x</span> {{ product.name }}
+                                </div>
+                                <div>${{ "%.2f"|format(product.price * item.quantity) }}</div>
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="d-flex justify-content-between mb-2 pt-2">
+                                <strong>Total:</strong>
+                                <strong>${{ "%.2f"|format(calculate_cart_total()) }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{{ url_for('order.cart') }}" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart me-2"></i> View Cart
+                            </a>
+                            <a href="{{ url_for('order.checkout') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-check me-2"></i> Checkout
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-3">
+                            <p class="text-muted">Your cart is empty</p>
+                            <a href="{{ url_for('main.menu') }}" class="btn btn-sm btn-primary">Start Shopping</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-9">
+                {% if current_category %}
+                <div class="alert alert-light mb-4">
+                    <h3 class="mb-2">{{ current_category.name }}</h3>
+                    <p class="mb-0">{{ current_category.description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    {% if products %}
+                    {% for product in products %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
+                            {% if product.is_featured %}
+                            <div class="featured-badge">Featured</div>
+                            {% endif %}
+                            <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">{{ product.description|truncate(80) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                        <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
+                                            <i class="fas fa-cart-plus"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="col-12 text-center py-5">
+                        <p class="lead">No products available in this category yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mt-4">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

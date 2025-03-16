@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <div class="row">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ product.name }}" class="product-detail-img">
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="product-detail-info">
+                    <h1 class="product-detail-title">{{ product.name }}</h1>
+                    <p class="product-detail-category">{{ product.category.name }}</p>
+                    <h2 class="product-detail-price">${{ "%.2f"|format(product.price) }}</h2>
+                    
+                    <p class="product-detail-description">{{ product.description }}</p>
+                    
+                    <form action="{{ url_for('order.add_to_cart') }}" method="POST">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        
+                        <div class="quantity-control mb-4">
+                            <button type="button" class="quantity-btn decrement">-</button>
+                            <input type="number" name="quantity" class="quantity-input" value="1" min="1">
+                            <button type="button" class="quantity-btn increment">+</button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Special Instructions</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Any special requests or preferences?"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                            </button>
+                            <a href="{{ url_for('main.menu') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Menu
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="review-list mt-5">
+            <h2 class="section-title mb-4">Customer Reviews</h2>
+            
+            {% if reviews %}
+            <div class="row">
+                {% for review in reviews %}
+                <div class="col-lg-6 mb-4">
+                    <div class="review-item">
+                        <h5 class="review-author">{{ review.author.username }}</h5>
+                        <p class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</p>
+                        <div class="star-rating">
+                            {% for i in range(5) %}
+                                {% if i < review.rating %}
+                                <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p>{{ review.content }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p>No reviews yet. Be the first to review this product!</p>
+            </div>
+            {% endif %}
+            
+            {% if current_user.is_authenticated %}
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-3">Write a Review</h3>
+                    <form action="#" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="star-rating-input">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating1" value="1">
+                                    <label class="form-check-label" for="rating1">1</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating2" value="2">
+                                    <label class="form-check-label" for="rating2">2</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating3" value="3">
+                                    <label class="form-check-label" for="rating3">3</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating4" value="4">
+                                    <label class="form-check-label" for="rating4">4</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating5" value="5" checked>
+                                    <label class="form-check-label" for="rating5">5</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="review-content" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="review-content" name="content" rows="3" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <p class="mb-0">Please <a href="{{ url_for('auth.login') }}">login</a> to write a review.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Related Products Section -->
+        {% if related_products %}
+        <div class="related-products mt-5">
+            <h2 class="section-title mb-4">You Might Also Like</h2>
+            
+            <div class="row">
+                {% for product in related_products %}
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-price">${{ "%.2f"|format(product.price) }}</p>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
+                                    <i class="fas fa-cart-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

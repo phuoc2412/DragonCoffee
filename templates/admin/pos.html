@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - POS System{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">POS System</h1>
+    <div class="d-flex align-items-center">
+        <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-primary">
+            <i class="fas fa-list me-1"></i> View Orders
+        </a>
+    </div>
+</div>
+
+<div class="pos-container">
+    <!-- Products Section -->
+    <div class="pos-menu">
+        <!-- Search -->
+        <div class="pos-search">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="pos-search" placeholder="Search products...">
+            </div>
+        </div>
+        
+        <!-- Categories -->
+        <div class="pos-category-nav">
+            <button class="pos-category-btn active" data-category-id="">All Categories</button>
+            {% for category in categories %}
+            <button class="pos-category-btn" data-category-id="{{ category.id }}">{{ category.name }}</button>
+            {% endfor %}
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="pos-product-grid">
+            <!-- Products will be loaded dynamically via JavaScript -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Loading products...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cart Section -->
+    <div class="pos-cart">
+        <h4 class="mb-3">Current Order</h4>
+        
+        <div class="pos-cart-items">
+            <!-- Cart items will be added dynamically via JavaScript -->
+            <div class="text-center py-4">
+                <p>Cart is empty</p>
+            </div>
+        </div>
+        
+        <div class="pos-cart-summary">
+            <div class="pos-cart-total">
+                <span class="pos-cart-total-label">Total</span>
+                <span class="pos-cart-total-amount">$0.00</span>
+            </div>
+            
+            <div class="mb-3">
+                <label for="pos-order-notes" class="form-label">Order Notes</label>
+                <textarea class="form-control" id="pos-order-notes" rows="2" placeholder="Add notes for this order..."></textarea>
+            </div>
+            
+            <h5 class="mb-2">Order Type</h5>
+            <div class="pos-order-type mb-3">
+                <div class="pos-order-type-option active" data-type="dine-in">
+                    <i class="fas fa-utensils me-1"></i> Dine-in
+                </div>
+                <div class="pos-order-type-option" data-type="takeaway">
+                    <i class="fas fa-shopping-bag me-1"></i> Takeaway
+                </div>
+                <div class="pos-order-type-option" data-type="delivery">
+                    <i class="fas fa-motorcycle me-1"></i> Delivery
+                </div>
+            </div>
+            
+            <h5 class="mb-2">Payment Method</h5>
+            <div class="pos-payment-methods mb-3">
+                <div class="pos-payment-method active" data-method="cash">
+                    <i class="fas fa-money-bill-wave me-1"></i> Cash
+                </div>
+                <div class="pos-payment-method" data-method="card">
+                    <i class="fas fa-credit-card me-1"></i> Card
+                </div>
+                <div class="pos-payment-method" data-method="mobile">
+                    <i class="fas fa-mobile-alt me-1"></i> Mobile
+                </div>
+            </div>
+            
+            <div class="pos-cart-actions">
+                <button class="btn btn-lg btn-outline-danger pos-clear-btn">
+                    <i class="fas fa-trash me-1"></i> Clear
+                </button>
+                <button class="btn btn-lg btn-primary pos-checkout-btn">
+                    <i class="fas fa-check me-1"></i> Complete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Success Modal -->
+<div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="orderSuccessModalLabel">Order Completed</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4>Order #<span id="successOrderNumber"></span></h4>
+                <p class="lead">The order has been successfully processed!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="printReceiptBtn">
+                    <i class="fas fa-print me-1"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setupPOS();
+    });
+</script>
+{% endblock %}

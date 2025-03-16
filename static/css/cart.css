@@ -1,0 +1,258 @@
+/*
+  Dragon Coffee Shop - Cart & Checkout Styles
+*/
+
+/* Cart Items */
+.cart-item {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.cart-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cart-item-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-item-title {
+  font-family: var(--font-heading);
+  color: var(--primary-color);
+}
+
+.cart-item-price {
+  color: var(--gray-color);
+}
+
+.cart-item-notes {
+  font-style: italic;
+}
+
+.cart-item-subtotal {
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+/* Cart Quantity Controls */
+.cart-quantity {
+  display: flex;
+  align-items: center;
+}
+
+.cart-quantity-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cart-quantity-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.cart-quantity-input {
+  width: 50px;
+  height: 32px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin: 0 5px;
+}
+
+/* Cart Summary */
+.cart-summary {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.summary-total {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Payment Icons */
+.payment-icon {
+  width: 60px;
+  height: 40px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-color);
+}
+
+/* Checkout Form */
+.checkout-section {
+  margin-bottom: 30px;
+}
+
+.checkout-section-title {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-family: var(--font-heading);
+  color: var(--primary-color);
+}
+
+.payment-method-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.payment-method-card:hover,
+.payment-method-card.active {
+  border-color: var(--primary-color);
+  background-color: rgba(139, 0, 0, 0.05);
+}
+
+.payment-method-card.active {
+  box-shadow: 0 5px 15px rgba(139, 0, 0, 0.1);
+}
+
+.payment-method-icon {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  color: var(--primary-color);
+}
+
+/* Order Confirmation */
+.order-status-badge {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  border-radius: 30px;
+  display: inline-block;
+}
+
+.order-status-badge.success {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--success-color);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.order-status-badge.pending {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--warning-color);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.order-status-badge.cancelled {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.order-detail-section {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.order-timeline {
+  position: relative;
+  margin-left: 20px;
+}
+
+.order-timeline-item {
+  position: relative;
+  padding-bottom: 30px;
+  padding-left: 30px;
+}
+
+.order-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.order-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  z-index: 1;
+}
+
+.order-timeline-item::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  width: 2px;
+  height: calc(100% - 12px);
+  background-color: #ddd;
+}
+
+.order-timeline-item:last-child::after {
+  display: none;
+}
+
+.order-timeline-item.completed::before {
+  background-color: var(--success-color);
+}
+
+.order-timeline-item.pending::before {
+  background-color: var(--warning-color);
+}
+
+.order-timeline-item.cancelled::before {
+  background-color: var(--danger-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .cart-item {
+    flex-direction: column;
+  }
+  
+  .cart-item-img {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 10px;
+  }
+  
+  .cart-item-info,
+  .cart-item-price,
+  .cart-quantity,
+  .cart-item-subtotal {
+    margin-bottom: 10px;
+  }
+  
+  .cart-quantity {
+    justify-content: center;
+  }
+}

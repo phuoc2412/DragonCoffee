@@ -1,0 +1,244 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dragon Coffee Shop - Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1 class="admin-title">Order Details</h1>
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Orders
+    </a>
+</div>
+
+<div class="admin-card mb-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h4>Order #{{ order.order_number }}</h4>
+            <p class="text-muted">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="mb-2">
+                <form action="{{ url_for('admin.update_order_status', order_id=order.id) }}" method="POST" class="d-inline-flex align-items-center">
+                    <label for="orderStatus" class="me-2">Status:</label>
+                    <select name="status" id="orderStatus" class="form-select form-select-sm me-2 order-status-select" style="width: auto;">
+                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary d-none">Update</button>
+                </form>
+            </div>
+            <div>
+                <span class="me-2">Payment:</span>
+                <span class="status-badge {{ order.payment_status }}">{{ order.payment_status|capitalize }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 bg-light mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Order Information</h5>
+                    <p class="mb-1"><strong>Order Type:</strong> {{ order.order_type|capitalize }}</p>
+                    <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method|capitalize }}</p>
+                    {% if order.contact_phone %}
+                    <p class="mb-1"><strong>Contact Phone:</strong> {{ order.contact_phone }}</p>
+                    {% endif %}
+                    {% if order.notes %}
+                    <p class="mb-0"><strong>Notes:</strong> {{ order.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Customer Information</h5>
+                    {% if order.user_id %}
+                    <p class="mb-1"><strong>Name:</strong> {{ order.customer.first_name }} {{ order.customer.last_name }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ order.customer.email }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ order.customer.phone or 'N/A' }}</p>
+                    {% else %}
+                    <p class="mb-1">Guest Order</p>
+                    {% endif %}
+                    
+                    {% if order.address %}
+                    <p class="mb-0"><strong>Delivery Address:</strong> {{ order.address }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h5 class="mb-3">Order Items</h5>
+    <div class="table-responsive mb-4">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in order_details %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ detail.product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" 
+                                alt="{{ detail.product.name }}" width="40" height="40" class="rounded me-2" style="object-fit: cover;">
+                            {{ detail.product.name }}
+                        </div>
+                    </td>
+                    <td>${{ "%.2f"|format(detail.unit_price) }}</td>
+                    <td>{{ detail.quantity }}</td>
+                    <td>${{ "%.2f"|format(detail.subtotal) }}</td>
+                    <td>{{ detail.notes or 'None' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                    <td>${{ "%.2f"|format(order.total_amount / 1.1) }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Tax (10%):</strong></td>
+                    <td>${{ "%.2f"|format(order.total_amount - (order.total_amount / 1.1)) }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                    <td><strong>${{ "%.2f"|format(order.total_amount) }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div class="d-flex justify-content-end">
+        <a href="#" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-print me-1"></i> Print Invoice
+        </a>
+        <a href="#" class="btn btn-outline-primary me-2">
+            <i class="fas fa-paper-plane me-1"></i> Email Receipt
+        </a>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-file-pdf me-1"></i> Generate PDF
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="admin-card">
+            <h5 class="mb-3">Order Timeline</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-shopping-cart me-2 text-primary"></i>
+                        <strong>Order Placed</strong>
+                        <p class="mb-0 text-muted">Order received and payment pending</p>
+                    </div>
+                    <span class="text-muted">{{ order.created_at.strftime('%m/%d/%Y %H:%M') }}</span>
+                </li>
+                
+                {% if order.status != 'pending' %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-check-circle me-2 text-success"></i>
+                        <strong>Payment Confirmed</strong>
+                        <p class="mb-0 text-muted">Payment has been confirmed</p>
+                    </div>
+                    <span class="text-muted">{{ (order.created_at + timedelta(minutes=5)).strftime('%m/%d/%Y %H:%M') }}</span>
+                </li>
+                {% endif %}
+                
+                {% if order.status == 'processing' or order.status == 'completed' %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-cog me-2 text-info"></i>
+                        <strong>Processing</strong>
+                        <p class="mb-0 text-muted">Order is being prepared</p>
+                    </div>
+                    <span class="text-muted">{{ (order.created_at + timedelta(minutes=10)).strftime('%m/%d/%Y %H:%M') }}</span>
+                </li>
+                {% endif %}
+                
+                {% if order.status == 'completed' %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-check-double me-2 text-success"></i>
+                        <strong>Completed</strong>
+                        <p class="mb-0 text-muted">Order fulfilled and delivered</p>
+                    </div>
+                    <span class="text-muted">{{ (order.created_at + timedelta(minutes=30)).strftime('%m/%d/%Y %H:%M') }}</span>
+                </li>
+                {% endif %}
+                
+                {% if order.status == 'cancelled' %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-times-circle me-2 text-danger"></i>
+                        <strong>Cancelled</strong>
+                        <p class="mb-0 text-muted">Order has been cancelled</p>
+                    </div>
+                    <span class="text-muted">{{ (order.updated_at).strftime('%m/%d/%Y %H:%M') }}</span>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="admin-card">
+            <h5 class="mb-3">Staff Notes</h5>
+            <form action="#" method="POST">
+                <div class="mb-3">
+                    <textarea class="form-control" rows="4" placeholder="Add internal notes about this order..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Notes</button>
+            </form>
+            
+            <hr>
+            
+            <h5 class="mb-3">Actions</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% if order.status == 'pending' %}
+                <button class="btn btn-info">
+                    <i class="fas fa-cog me-1"></i> Start Processing
+                </button>
+                {% endif %}
+                
+                {% if order.status == 'processing' %}
+                <button class="btn btn-success">
+                    <i class="fas fa-check me-1"></i> Mark as Completed
+                </button>
+                {% endif %}
+                
+                {% if order.status != 'cancelled' and order.status != 'completed' %}
+                <button class="btn btn-danger">
+                    <i class="fas fa-times me-1"></i> Cancel Order
+                </button>
+                {% endif %}
+                
+                {% if order.payment_status == 'pending' %}
+                <button class="btn btn-warning">
+                    <i class="fas fa-money-bill me-1"></i> Mark as Paid
+                </button>
+                {% endif %}
+                
+                <button class="btn btn-secondary">
+                    <i class="fas fa-bell me-1"></i> Notify Customer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

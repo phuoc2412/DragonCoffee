@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Menu{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">Our Menu</h1>
+        
+        <!-- Category Navigation -->
+        <div class="category-nav mb-4">
+            <ul class="nav nav-pills justify-content-center flex-nowrap">
+                <li class="nav-item">
+                    <a class="nav-link {% if not current_category %}active{% endif %}" href="{{ url_for('main.menu') }}">All</a>
+                </li>
+                {% for category in categories %}
+                <li class="nav-item">
+                    <a class="nav-link {% if current_category and current_category.id == category.id %}active{% endif %}" 
+                       href="{{ url_for('main.menu', category=category.id) }}">{{ category.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <!-- Category Description if a category is selected -->
+        {% if current_category %}
+        <div class="alert alert-light text-center mb-4">
+            <h3 class="mb-2">{{ current_category.name }}</h3>
+            <p class="mb-0">{{ current_category.description }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Products Grid -->
+        <div class="row">
+            {% if products %}
+                {% for product in products %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
+                        {% if product.is_featured %}
+                        <div class="featured-badge">Featured</div>
+                        {% endif %}
+                        <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description|truncate(100) }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                    <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
+                                        <i class="fas fa-cart-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="lead">No products available in this category yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

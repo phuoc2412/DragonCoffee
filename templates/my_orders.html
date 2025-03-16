@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - My Orders{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">My Orders</h1>
+        
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_number }}</td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if order.status == 'pending' %}bg-warning
+                                {% elif order.status == 'processing' %}bg-info
+                                {% elif order.status == 'completed' %}bg-success
+                                {% elif order.status == 'cancelled' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ order.status|capitalize }}
+                            </span>
+                        </td>
+                        <td>{{ order.order_type|capitalize }}</td>
+                        <td>
+                            <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-clipboard-list fa-4x mb-3 text-muted"></i>
+            <h3>No orders yet</h3>
+            <p class="lead mb-4">You haven't placed any orders yet.</p>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-primary">Start Shopping</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

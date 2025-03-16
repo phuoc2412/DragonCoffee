@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Your Cart{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">Your Cart</h1>
+        
+        {% if cart_items and cart_items|length > 0 %}
+        <div class="row">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-4">Cart Items</h3>
+                        
+                        {% for item in cart_items %}
+                        <div class="cart-item d-flex align-items-center" data-product-id="{{ item.id }}" data-price="{{ item.price }}">
+                            <img src="{{ item.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ item.name }}" class="cart-item-img me-3">
+                            
+                            <div class="flex-grow-1">
+                                <h5 class="cart-item-title mb-1">{{ item.name }}</h5>
+                                <p class="cart-item-price mb-1">${{ "%.2f"|format(item.price) }}</p>
+                                {% if item.notes %}
+                                <p class="cart-item-notes small mb-0 text-muted">Notes: {{ item.notes }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="cart-quantity mx-3">
+                                <div class="d-flex align-items-center">
+                                    <button class="cart-quantity-btn decrement">-</button>
+                                    <form method="POST" action="{{ url_for('order.update_cart') }}">
+                                        <input type="hidden" name="product_id" value="{{ item.id }}">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="cart-quantity-input" style="width: 60px;">
+                                        <button type="submit" class="update-cart-btn d-none">Update</button>
+                                    </form>
+                                    <button class="cart-quantity-btn increment">+</button>
+                                </div>
+                            </div>
+                            
+                            <div class="cart-item-subtotal me-3">${{ "%.2f"|format(item.subtotal) }}</div>
+                            
+                            <form method="POST" action="{{ url_for('order.remove_from_cart', product_id=item.id) }}">
+                                <button type="submit" class="btn btn-sm text-danger remove-from-cart-btn" data-product-id="{{ item.id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% if not loop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i> Continue Shopping
+                    </a>
+                    
+                    <form method="POST" action="{{ url_for('order.clear_cart') }}">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i> Clear Cart
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm cart-summary">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-4">Order Summary</h3>
+                        
+                        <div class="summary-item">
+                            <span>Subtotal</span>
+                            <span class="cart-subtotal-value">${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <span>Tax</span>
+                            <span class="cart-tax-value">${{ "%.2f"|format(total * 0.1) }}</span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="summary-item">
+                            <span class="fw-bold">Total</span>
+                            <span class="summary-total cart-total-value">${{ "%.2f"|format(total * 1.1) }}</span>
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <a href="{{ url_for('order.checkout') }}" class="btn btn-primary btn-lg">
+                                Proceed to Checkout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3">We Accept</h5>
+                        <div class="d-flex gap-2">
+                            <div class="payment-icon"><i class="fab fa-cc-visa fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-mastercard fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-amex fa-2x"></i></div>
+                            <div class="payment-icon"><i class="fab fa-cc-paypal fa-2x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
+            <h3>Your cart is empty</h3>
+            <p class="lead mb-4">Looks like you haven't added any items to your cart yet.</p>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-primary">Explore Our Menu</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}
+{% endblock %}

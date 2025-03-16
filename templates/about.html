@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - About Us{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container">
+        <h1 class="section-title">Our Story</h1>
+        
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="https://images.unsplash.com/photo-1559417004-3f15daa4fd37" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
+            </div>
+            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
+                <h2>The Birth of Dragon Coffee</h2>
+                <p class="about-text">Founded in 2015, Dragon Coffee Shop began as a small kiosk in a bustling market. Our founders, Lin and Marco, shared a passion for quality coffee and a fascination with dragon mythology from cultures around the world.</p>
+                <p class="about-text">Inspired by the dragon's symbolism of power, wisdom, and good fortune, they created a coffee shop that embodies these qualities in every cup served. What started as a humble stand has now grown into multiple locations, each carrying the fiery spirit of our original vision.</p>
+            </div>
+        </div>
+        
+        <div class="row align-items-center mb-5 flex-lg-row-reverse">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="https://images.unsplash.com/photo-1692299116305-762729f2e9d5" alt="Coffee Beans" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInRight">
+            </div>
+            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInLeft">
+                <h2>Our Coffee Philosophy</h2>
+                <p class="about-text">At Dragon Coffee, we believe that exceptional coffee is both an art and a science. We source our beans directly from sustainable farms around the world, carefully selecting varieties that offer distinctive flavors and characteristics.</p>
+                <p class="about-text">Our master roasters bring out the unique profile of each bean, creating signature blends that range from bold and intense to smooth and subtle—each named after legendary dragons from different mythologies.</p>
+                <p class="about-text">Every cup is crafted with precision, whether it's a simple espresso or our famous "Dragon's Breath" latte with its signature spicy finish.</p>
+            </div>
+        </div>
+        
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="https://images.unsplash.com/photo-1522126039546-182129aa0b93" alt="Coffee Shop Ambiance" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
+            </div>
+            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
+                <h2>Our Spaces</h2>
+                <p class="about-text">Each Dragon Coffee location is designed to create a warm, inviting atmosphere where customers can feel both energized and relaxed. Our distinctive red and gold color scheme, along with subtle dragon motifs, creates a unique ambiance that sets us apart.</p>
+                <p class="about-text">From comfortable lounging areas to productive workspaces, we've created environments that serve our diverse community of coffee lovers, whether they're catching up with friends, holding business meetings, or seeking a quiet spot to read and reflect.</p>
+            </div>
+        </div>
+        
+        <div class="row align-items-center mb-5 flex-lg-row-reverse">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="https://images.unsplash.com/photo-1599579134411-bd068f77d4d9" alt="Staff Team" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInRight">
+            </div>
+            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInLeft">
+                <h2>Our Team</h2>
+                <p class="about-text">The heart of Dragon Coffee is our diverse team of passionate baristas, bakers, and service staff. Each team member undergoes extensive training in coffee preparation, customer service, and the rich lore behind our dragon theme.</p>
+                <p class="about-text">We believe in fair compensation, ongoing education, and creating career paths within our company. Many of our location managers started as baristas, bringing valuable experience to their leadership roles.</p>
+                <p class="about-text">When you visit Dragon Coffee, you're being served by coffee enthusiasts who take pride in delivering an exceptional experience with every interaction.</p>
+            </div>
+        </div>
+        
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="https://images.unsplash.com/photo-1513614825922-8fdb7f6ee617" alt="Sustainable Coffee" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
+            </div>
+            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
+                <h2>Sustainability & Community</h2>
+                <p class="about-text">At Dragon Coffee, we're committed to responsible business practices. This includes sourcing ethically produced coffee, using eco-friendly packaging, and minimizing waste in our operations.</p>
+                <p class="about-text">We actively engage with our local communities through events, fundraisers, and partnerships with neighborhood organizations. A percentage of our proceeds goes to conservation efforts for endangered reptile species—our way of protecting real-world "dragons."</p>
+                <p class="about-text">By choosing Dragon Coffee, you're not just enjoying a premium beverage—you're supporting a business that cares about its impact on people and the planet.</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-5 animate-on-scroll" data-animation="animate__fadeIn">
+            <h2>Join the Dragon Family</h2>
+            <p class="lead mb-4">We invite you to experience the magic of Dragon Coffee for yourself. Visit one of our locations, try our online ordering, or consider joining our team.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('main.locations') }}" class="btn btn-primary">Find a Location</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Explore Our Menu</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

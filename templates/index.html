@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content animate-on-scroll" data-animation="animate__fadeIn">
+            <h1 class="hero-title">Awaken Your Fiery Spirit</h1>
+            <p class="hero-subtitle">Experience our artisan coffee, crafted with the mystical essence of dragons.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('main.menu') }}" class="btn btn-hero btn-accent">Explore Menu</a>
+                <a href="{{ url_for('order.cart') }}" class="btn btn-hero btn-outline-light">Order Online</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Featured Products Section -->
+    <section class="py-5">
+        <div class="content-container">
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Dragon's Favorites</h2>
+            <div class="row">
+                {% for product in featured_products %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
+                        {% if product.is_featured %}
+                        <div class="featured-badge">Featured</div>
+                        {% endif %}
+                        <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1496318447583-f524534e9ce1' }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description|truncate(100) }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                    <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
+                                        <i class="fas fa-cart-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">View Full Menu</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section Preview -->
+    <section class="py-5">
+        <div class="content-container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="https://images.unsplash.com/photo-1559417004-3f15daa4fd37" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
+                </div>
+                <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
+                    <h2 class="section-title text-start">Our Story</h2>
+                    <p class="about-text">Dragon Coffee Shop was born from a passion for exceptional coffee and a love for mythical dragon lore. Our founders, inspired by ancient legends of dragons guarding treasures, decided to create a sanctuary where the treasure is the perfect cup of coffee.</p>
+                    <p class="about-text">Each blend is carefully crafted, sourced from sustainable farms, and roasted to perfection to bring out the fiery spirit and rich flavors that make our coffee legendary.</p>
+                    <a href="{{ url_for('main.about') }}" class="btn btn-primary mt-3">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="py-5">
+        <div class="content-container">
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Explore Our Categories</h2>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="{{ url_for('main.menu', category=category.id) }}" class="text-decoration-none">
+                        <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
+                            <div class="card-body text-center py-4">
+                                <h3 class="card-title">{{ category.name }}</h3>
+                                <p class="card-text text-muted">{{ category.description }}</p>
+                                <div class="mt-3">
+                                    <span class="btn btn-sm btn-outline-primary">Explore</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-5">
+        <div class="content-container">
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">What Our Customers Say</h2>
+            <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                    </div>
+                                    <p class="lead fst-italic mb-4">"The Dragon's Breath latte is unlike anything I've ever tasted! The perfect balance of spice and sweetness, with that signature smoky finish. This is now my go-to coffee shop!"</p>
+                                    <h5 class="fw-bold">Jane Dragon-lover</h5>
+                                    <p class="text-muted">Regular Customer</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                    </div>
+                                    <p class="lead fst-italic mb-4">"The atmosphere at Dragon Coffee is just magical! The red dragon decor, the friendly staff, and of course, the amazing coffee make this place truly special."</p>
+                                    <h5 class="fw-bold">Mark Fire-brewer</h5>
+                                    <p class="text-muted">Coffee Enthusiast</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star text-warning"></i>
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    </div>
+                                    <p class="lead fst-italic mb-4">"I love their online ordering system! It's so convenient to place my order ahead of time and just pick it up. Their loyalty program is great too - I've earned so many free drinks!"</p>
+                                    <h5 class="fw-bold">Sarah Scale-sipper</h5>
+                                    <p class="text-muted">Busy Professional</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="content-container text-center py-5 animate-on-scroll" data-animation="animate__fadeIn">
+            <h2 class="section-title">Ready to Experience the Dragon's Fire?</h2>
+            <p class="lead mb-4">Order online for pickup or delivery and taste the difference today!</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('main.menu') }}" class="btn btn-lg btn-primary">Order Now</a>
+                <a href="{{ url_for('main.locations') }}" class="btn btn-lg btn-outline-primary">Find Nearest Location</a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

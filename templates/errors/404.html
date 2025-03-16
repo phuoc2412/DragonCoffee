@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Page Not Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="content-container text-center py-5">
+        <i class="fas fa-dragon fa-5x text-primary mb-4"></i>
+        <h1 class="section-title">404 - Page Not Found</h1>
+        <p class="lead mb-5">Oops! It seems this page has been consumed by the dragon.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i> Return Home
+            </a>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">
+                <i class="fas fa-coffee me-2"></i> Browse Our Menu
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
