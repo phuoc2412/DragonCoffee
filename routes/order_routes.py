@@ -218,3 +218,9 @@ def api_order_status(order_number):
         'status': order.status,
         'updated_at': order.updated_at.strftime('%Y-%m-%d %H:%M:%S')
     })
+
+@order_bp.route('/cart-count')
+def cart_count():
+    cart_items = session.get('cart', [])
+    count = len(cart_items)
+    return jsonify({'count': count})
