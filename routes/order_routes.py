@@ -119,6 +119,7 @@ def clear_cart():
     return redirect(url_for('order.cart'))
 
 @order_bp.route('/checkout', methods=['GET', 'POST'])
+@login_required
 def checkout():
     if 'cart' not in session or not session['cart']:
         flash('Your cart is empty', 'warning')
