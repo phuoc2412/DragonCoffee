@@ -18,6 +18,9 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "nltk>=3.9.1",
     "pillow>=11.1.0",
+    "pandas>=2.2.3",
+    "joblib>=1.4.2",
+    "numpy>=2.2.3",
 ]
 
 [[tool.uv.index]]
