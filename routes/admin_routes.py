@@ -361,6 +361,81 @@ def update_inventory(inventory_id):
         
     return redirect(url_for('admin.inventory'))
 
+@admin_bp.route('/inventory/batch-update', methods=['POST'])
+@login_required
+@admin_required
+def batch_update_inventory():
+    if not request.is_json:
+        return jsonify({'success': False, 'message': 'Invalid request format'}), 400
+        
+    data = request.json
+    updates = data.get('updates', [])
+    
+    if not updates:
+        return jsonify({'success': False, 'message': 'No updates provided'}), 400
+    
+    try:
+        current_time = datetime.utcnow()
+        for update in updates:
+            inventory_id = update.get('id')
+            quantity = update.get('quantity')
+            
+            if not inventory_id or quantity is None:
+                continue
+                
+            try:
+                quantity = int(quantity)
+            except ValueError:
+                continue
+                
+            if quantity < 0:
+                continue
+                
+            inventory = InventoryItem.query.get(inventory_id)
+            if inventory:
+                inventory.quantity = quantity
+                inventory.last_restocked = current_time
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Inventory updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@admin_bp.route('/api/inventory-items')
+@login_required
+@admin_required
+def api_inventory_items():
+    skip = request.args.get('skip', 0, type=int)
+    limit = request.args.get('limit', 5, type=int)
+    
+    inventory_items = (InventoryItem.query
+                      .join(Product)
+                      .order_by(Product.name)
+                      .offset(skip)
+                      .limit(limit+1)
+                      .all())
+    
+    has_more = len(inventory_items) > limit
+    if has_more:
+        inventory_items = inventory_items[:limit]
+    
+    items = []
+    for item in inventory_items:
+        items.append({
+            'id': item.id,
+            'product_id': item.product_id,
+            'product_name': item.product.name,
+            'quantity': item.quantity,
+            'min_quantity': item.min_quantity,
+            'unit': item.unit
+        })
+    
+    return jsonify({
+        'items': items,
+        'has_more': has_more
+    })
+
 @admin_bp.route('/reports')
 @login_required
 @admin_required

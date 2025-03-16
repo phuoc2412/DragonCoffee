@@ -4,18 +4,18 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">Inventory Management</h1>
+    <h1 class="admin-title">Quản Lý Tồn Kho (Inventory Management)</h1>
     <div class="d-flex align-items-center">
         <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#batchUpdateModal">
-            <i class="fas fa-upload me-1"></i> Batch Update
+            <i class="fas fa-upload me-1"></i> Cập Nhật Hàng Loạt
         </button>
         <div class="dropdown">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Export
+                <i class="fas fa-download me-1"></i> Xuất
             </button>
             <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Export Inventory (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Export Low Stock Items (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Xuất Tồn Kho (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Xuất Hàng Sắp Hết (CSV)</a></li>
             </ul>
         </div>
     </div>
@@ -28,7 +28,7 @@
                 <i class="fas fa-boxes"></i>
             </div>
             <div class="stats-info">
-                <h5>Total Products</h5>
+                <h5>Tổng Sản Phẩm</h5>
                 <h3>{{ inventory_items|length }}</h3>
             </div>
         </div>
@@ -40,7 +40,7 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div class="stats-info">
-                <h5>Low Stock Items</h5>
+                <h5>Hàng Sắp Hết</h5>
                 <h3>{{ inventory_items|selectattr('quantity', 'lt', 'min_quantity')|list|length }}</h3>
             </div>
         </div>
@@ -52,7 +52,7 @@
                 <i class="fas fa-ban"></i>
             </div>
             <div class="stats-info">
-                <h5>Out of Stock</h5>
+                <h5>Hết Hàng</h5>
                 <h3>{{ inventory_items|selectattr('quantity', 'equalto', 0)|list|length }}</h3>
             </div>
         </div>
@@ -64,7 +64,7 @@
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="stats-info">
-                <h5>Adequate Stock</h5>
+                <h5>Đủ Tồn Kho</h5>
                 <h3>{{ inventory_items|selectattr('quantity', 'ge', 'min_quantity')|list|length }}</h3>
             </div>
         </div>
@@ -73,17 +73,17 @@
 
 <div class="admin-card mb-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Inventory Status</h4>
+        <h4 class="mb-0">Trạng Thái Tồn Kho</h4>
         <div class="d-flex">
             <div class="input-group me-2">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="inventorySearch" placeholder="Search inventory...">
+                <input type="text" class="form-control" id="inventorySearch" placeholder="Tìm kiếm sản phẩm...">
             </div>
             <select class="form-select" id="inventoryFilter" style="width: auto;">
-                <option value="all">All Items</option>
-                <option value="low">Low Stock</option>
-                <option value="out">Out of Stock</option>
-                <option value="adequate">Adequate Stock</option>
+                <option value="all">Tất Cả</option>
+                <option value="low">Sắp Hết</option>
+                <option value="out">Hết Hàng</option>
+                <option value="adequate">Đủ Tồn Kho</option>
             </select>
         </div>
     </div>
@@ -93,13 +93,13 @@
         <table class="admin-table inventory-table" id="inventoryTable">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Current Stock</th>
-                    <th>Minimum Stock</th>
-                    <th>Status</th>
-                    <th>Last Restocked</th>
-                    <th>Actions</th>
+                    <th>Sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th>Tồn kho</th>
+                    <th>Tồn kho tối thiểu</th>
+                    <th>Trạng thái</th>
+                    <th>Cập nhật gần đây</th>
+                    <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -116,11 +116,11 @@
                     <td>{{ item.min_quantity }} {{ item.unit or 'units' }}</td>
                     <td>
                         {% if item.quantity == 0 %}
-                        <span class="status-badge cancelled">Out of Stock</span>
+                        <span class="status-badge cancelled">Hết hàng</span>
                         {% elif item.quantity < item.min_quantity %}
-                        <span class="status-badge pending">Low Stock</span>
+                        <span class="status-badge pending">Sắp hết</span>
                         {% else %}
-                        <span class="status-badge completed">In Stock</span>
+                        <span class="status-badge completed">Còn hàng</span>
                         {% endif %}
                     </td>
                     <td>
@@ -145,18 +145,18 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="updateStockModalLabel{{ item.id }}">Update Stock - {{ item.product.name }}</h5>
+                                <h5 class="modal-title" id="updateStockModalLabel{{ item.id }}">Cập nhật tồn kho - {{ item.product.name }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form action="{{ url_for('admin.update_inventory', inventory_id=item.id) }}" method="POST" class="inventory-update-form" data-inventory-id="{{ item.id }}">
                                     <div class="mb-3">
-                                        <label for="quantity{{ item.id }}" class="form-label">Current Quantity</label>
+                                        <label for="quantity{{ item.id }}" class="form-label">Số lượng hiện tại</label>
                                         <input type="number" class="form-control" name="quantity" id="quantity{{ item.id }}" value="{{ item.quantity }}" min="0">
                                     </div>
                                     <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Update Stock</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary">Cập nhật</button>
                                     </div>
                                 </form>
                             </div>
@@ -204,21 +204,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="#" method="POST">
+                <form id="batchUpdateForm" action="/admin/inventory/batch-update" method="POST">
                     <div class="mb-3">
                         <label for="batchFile" class="form-label">Upload Inventory CSV</label>
                         <input class="form-control" type="file" id="batchFile" accept=".csv">
                         <div class="form-text">Upload a CSV file with columns: product_id, quantity</div>
                     </div>
                     
-                    <h5 class="mt-4">Or Enter Values Manually</h5>
+                    <h5 class="mt-4">Hoặc Nhập Thủ Công</h5>
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table" id="batchUpdateTable">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Current Stock</th>
-                                    <th>New Stock</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Tồn kho hiện tại</th>
+                                    <th>Số lượng mới</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -234,7 +234,7 @@
                                 {% if inventory_items|length > 5 %}
                                 <tr>
                                     <td colspan="3" class="text-center">
-                                        <button type="button" class="btn btn-link">Show More Products</button>
+                                        <button type="button" class="btn btn-link">Xem thêm sản phẩm</button>
                                     </td>
                                 </tr>
                                 {% endif %}
@@ -243,8 +243,8 @@
                     </div>
                     
                     <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Inventory</button>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Cập nhật tồn kho</button>
                     </div>
                 </form>
             </div>
@@ -254,42 +254,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inventory search functionality
-        const inventorySearch = document.getElementById('inventorySearch');
-        const inventoryTable = document.getElementById('inventoryTable');
-        const inventoryFilter = document.getElementById('inventoryFilter');
-        
-        if (inventorySearch && inventoryTable) {
-            inventorySearch.addEventListener('input', function() {
-                filterInventory();
-            });
-        }
-        
-        if (inventoryFilter && inventoryTable) {
-            inventoryFilter.addEventListener('change', function() {
-                filterInventory();
-            });
-        }
-        
-        function filterInventory() {
-            const searchTerm = inventorySearch.value.toLowerCase();
-            const filterValue = inventoryFilter.value;
-            const rows = inventoryTable.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                const productName = row.querySelector('td:first-child').textContent.toLowerCase();
-                const category = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                const statusMatch = filterValue === 'all' || row.dataset.status === filterValue;
-                
-                if ((productName.includes(searchTerm) || category.includes(searchTerm)) && statusMatch) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-    });
-</script>
+<!-- Chart.js for stock history charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- Custom inventory management JS -->
+<script src="{{ url_for('static', filename='js/admin/inventory.js') }}"></script>
 {% endblock %}
