@@ -80,6 +80,21 @@ class Chatbot:
     def create_default_templates(self):
         """Create default response templates"""
         self.response_templates = {
+            'menu_recommendation': [
+                "Dựa trên sở thích của bạn về {}, tôi gợi ý combo {} sẽ phù hợp với bạn.",
+                "Bạn có vẻ thích {}. Hãy thử combo {} của chúng tôi nhé!",
+                "Tôi nghĩ bạn sẽ thích combo {} với {} đấy."
+            ],
+            'food_pairing': [
+                "Món {} sẽ rất ngon khi dùng cùng với {}.",
+                "Bạn có thể kết hợp {} với {} để tạo nên bữa ăn hoàn hảo.",
+                "Gợi ý nhỏ: {} và {} là một cặp đôi hoàn hảo đấy!"
+            ],
+            'diet_suggestion': [
+                "Với chế độ ăn {}, tôi gợi ý bạn nên thử món {} và {}.",
+                "Đối với người {}, chúng tôi có các món phù hợp như {} và {}.",
+                "Menu của chúng tôi có nhiều lựa chọn cho {}. Bạn có thể thử {} hoặc {}."
+            ],
             'greeting': [
                 "Xin chào! Tôi là trợ lý ảo Dragon Coffee. Tôi có thể giúp gì cho bạn?",
                 "Chào bạn! Cảm ơn bạn đã liên hệ với Dragon Coffee. Bạn cần giúp đỡ gì?",
@@ -198,6 +213,15 @@ class Chatbot:
         # Preprocess text
         tokens = self.preprocess_text(text)
         text_lower = text.lower()
+
+        # Check for recommendation patterns
+        if re.search(r'(?i)(gợi ý|tư vấn|recommend|suggest)', text_lower):
+            if re.search(r'(?i)(combo|set|bộ)', text_lower):
+                return 'menu_recommendation'
+            elif re.search(r'(?i)(món|ăn kèm|food)', text_lower):
+                return 'food_pairing'
+            elif re.search(r'(?i)(ăn kiêng|diet|healthy)', text_lower):
+                return 'diet_suggestion'
         
         # Check for greeting patterns
         greeting_patterns = ['xin chào', 'chào', 'hello', 'hi', 'hey', 'alo']
@@ -291,6 +315,45 @@ class Chatbot:
         # Detect intent
         intent = self.detect_intent(text)
         
+        # Handle recommendation intents
+        if intent == 'menu_recommendation':
+            combo = self.recommend_combo(text)
+            if combo:
+                response = random.choice(self.response_templates['menu_recommendation']).format(
+                    text.lower(), combo[0], combo[1]
+                )
+            else:
+                response = "Bạn có thể cho tôi biết bạn thích đồ uống gì không? (cà phê, trà,...)"
+        elif intent == 'food_pairing':
+            # Get food pairing suggestion
+            pairs = {
+                'cà phê': 'bánh mì',
+                'trà': 'bánh ngọt',
+                'espresso': 'cookies',
+                'cappuccino': 'tiramisu'
+            }
+            for food, pair in pairs.items():
+                if food in text.lower():
+                    response = random.choice(self.response_templates['food_pairing']).format(
+                        food, pair
+                    )
+                    break
+            else:
+                response = "Bạn muốn tìm món ăn kèm cho đồ uống nào?"
+        else:
+            if session_id not in self.conversation_history:
+                self.conversation_history[session_id] = []
+            
+            # Add user message to history
+            self.conversation_history[session_id].append({
+                'role': 'user',
+                'message': text,
+                'timestamp': datetime.utcnow().isoformat()
+            })
+        
+        # Detect intent
+        intent = self.detect_intent(text)
+        
         # Extract entities
         entities = self.extract_entities(text)
         
@@ -347,6 +410,44 @@ class Chatbot:
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
     
+    def recommend_combo(self, preferences):
+        """Generate combo recommendations based on user preferences"""
+        combos = {
+            'coffee': {
+                'morning': ['Combo Sáng Tỉnh Táo', 'Cà phê sữa đá + Bánh mì'],
+                'afternoon': ['Combo Chiều Năng Động', 'Americano + Cookies'],
+                'sweet': ['Combo Ngọt Ngào', 'Mocha + Bánh flan'],
+                'strong': ['Combo Mạnh Mẽ', 'Espresso đúp + Brownies']
+            },
+            'tea': {
+                'morning': ['Combo Thanh Mát', 'Trà sen + Bánh bông lan'],
+                'afternoon': ['Combo Thư Giãn', 'Trà đào + Macaron'],
+                'sweet': ['Combo Trà Ngọt', 'Trà sữa trân châu + Bánh pudding'],
+                'light': ['Combo Nhẹ Nhàng', 'Trà xanh + Bánh cuộn']
+            }
+        }
+        
+        # Match preferences with combos
+        if 'coffee' in preferences.lower():
+            if 'sáng' in preferences.lower():
+                return combos['coffee']['morning']
+            elif 'chiều' in preferences.lower():
+                return combos['coffee']['afternoon']
+            elif 'ngọt' in preferences.lower():
+                return combos['coffee']['sweet']
+            else:
+                return combos['coffee']['strong']
+        elif 'trà' in preferences.lower() or 'tea' in preferences.lower():
+            if 'sáng' in preferences.lower():
+                return combos['tea']['morning']
+            elif 'chiều' in preferences.lower():
+                return combos['tea']['afternoon']
+            elif 'ngọt' in preferences.lower():
+                return combos['tea']['sweet']
+            else:
+                return combos['tea']['light']
+        return None
+
     def handle_order_intent(self, text, session_id):
         """Handle order intent specifically"""
         entities = self.extract_entities(text)
