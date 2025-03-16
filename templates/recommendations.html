@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Đề xuất sản phẩm - Dragon Coffee{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-primary">{{ _('Đề xuất cho bạn') }}</h1>
+            <p class="lead">{{ _('Những sản phẩm được chọn lọc đặc biệt dựa trên sở thích của bạn') }}</p>
+        </div>
+    </div>
+
+    <!-- Nav tabs for different recommendation types -->
+    <ul class="nav nav-tabs mb-4 justify-content-center" id="recommendationTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="personalized-tab" data-bs-toggle="tab" data-bs-target="#personalized" 
+                type="button" role="tab" aria-controls="personalized" aria-selected="true">
+                {{ _('Dành cho bạn') }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="popular-tab" data-bs-toggle="tab" data-bs-target="#popular" 
+                type="button" role="tab" aria-controls="popular" aria-selected="false">
+                {{ _('Phổ biến nhất') }}
+            </button>
+        </li>
+        {% if last_viewed %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="similar-tab" data-bs-toggle="tab" data-bs-target="#similar" 
+                type="button" role="tab" aria-controls="similar" aria-selected="false">
+                {{ _('Tương tự lần xem gần đây') }}
+            </button>
+        </li>
+        {% endif %}
+    </ul>
+    
+    <!-- Tab content -->
+    <div class="tab-content" id="recommendationTabContent">
+        <!-- Personalized recommendations -->
+        <div class="tab-pane fade show active" id="personalized" role="tabpanel" aria-labelledby="personalized-tab">
+            <div class="row">
+                {% if personalized_recommendations %}
+                    {% for product in personalized_recommendations %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 product-card">
+                                <div class="card-badge {% if product.recommendation_type == 'personalized' %}bg-primary{% else %}bg-success{% endif %}">
+                                    {% if product.recommendation_type == 'personalized' %}
+                                        {{ _('Đề xuất cho bạn') }}
+                                    {% else %}
+                                        {{ _('Phổ biến') }}
+                                    {% endif %}
+                                </div>
+                                {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/product-placeholder.jpg') }}" class="card-img-top" alt="{{ product.name }}">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text price">{{ format_currency(product.price) }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">{{ _('Chi tiết') }}</a>
+                                        <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}">
+                                            <i class="feather icon-shopping-cart"></i> {{ _('Thêm vào giỏ') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <p>{{ _('Chúng tôi chưa có đủ dữ liệu để đề xuất sản phẩm phù hợp với bạn.') }}</p>
+                        <p>{{ _('Hãy tiếp tục khám phá và mua sắm, chúng tôi sẽ đưa ra những đề xuất tốt hơn!') }}</p>
+                        <a href="{{ url_for('menu') }}" class="btn btn-primary">{{ _('Khám phá thực đơn') }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Popular products -->
+        <div class="tab-pane fade" id="popular" role="tabpanel" aria-labelledby="popular-tab">
+            <div class="row">
+                {% if popular_products %}
+                    {% for product in popular_products %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 product-card">
+                                <div class="card-badge bg-success">{{ _('Phổ biến') }}</div>
+                                {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/product-placeholder.jpg') }}" class="card-img-top" alt="{{ product.name }}">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text price">{{ format_currency(product.price) }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">{{ _('Chi tiết') }}</a>
+                                        <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}">
+                                            <i class="feather icon-shopping-cart"></i> {{ _('Thêm vào giỏ') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <p>{{ _('Chưa có sản phẩm nào.') }}</p>
+                        <a href="{{ url_for('menu') }}" class="btn btn-primary">{{ _('Khám phá thực đơn') }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Similar products -->
+        {% if last_viewed %}
+        <div class="tab-pane fade" id="similar" role="tabpanel" aria-labelledby="similar-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4 class="text-center">{{ _('Dựa trên sản phẩm bạn đã xem gần đây:') }} <a href="{{ url_for('product_detail', product_id=last_viewed.id) }}">{{ last_viewed.name }}</a></h4>
+                </div>
+            </div>
+            <div class="row">
+                {% if similar_products %}
+                    {% for product in similar_products %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 product-card">
+                                <div class="card-badge bg-info">{{ _('Tương tự') }}</div>
+                                {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/product-placeholder.jpg') }}" class="card-img-top" alt="{{ product.name }}">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text price">{{ format_currency(product.price) }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">{{ _('Chi tiết') }}</a>
+                                        <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}">
+                                            <i class="feather icon-shopping-cart"></i> {{ _('Thêm vào giỏ') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <p>{{ _('Chưa có sản phẩm tương tự nào.') }}</p>
+                        <a href="{{ url_for('menu') }}" class="btn btn-primary">{{ _('Khám phá thực đơn') }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .product-card {
+        position: relative;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .card-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.8rem;
+        z-index: 1;
+    }
+    
+    .price {
+        font-weight: bold;
+        color: #d9534f;
+        font-size: 1.2rem;
+    }
+    
+    .nav-tabs {
+        border-bottom: 2px solid var(--bs-primary);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--bs-secondary);
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border: none;
+        border-bottom: 3px solid var(--bs-primary);
+        color: var(--bs-primary);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add to cart functionality
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const productName = this.getAttribute('data-product-name');
+                
+                fetch('/add_to_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: 1,
+                        notes: ''
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success toast
+                        showToast(`${productName} đã được thêm vào giỏ hàng!`, 'success');
+                        
+                        // Update cart badge
+                        if (typeof updateCartBadge === 'function') {
+                            updateCartBadge();
+                        }
+                    } else {
+                        showToast('Không thể thêm sản phẩm vào giỏ hàng.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Đã xảy ra lỗi khi thêm vào giỏ hàng.', 'danger');
+                });
+            });
+        });
+        
+        // Toast function
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            
+            if (!toastContainer) {
+                const newContainer = document.createElement('div');
+                newContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(newContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            const container = document.querySelector('.toast-container');
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            // Remove toast from DOM after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+    });
+</script>
+{% endblock %}
