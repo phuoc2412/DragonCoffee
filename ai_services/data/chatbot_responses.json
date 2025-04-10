@@ -1,0 +1,130 @@
+{
+    "greeting": [
+        "Xin chào! Tôi là Dragon Bot, tôi có thể giúp gì?",
+        "Chào bạn! Bạn cần hỗ trợ về vấn đề gì hôm nay?"
+    ],
+    "goodbye": [
+        "Cảm ơn bạn đã liên hệ. Chúc bạn một ngày tốt lành!",
+        "Tạm biệt, hẹn gặp lại bạn!"
+    ],
+    "thanks": [
+        "Rất vui được giúp đỡ bạn!",
+        "Không có gì đâu ạ!"
+    ],
+    "hours_inquiry": [
+        "Quán mở cửa từ 7:00 sáng đến 10:00 tối các ngày trong tuần và 8:00 sáng đến 11:00 tối cuối tuần."
+    ],
+    "menu_inquiry": [
+        "Bạn có thể xem menu đầy đủ trên <a href='{menu_url}' target='_blank'>trang Thực Đơn</a> nhé. Bạn quan tâm món cụ thể nào không ạ?",
+        "Menu có nhiều loại cà phê, trà, bánh và đồ ăn nhẹ. Xem chi tiết tại <a href='{menu_url}' target='_blank'>đây</a> nha."
+    ],
+    "category_inquiry_result": [
+        "Trong danh mục '{category_name}' có các món nổi bật như: {product_list}. Bạn xem thêm tại {menu_url} nhé.",
+        "Một vài món ngon trong nhóm '{category_name}': {product_list}. Bạn thích món nào?"
+    ],
+    "category_not_found": [
+        "Xin lỗi, tôi không tìm thấy danh mục '{category_name}'."
+    ],
+    "location_inquiry": [
+        "Bạn xem địa chỉ các chi nhánh tại {locations_url} ạ.",
+        "Tìm chi nhánh gần bạn nhất tại {locations_url} nha."
+    ],
+    "order_intent": [
+        "Bạn muốn đặt món '{product}' phải không ạ? Bạn chọn size và số lượng giúp tôi nhé.",
+        "Ok bạn. Cho tôi biết size và số lượng của '{product}' bạn muốn đặt?"
+    ],
+    "product_info": [
+        "Món '{product}' ({category}) có giá {price}. {description}. Hiện tại món này {availability}.",
+        "'{product}' giá {price}, là món {category}. {description} Hiện món này {availability}."
+    ],
+    "product_info_no_price": [
+        "Thông tin món '{product}' ({category}): {description} Hiện tại món này {availability}. Bạn muốn biết giá không?",
+        "'{product}' là món {category}, mô tả: {description}. Hiện tại {availability}."
+    ],
+    "product_not_found": [
+        "Xin lỗi, tôi chưa tìm thấy thông tin món '{product}'.",
+        "Hmm, tên món '{product}' có vẻ chưa đúng."
+    ],
+    "product_price_inquiry_result": [
+        "Dạ, món '{product_name}' có giá {price_str} ạ.",
+        "Giá của '{product_name}' là {price_str} nhé."
+    ],
+    "check_availability_result": [
+        "Món '{product_name}' hiện đang {status} ạ.",
+        "Dạ, '{product_name}' {status}."
+    ],
+    "check_availability_not_found": [
+        "Tôi chưa tìm thấy món '{product_name}' để kiểm tra ạ."
+    ],
+    "promotion_inquiry": [
+        "Các khuyến mãi hiện có:\n{promotion_list}Xem chi tiết tại {promotions_url}",
+        "Hiện đang có ưu đãi:\n{promotion_list}Bạn xem thêm tại {promotions_url}"
+    ],
+    "promotion_inquiry_none": [
+        "Hiện tại quán chưa có chương trình khuyến mãi đặc biệt nào. Bạn theo dõi page nhé!",
+        "Xin lỗi, hôm nay chưa có ưu đãi nào."
+    ],
+    "combo_inquiry": [
+        "Quán có các combo [Combo 1], [Combo 2], bạn tham khảo nhé.",
+        "Hiện có các combo tiết kiệm: [Combo 1], [Combo 2]."
+    ],
+    "suggest_combo_result": [
+        "Bạn thử combo '{combo_name}' xem sao? Gồm có: {combo_items}. Giá khoảng {combo_price}.",
+        "Nếu bạn thích {preference}, combo '{combo_name}' ({combo_items}) giá {combo_price} khá hợp lý đó."
+    ],
+    "suggest_combo_no_pref": [
+        "Bạn thích uống/ăn kèm món gì hoặc thể loại nào không để tôi gợi ý?",
+        "Quán có nhiều combo. Bạn cho tôi biết sở thích (cà phê/trà/bánh...) để tôi tư vấn nha?"
+    ],
+    "wifi_inquiry": [
+        "Dạ, quán có wifi miễn phí, pass là `dragoncoffee` hoặc hỏi nhân viên nhé."
+    ],
+    "payment_inquiry": [
+        "Bạn có thể thanh toán bằng tiền mặt, thẻ, Momo, ZaloPay, VNPay, hoặc chuyển khoản."
+    ],
+    "visual_product_search_result": [
+        "Dựa vào mô tả '{keywords}', tôi thấy có mấy món này:",
+        "Đây là một vài hình ảnh món '{keywords}' bạn có thể thích:",
+        "Tìm thấy kết quả cho '{keywords}':"
+    ],
+    "visual_product_search_notfound": [
+        "Xin lỗi, tôi chưa tìm được món nào trông giống '{keywords}' cả. Bạn thử mô tả khác xem sao?",
+        "Hmm, tôi không thấy món nào khớp với '{keywords}'. Bạn tìm món khác nhé?"
+    ],
+    "visual_product_search_nokeywords": [
+        "Bạn muốn tôi tìm ảnh món trông như thế nào vậy?",
+        "Hãy mô tả món bạn muốn xem ảnh nhé (màu sắc, hình dáng...)."
+    ],
+    "order_confirmation_request": [
+        "Xác nhận đặt: {quantity} ly '{product}' (size {size}){notes}. Tạm tính: {price}. Đúng chưa ạ?",
+        "Ok, {quantity} '{product}' size {size}{notes}. Giá khoảng {price}. Bạn đồng ý đặt hàng chứ?"
+    ],
+    "order_success": [
+        "Đặt hàng thành công! Mã đơn hàng của bạn là #{order_number}.",
+        "Okie, đơn hàng #{order_number} đã được tạo."
+    ],
+    "order_failed": [
+        "Xin lỗi, không thể tạo đơn. Có thể do thiếu thông tin hoặc lỗi hệ thống.",
+        "Tạo đơn hàng thất bại. Vui lòng kiểm tra lại thông tin hoặc thử lại sau."
+    ],
+    "order_status_found": [
+        "Đơn hàng #{order_number} (ngày {order_date}) có trạng thái: **{status_display}**. {details}"
+    ],
+    "order_status_not_found": [
+        "Không tìm thấy đơn hàng với mã: {order_number}. Bạn kiểm tra lại mã nhé.",
+        "Mã đơn {order_number} không đúng hoặc không tồn tại."
+    ],
+    "order_status_ask_number": [
+        "Bạn vui lòng cung cấp mã đơn hàng (VD: ORD-...) để tôi kiểm tra nhé.",
+        "Cho tôi xin mã đơn hàng ạ?"
+    ],
+    "error": [
+        "Xin lỗi, tôi đang gặp lỗi kỹ thuật. Bạn vui lòng thử lại sau giây lát nhé.",
+        "Hệ thống chatbot đang có chút vấn đề, mong bạn thông cảm và thử lại sau.",
+        "Rất tiếc, tôi không thể xử lý yêu cầu của bạn lúc này."
+    ],
+    "fallback": [
+        "Xin lỗi, tôi chưa hiểu rõ lắm. Bạn có thể hỏi về menu, địa chỉ, giờ mở cửa, khuyến mãi?",
+        "Tôi đang học hỏi. Bạn có thể nói rõ hơn yêu cầu được không ạ?"
+    ]
+}

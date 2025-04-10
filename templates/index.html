@@ -7,11 +7,11 @@
 <section class="hero-section">
     <div class="container">
         <div class="hero-content animate-on-scroll" data-animation="animate__fadeIn">
-            <h1 class="hero-title">Awaken Your Fiery Spirit</h1>
-            <p class="hero-subtitle">Experience our artisan coffee, crafted with the mystical essence of dragons.</p>
+            <h1 class="hero-title">Đánh thức tinh thần Rồng rực lửa trong lòng bạn</h1>
+            <p class="hero-subtitle">Trải nghiệm cà phê thủ công của chúng tôi, được chế tác bằng tinh chất huyền bí của loài rồng.</p>
             <div class="d-flex justify-content-center gap-3">
-                <a href="{{ url_for('main.menu') }}" class="btn btn-hero btn-accent">Explore Menu</a>
-                <a href="{{ url_for('order.cart') }}" class="btn btn-hero btn-outline-light">Order Online</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-hero btn-accent">Khám phá Menu</a>
+                <a href="{{ url_for('order.cart') }}" class="btn btn-hero btn-outline-light">Đặt hàng trực tuyến</a>
             </div>
         </div>
     </div>
@@ -21,13 +21,13 @@
     <!-- Featured Products Section -->
     <section class="py-5">
         <div class="content-container">
-            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Dragon's Favorites</h2>
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Món ưa thích của rồng</h2>
             <div class="row">
                 {% for product in featured_products %}
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
                         {% if product.is_featured %}
-                        <div class="featured-badge">Featured</div>
+                        <div class="featured-badge">Nổi bật</div>
                         {% endif %}
                         <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1496318447583-f524534e9ce1' }}" class="card-img-top" alt="{{ product.name }}">
                         <div class="card-body">
@@ -36,9 +36,9 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
                                 <div class="d-flex gap-2">
-                                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
-                                    <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
-                                        <i class="fas fa-cart-plus"></i> Add
+                                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                    <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+                                        <i class="fas fa-cart-plus"></i> Thêm
                                     </button>
                                 </div>
                             </div>
@@ -48,7 +48,7 @@
                 {% endfor %}
             </div>
             <div class="text-center mt-4">
-                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">View Full Menu</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Xem Menu Đầy Đủ</a>
             </div>
         </div>
     </section>
@@ -61,10 +61,10 @@
                     <img src="https://images.unsplash.com/photo-1559417004-3f15daa4fd37" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
                 </div>
                 <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
-                    <h2 class="section-title text-start">Our Story</h2>
-                    <p class="about-text">Dragon Coffee Shop was born from a passion for exceptional coffee and a love for mythical dragon lore. Our founders, inspired by ancient legends of dragons guarding treasures, decided to create a sanctuary where the treasure is the perfect cup of coffee.</p>
-                    <p class="about-text">Each blend is carefully crafted, sourced from sustainable farms, and roasted to perfection to bring out the fiery spirit and rich flavors that make our coffee legendary.</p>
-                    <a href="{{ url_for('main.about') }}" class="btn btn-primary mt-3">Learn More</a>
+                    <h2 class="section-title text-start">Câu chuyện Rồng của chúng tôi</h2>
+                    <p class="about-text">Dragon Coffee Shop ra đời từ niềm đam mê với cà phê hảo hạng và tình yêu đối với những câu chuyện huyền thoại về rồng. Những người sáng lập của chúng tôi, lấy cảm hứng từ những truyền thuyết cổ xưa về loài rồng canh giữ kho báu, đã quyết định tạo ra một nơi trú ẩn, nơi mà kho báu chính là một tách cà phê hoàn hảo.</p>
+                    <p class="about-text">Mỗi loại cà phê được pha chế cẩn thận, lấy nguồn từ các trang trại bền vững và rang đến độ hoàn hảo để khơi dậy tinh thần rực lửa cùng hương vị đậm đà, tạo nên sự huyền thoại cho cà phê của chúng tôi.</p>
+                    <a href="{{ url_for('main.about') }}" class="btn btn-primary mt-3">Tìm hiểu thêm</a>
                 </div>
             </div>
         </div>
@@ -73,7 +73,7 @@
     <!-- Categories Section -->
     <section class="py-5">
         <div class="content-container">
-            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Explore Our Categories</h2>
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khám phá danh mục của chúng tôi</h2>
             <div class="row">
                 {% for category in categories %}
                 <div class="col-lg-4 col-md-6 mb-4">
@@ -83,7 +83,7 @@
                                 <h3 class="card-title">{{ category.name }}</h3>
                                 <p class="card-text text-muted">{{ category.description }}</p>
                                 <div class="mt-3">
-                                    <span class="btn btn-sm btn-outline-primary">Explore</span>
+                                    <span class="btn btn-sm btn-outline-primary">Khám phá</span>
                                 </div>
                             </div>
                         </div>
@@ -97,7 +97,7 @@
     <!-- Testimonials Section -->
     <section class="py-5">
         <div class="content-container">
-            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">What Our Customers Say</h2>
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khách hàng của chúng tôi nói gì</h2>
             <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     <div class="carousel-item active">
@@ -111,9 +111,9 @@
                                         <i class="fas fa-star text-warning"></i>
                                         <i class="fas fa-star text-warning"></i>
                                     </div>
-                                    <p class="lead fst-italic mb-4">"The Dragon's Breath latte is unlike anything I've ever tasted! The perfect balance of spice and sweetness, with that signature smoky finish. This is now my go-to coffee shop!"</p>
-                                    <h5 class="fw-bold">Jane Dragon-lover</h5>
-                                    <p class="text-muted">Regular Customer</p>
+                                    <p class="lead fst-italic mb-4">"Latte Dragon's Breath thật khác biệt so với bất cứ thứ gì tôi từng thưởng thức! Sự cân bằng hoàn hảo giữa vị cay nồng và vị ngọt, cùng hậu vị khói đặc trưng. Đây chính là quán cà phê yêu thích mới của tôi!"</p>
+                                    <h5 class="fw-bold">Phuoc Dragon-lover</h5>
+                                    <p class="text-muted">Khách hàng thường xuyên</p>
                                 </div>
                             </div>
                         </div>
@@ -129,9 +129,9 @@
                                         <i class="fas fa-star text-warning"></i>
                                         <i class="fas fa-star text-warning"></i>
                                     </div>
-                                    <p class="lead fst-italic mb-4">"The atmosphere at Dragon Coffee is just magical! The red dragon decor, the friendly staff, and of course, the amazing coffee make this place truly special."</p>
-                                    <h5 class="fw-bold">Mark Fire-brewer</h5>
-                                    <p class="text-muted">Coffee Enthusiast</p>
+                                    <p class="lead fst-italic mb-4">"Bầu không khí tại Dragon Coffee thật kỳ diệu! Trang trí rồng đỏ, đội ngũ nhân viên thân thiện và tất nhiên, những ly cà phê tuyệt vời khiến nơi này trở nên thực sự đặc biệt."</p>
+                                    <h5 class="fw-bold">Đào Fire-brewer</h5>
+                                    <p class="text-muted">Người đam mê cà phê</p>
                                 </div>
                             </div>
                         </div>
@@ -147,9 +147,9 @@
                                         <i class="fas fa-star text-warning"></i>
                                         <i class="fas fa-star-half-alt text-warning"></i>
                                     </div>
-                                    <p class="lead fst-italic mb-4">"I love their online ordering system! It's so convenient to place my order ahead of time and just pick it up. Their loyalty program is great too - I've earned so many free drinks!"</p>
-                                    <h5 class="fw-bold">Sarah Scale-sipper</h5>
-                                    <p class="text-muted">Busy Professional</p>
+                                    <p class="lead fst-italic mb-4">"Tôi rất thích hệ thống đặt hàng trực tuyến của họ! Thật tiện lợi khi có thể đặt trước và chỉ cần đến lấy. Chương trình khách hàng thân thiết cũng rất tuyệt, tôi đã nhận được rất nhiều đồ uống miễn phí!"</p>
+                                    <h5 class="fw-bold">Dragon Scale-sipper</h5>
+                                    <p class="text-muted">Chuyên gia bận rộn</p>
                                 </div>
                             </div>
                         </div>
@@ -157,11 +157,11 @@
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
+                    <span class="visually-hidden">Trước</span>
                 </button>
                 <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
+                    <span class="visually-hidden">Kế tiếp</span>
                 </button>
             </div>
         </div>
@@ -170,13 +170,220 @@
     <!-- CTA Section -->
     <section class="py-5">
         <div class="content-container text-center py-5 animate-on-scroll" data-animation="animate__fadeIn">
-            <h2 class="section-title">Ready to Experience the Dragon's Fire?</h2>
-            <p class="lead mb-4">Order online for pickup or delivery and taste the difference today!</p>
+            <h2 class="section-title">Bạn đã sẵn sàng trải nghiệm Dragon's Fire chưa?</h2>
+            <p class="lead mb-4">Đặt hàng trực tuyến để nhận hàng hoặc giao hàng và cảm nhận sự khác biệt ngay hôm nay!</p>
             <div class="d-flex justify-content-center gap-3">
-                <a href="{{ url_for('main.menu') }}" class="btn btn-lg btn-primary">Order Now</a>
-                <a href="{{ url_for('main.locations') }}" class="btn btn-lg btn-outline-primary">Find Nearest Location</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-lg btn-primary">Đặt hàng ngay</a>
+                <a href="{{ url_for('main.locations') }}" class="btn btn-lg btn-outline-primary">Tìm vị trí gần nhất</a>
             </div>
         </div>
     </section>
 </div>
+
+<!-- Chatbot Integration -->
+<div id="chatbot-container" class="chatbot-container collapsed">
+    <div class="chatbot-header">
+        <button id="chatbot-minimize-btn" class="chatbot-minimize-btn">
+            <i class="fas fa-times"></i>
+        </button>
+        <span class="chatbot-title">{{ _('Dragon Chatbot') }}</span>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+        <div class="message bot-message">
+            <p>{{ _('Chào bạn! Mình là Dragon Bot, mình có thể giúp gì cho bạn?') }}</p>
+        </div>
+    </div>
+    <div class="chat-input-container">
+        <form id="chatForm" class="chat-form">
+            <input type="text" id="chat-input" placeholder="{{ _('Nhập tin nhắn...') }}" required>
+            <button type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+    <button id="chatbot-toggle-btn" class="chatbot-toggle-btn">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+        const chatbotMinimizeBtn = document.getElementById('chatbot-minimize-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chat-input');
+
+        chatbotToggleBtn.addEventListener('click', () => {
+            chatbotContainer.classList.toggle('collapsed');
+        });
+
+        chatbotMinimizeBtn.addEventListener('click', () => {
+            chatbotContainer.classList.add('collapsed');
+        });
+
+        chatForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const userMessage = chatInput.value.trim();
+            if (userMessage) {
+                appendMessage('user-message', userMessage);
+                chatInput.value = '';
+                sendChatMessage(userMessage);
+            }
+        });
+
+        function appendMessage(messageType, messageText) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', messageType);
+            messageDiv.innerHTML = `<p>${messageText}</p>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        function sendChatMessage(message) {
+            fetch('/ai/chatbot/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message, session_id: getSessionId() }) // Include session ID
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    appendMessage('bot-message', data.response);
+                } else {
+                    appendMessage('bot-message', '{{ _("Lỗi kết nối với chatbot.") }}');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                appendMessage('bot-message', '{{ _("Lỗi kết nối với chatbot.") }}');
+            });
+        }
+
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('session_id');
+            if (!sessionId) {
+                sessionId = Math.random().toString(36).substring(2, 15); // Generate random session ID
+                sessionStorage.setItem('session_id', sessionId);
+            }
+            return sessionId;
+        }
+    });
+</script>
+
+<style>
+    .chatbot-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        height: 450px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: height 0.3s ease-out, opacity 0.3s ease-out;
+    }
+
+    .chatbot-container.collapsed {
+        height: 60px; /* Height when collapsed (just the toggle button) */
+        opacity: 0.9; /* Make it a bit transparent when collapsed */
+        overflow: hidden; /* Hide content when collapsed */
+    }
+    .chatbot-container.collapsed .chatbot-header,
+    .chatbot-container.collapsed .chat-messages,
+    .chatbot-container.collapsed .chat-input-container {
+        display: none !important; /* Hide header, messages and input when collapsed */
+    }
+
+    .chatbot-header {
+        background-color: #007bff; /* Bootstrap primary color */
+        color: white;
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chatbot-title {
+        font-weight: bold;
+    }
+
+    .chatbot-minimize-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2em;
+        cursor: pointer;
+    }
+
+    .chat-messages {
+        flex-grow: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column; /* Ensure messages stack from top to bottom */
+    }
+
+    .message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        clear: both; /* Prevent floating issues */
+        max-width: 80%; /* Limit message width */
+    }
+
+    .user-message {
+        background-color: #e2f0ff; /* Light blue for user messages */
+        text-align: right;
+        float: right; /* Align user messages to the right */
+    }
+
+    .bot-message {
+        background-color: #f0f0f0; /* Light gray for bot messages */
+        text-align: left;
+        float: left; /* Align bot messages to the left */
+    }
+
+    .chat-input-container {
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        display: flex;
+        align-items: center; /* Vertically align input and button */
+    }
+
+    .chat-form {
+        display: flex;
+        flex-grow: 1; /* Allow form to take available width */
+    }
+
+    #chat-input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px 0 0 5px; /* Rounded left corners */
+        border-right: none; /* Remove right border to join with button */
+    }
+
+    .chat-form button {
+        background-color: #007bff; /* Bootstrap primary color */
+        color: white;
+        border: 1px solid #007bff;
+        border-radius: 0 5px 5px 0; /* Rounded right corners */
+        padding: 8px 15px;
+        cursor: pointer;
+    }
+   
+    .chatbot-container.collapsed .chatbot-toggle-btn {
+        bottom: 0; /* Reset bottom position when collapsed */
+        right: 0; /* Reset right position when collapsed */
+    }
+
+</style>
+<!-- End Chatbot Integration -->
 {% endblock %}

@@ -4,17 +4,17 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">Employee Management</h1>
+    <h1 class="admin-title">Quản lý nhân viên</h1>
     <div class="d-flex align-items-center">
         <a href="{{ url_for('admin.add_employee') }}" class="btn btn-primary">
-            <i class="fas fa-user-plus me-1"></i> Add Employee
+            <i class="fas fa-user-plus me-1"></i> Thêm nhân viên
         </a>
     </div>
 </div>
 
 <div class="admin-card mb-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Staff Members</h4>
+        <h4 class="mb-0">Nhân viên</h4>
         <div class="input-group" style="width: 300px;">
             <span class="input-group-text"><i class="fas fa-search"></i></span>
             <input type="text" class="form-control" id="employeeSearch" placeholder="Search employees...">
@@ -26,13 +26,13 @@
         <table class="admin-table" id="employeesTable">
             <thead>
                 <tr>
-                    <th>Employee</th>
-                    <th>Position</th>
+                    <th>Người lao động</th>
+                    <th>Chức vụ</th>
                     <th>Email</th>
-                    <th>Phone</th>
-                    <th>Hire Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>Điện thoại</th>
+                    <th>Ngày thuê</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,16 +55,16 @@
                     <td>{{ employee.hire_date.strftime('%Y-%m-%d') }}</td>
                     <td>
                         {% if employee.is_active %}
-                        <span class="status-badge completed">Active</span>
+                        <span class="status-badge completed">Tích cực</span>
                         {% else %}
-                        <span class="status-badge cancelled">Inactive</span>
+                        <span class="status-badge cancelled">Không hoạt động</span>
                         {% endif %}
                     </td>
                     <td>
                         <a href="{{ url_for('admin.edit_employee', employee_id=employee.id) }}" class="table-action edit me-1" data-bs-toggle="tooltip" title="Edit Employee">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ url_for('admin.toggle_employee_status', employee_id=employee.id) }}" method="POST" class="d-inline">
+                        <form action="{{ url_for('admin.toggle_employee_active_status', employee_id=employee.id) }}" method="POST" class="d-inline">
                             <button type="submit" class="table-action {{ 'delete' if employee.is_active else 'view' }}" data-bs-toggle="tooltip" 
                                     title="{{ 'Deactivate' if employee.is_active else 'Activate' }} Employee">
                                 <i class="fas {{ 'fa-user-slash' if employee.is_active else 'fa-user-check' }}"></i>
@@ -79,21 +79,21 @@
     {% else %}
     <div class="text-center py-5">
         <i class="fas fa-users fa-4x text-muted mb-3"></i>
-        <h4>No employees found</h4>
-        <p class="text-muted">Start by adding your first employee to the system.</p>
-        <a href="{{ url_for('admin.add_employee') }}" class="btn btn-primary mt-2">Add First Employee</a>
+        <h4>Không tìm thấy nhân viên nào</h4>
+        <p class="text-muted">Bắt đầu bằng cách thêm nhân viên đầu tiên vào hệ thống.</p>
+        <a href="{{ url_for('admin.add_employee') }}" class="btn btn-primary mt-2">Thêm nhân viên đầu tiên</a>
     </div>
     {% endif %}
 </div>
 
 <div class="admin-card">
-    <h4 class="mb-4">Staff Statistics</h4>
+    <h4 class="mb-4">Thống kê nhân viên</h4>
     
     <div class="row">
         <div class="col-md-3 mb-4 mb-md-0">
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Staff</h5>
+                    <h5 class="card-title text-muted">Tổng số nhân viên</h5>
                     <h3 class="mb-0">{{ employees|length }}</h3>
                 </div>
             </div>
@@ -102,7 +102,7 @@
         <div class="col-md-3 mb-4 mb-md-0">
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Active Staff</h5>
+                    <h5 class="card-title text-muted">Nhân viên tích cực</h5>
                     <h3 class="mb-0">{{ employees|selectattr('is_active', 'equalto', true)|list|length }}</h3>
                 </div>
             </div>
@@ -111,7 +111,7 @@
         <div class="col-md-3 mb-4 mb-md-0">
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Baristas</h5>
+                    <h5 class="card-title text-muted">Nhân viên pha chế</h5>
                     <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Barista')|list|length }}</h3>
                 </div>
             </div>
@@ -120,7 +120,7 @@
         <div class="col-md-3">
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Managers</h5>
+                    <h5 class="card-title text-muted">Người quản lý</h5>
                     <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Manager')|list|length }}</h3>
                 </div>
             </div>
@@ -133,18 +133,18 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="employeeFormModalLabel">Add New Employee</h5>
+                <h5 class="modal-title" id="employeeFormModalLabel">Thêm nhân viên mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="#" method="POST">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="firstName" class="form-label">First Name</label>
+                            <label for="firstName" class="form-label">Tên đầu tiên</label>
                             <input type="text" class="form-control" id="firstName" name="first_name" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="lastName" class="form-label">Last Name</label>
+                            <label for="lastName" class="form-label">Họ</label>
                             <input type="text" class="form-control" id="lastName" name="last_name" required>
                         </div>
                     </div>
@@ -155,29 +155,29 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Phone</label>
+                        <label for="phone" class="form-label">Điện thoại</label>
                         <input type="tel" class="form-control" id="phone" name="phone">
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="position" class="form-label">Position</label>
+                            <label for="position" class="form-label">Chức vụ</label>
                             <select class="form-select" id="position" name="position" required>
-                                <option value="">Select a position</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Barista">Barista</option>
-                                <option value="Cashier">Cashier</option>
-                                <option value="Kitchen Staff">Kitchen Staff</option>
+                                <option value="">Chọn một vị trí</option>
+                                <option value="Manager">Giám đốc</option>
+                                <option value="Barista">Nhân viên pha chế</option>
+                                <option value="Cashier">Thu ngân</option>
+                                <option value="Kitchen Staff">Nhân viên bếp</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="hireDate" class="form-label">Hire Date</label>
+                            <label for="hireDate" class="form-label">Ngày thuê</label>
                             <input type="date" class="form-control" id="hireDate" name="hire_date" required>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="salary" class="form-label">Salary</label>
+                        <label for="salary" class="form-label">Lương</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" class="form-control" id="salary" name="salary" step="0.01">
@@ -187,13 +187,13 @@
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="isAdmin" name="is_admin">
                         <label class="form-check-label" for="isAdmin">
-                            Administrator Access
+                            Quyền truy cập của quản trị viên
                         </label>
                     </div>
                     
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Employee</button>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary">Lưu Nhân viên</button>
                     </div>
                 </form>
             </div>

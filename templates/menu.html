@@ -5,9 +5,27 @@
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Our Menu</h1>
-        
-        <!-- Category Navigation -->
+        <h1 class="section-title">Thực đơn của chúng tôi</h1>
+
+        <!-- **START: Search Form with Autocomplete Suggestions (NEW)** -->
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2">
+                <form class="d-flex" method="GET" action="{{ url_for('main.menu') }}">
+                    <div class="search-wrapper w-100"> 
+                        <input class="form-control me-2" type="search" placeholder="{{ _('Tìm kiếm sản phẩm...') }}" aria-label="Search" name="q" value="{{ search_term if search_term }}" id="search-input" autocomplete="off">
+                        <div id="search-suggestions-container" class="search-suggestions"> 
+                            <ul class="list-group" id="search-suggestions-list"> 
+                                
+                            </ul>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-success" type="submit">{{ _('Tìm kiếm') }}</button>
+                </form>
+            </div>
+        </div>
+        <!-- **END: Search Form with Autocomplete Suggestions (NEW)** -->
+
+        <!-- Category Navigation (Existing code, no change) -->
         <div class="category-nav mb-4">
             <ul class="nav nav-pills justify-content-center flex-nowrap">
                 <li class="nav-item">
@@ -15,40 +33,40 @@
                 </li>
                 {% for category in categories %}
                 <li class="nav-item">
-                    <a class="nav-link {% if current_category and current_category.id == category.id %}active{% endif %}" 
+                    <a class="nav-link {% if current_category and current_category.id == category.id %}active{% endif %}"
                        href="{{ url_for('main.menu', category=category.id) }}">{{ category.name }}</a>
                 </li>
                 {% endfor %}
             </ul>
         </div>
-        
-        <!-- Category Description if a category is selected -->
+
+        <!-- Category Description if a category is selected (Existing code, no change) -->
         {% if current_category %}
         <div class="alert alert-light text-center mb-4">
             <h3 class="mb-2">{{ current_category.name }}</h3>
             <p class="mb-0">{{ current_category.description }}</p>
         </div>
         {% endif %}
-        
-        <!-- Products Grid -->
+
+        <!-- Products Grid (Existing code, slightly modified for format_currency) -->
         <div class="row">
             {% if products %}
                 {% for product in products %}
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
                         {% if product.is_featured %}
-                        <div class="featured-badge">Featured</div>
+                        <div class="featured-badge">Nổi bật</div>
                         {% endif %}
                         <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">{{ product.description|truncate(100) }}</p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
+                                <div class="card-price">{{ format_currency(product.price) }}</div> 
                                 <div class="d-flex gap-2">
                                     <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
-                                    <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
-                                        <i class="fas fa-cart-plus"></i> Add
+                                    <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+                                        <i class="fas fa-cart-plus"></i> Thêm
                                     </button>
                                 </div>
                             </div>
@@ -58,10 +76,96 @@
                 {% endfor %}
             {% else %}
                 <div class="col-12 text-center py-5">
-                    <p class="lead">No products available in this category yet.</p>
+                    <p class="lead">Chưa có sản phẩm nào trong danh mục này.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- **START: Inline CSS for Search Suggestions (NEW)** -->
+<style>
+    .search-wrapper { position: relative; } /* Để định vị dropdown gợi ý */
+    .search-suggestions {
+        position: absolute; /* Định vị tuyệt đối dưới input */
+        top: 100%; /* Ngay dưới input */
+        left: 0;
+        right: 0;
+        background-color: white;
+        border: 1px solid #ced4da; /* Border giống input */
+        border-top: none; /* Không có border phía trên, để liền mạch với input */
+        border-radius: 0 0 .25rem .25rem; /* Bo tròn góc dưới */
+        box-shadow: 0 2px 5px rgba(0,0,0,.1); /* Thêm bóng đổ */
+        z-index: 1000; /* Đảm bảo dropdown gợi ý hiển thị trên các phần tử khác */
+        display: none; /* Ban đầu ẩn đi */
+    }
+    .search-suggestions .list-group-item {
+        cursor: pointer; /* Hiển thị con trỏ tay khi hover vào gợi ý */
+    }
+    .search-suggestions .list-group-item:hover {
+        background-color: #f8f9fa; /* Màu nền khi hover vào gợi ý */
+    }
+</style>
+<!-- **END: Inline CSS for Search Suggestions (NEW)** -->
+
+<!-- **START: JavaScript for Search Suggestions (NEW)** -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const suggestionsContainer = document.getElementById('search-suggestions-container');
+        const suggestionsList = document.getElementById('search-suggestions-list');
+        let debounceTimeout;
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+
+            clearTimeout(debounceTimeout); // Hủy timeout trước đó (nếu có)
+
+            if (searchTerm.length >= 2) { // Bắt đầu tìm kiếm khi có ít nhất 2 ký tự
+                debounceTimeout = setTimeout(() => { // Debounce: đợi 300ms sau khi ngừng gõ
+                    fetch(`/menu/search_suggestions?term=${searchTerm}`) // AJAX request đến server
+                        .then(response => response.json())
+                        .then(suggestions => {
+                            suggestionsList.innerHTML = ''; // Xóa gợi ý cũ
+
+                            if (suggestions.length > 0) {
+                                suggestions.forEach(suggestion => {
+                                    const li = document.createElement('li');
+                                    li.classList.add('list-group-item');
+                                    li.textContent = suggestion.name;
+                                    li.addEventListener('click', function() {
+                                        // Xử lý khi click vào gợi ý: có thể đi đến trang chi tiết sản phẩm hoặc fill vào input
+                                        searchInput.value = suggestion.name; // Điền tên sản phẩm vào input
+                                        suggestionsContainer.style.display = 'none'; // Ẩn gợi ý sau khi chọn
+
+                                        // Nếu muốn đi đến trang chi tiết sản phẩm ngay khi chọn gợi ý, uncomment dòng dưới
+                                        window.location.href = `/product/${suggestion.id}`;
+                                    });
+                                    suggestionsList.appendChild(li);
+                                });
+                                suggestionsContainer.style.display = 'block'; // Hiển thị container gợi ý
+                            } else {
+                                suggestionsContainer.style.display = 'none'; // Ẩn nếu không có gợi ý
+                            }
+                        });
+                }, 300); // 300ms debounce delay
+            } else {
+                suggestionsContainer.style.display = 'none'; // Ẩn gợi ý nếu từ khóa ngắn hoặc rỗng
+            }
+        });
+
+        // Ẩn gợi ý khi click ra ngoài ô tìm kiếm hoặc blur (mất focus)
+        document.addEventListener('click', function(event) {
+            if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+        searchInput.addEventListener('blur', function() { // Blur event khi input mất focus
+             // Tạm thời bỏ ẩn đi khi blur, vì có thể click vào gợi ý thì blur xảy ra trước click
+             // setTimeout(() => { suggestionsContainer.style.display = 'none'; }, 100);
+        });
+    });
+</script>
+<!-- **END: JavaScript for Search Suggestions (NEW)** -->
+
 {% endblock %}

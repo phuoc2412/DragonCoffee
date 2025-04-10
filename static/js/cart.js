@@ -1,303 +1,257 @@
 /**
- * Dragon Coffee Shop - Cart JavaScript
- * Handles client-side functionality for the shopping cart and checkout
+ * Dragon Coffee Shop - Cart Page JavaScript
+ * Handles quantity updates and removals specifically for the cart page using AJAX.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Update quantity
-    const quantityInputs = document.querySelectorAll('.cart-quantity-input');
-    quantityInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const form = this.closest('form');
-            form.querySelector('.update-cart-btn').click();
-        });
-    });
+// Function to show toast messages (Copy từ main.js nếu cần)
+function showToast(message, type = 'info') {
+    // (Copy nội dung hàm showToast từ main.js vào đây nếu cart.js đứng độc lập)
+    const toastBgClasses = { success: 'text-bg-success', danger: 'text-bg-danger', error: 'text-bg-danger', warning: 'text-bg-warning', info: 'text-bg-info' };
+    const toastClass = toastBgClasses[type] || 'text-bg-secondary';
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div'); container.className = 'toast-container position-fixed bottom-0 end-0 p-3'; container.style.zIndex = "1100"; document.body.appendChild(container);
+    }
+    const toastId = 'toast-cart-' + Date.now();
+    const icon = type === 'success' ? 'fa-check-circle' : (type === 'danger' || type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle');
+    const html = `<div id="${toastId}" class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"><div class="d-flex"><div class="toast-body"><i class="fas ${icon} me-2"></i><span>${message}</span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    const el = document.getElementById(toastId);
+    if (el && typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+        const toast = bootstrap.Toast.getOrCreateInstance(el);
+        el.addEventListener('hidden.bs.toast', () => el.remove());
+        toast.show();
+    } else { console.warn('Toast/Bootstrap not available'); alert(`${type}: ${message}`); if (el) el.remove(); }
+}
 
-    // Increment/decrement buttons
-    const incrementBtns = document.querySelectorAll('.cart-quantity-btn.increment');
-    const decrementBtns = document.querySelectorAll('.cart-quantity-btn.decrement');
-
-    incrementBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('.cart-quantity-input');
-            input.value = parseInt(input.value) + 1;
-            input.dispatchEvent(new Event('change'));
-        });
-    });
-
-    decrementBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('.cart-quantity-input');
-            const newValue = parseInt(input.value) - 1;
-            if (newValue >= 1) {
-                input.value = newValue;
-                input.dispatchEvent(new Event('change'));
+/** Update cart badge count */
+function updateCartBadge() {
+    fetch('/order/cart-count')
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+            const badge = document.querySelector('.cart-badge'); // Tìm badge ở header chung
+            if (badge && data && typeof data.count === 'number') {
+                badge.textContent = data.count;
+                badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+            } else if (badge) {
+                badge.textContent = '0'; badge.style.display = 'none';
             }
-        });
-    });
-
-
-    // Set up update cart buttons (original function largely remains)
-    setupUpdateCartButtons();
-
-    // Set up remove from cart buttons (original function largely remains)
-    setupRemoveFromCartButtons();
-
-    // Calculate cart totals
-    updateCartTotals();
-
-    // Set up order type toggle in checkout (simplified)
-    const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
-    const deliveryAddressContainer = document.getElementById('delivery-address-container');
-    if (orderTypeRadios && deliveryAddressContainer) {
-        orderTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'delivery') {
-                    deliveryAddressContainer.classList.remove('d-none');
-                } else {
-                    deliveryAddressContainer.classList.add('d-none');
-                }
-            });
-        });
-        // Initial check
-        if (document.querySelector('input[name="order_type"]:checked').value === 'delivery') {
-            deliveryAddressContainer.classList.remove('d-none');
-        }
-    }
-
-    // Set up payment method selection in checkout (simplified)
-    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
-    const cardDetailsContainer = document.getElementById('card-details-container');
-    if (paymentMethodRadios && cardDetailsContainer) {
-        paymentMethodRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'card') {
-                    cardDetailsContainer.classList.remove('d-none');
-                } else {
-                    cardDetailsContainer.classList.add('d-none');
-                }
-            });
-        });
-        // Initial check
-        if (document.querySelector('input[name="payment_method"]:checked')?.value === 'card') {
-            cardDetailsContainer.classList.remove('d-none');
-        }
-    }
-
-    // Handle checkout form submission (original function remains)
-    setupCheckoutForm();
-});
-
-/**
- * Set up the quantity increment/decrement controls in the cart
- * (This function is largely redundant now)
- */
-function setupCartQuantityControls() {
-    //This function is now redundant due to the new event listeners in DOMContentLoaded
+        })
+        .catch(error => console.error('Error updating cart badge:', error));
 }
 
 
 /**
- * Update the subtotal for a cart item based on quantity
+ * Send AJAX request to update item quantity in the cart.
+ * @param {string} productId - The ID of the product to update.
+ * @param {number} quantity - The new quantity for the product.
  */
-function updateItemSubtotal(quantityInput) {
-    const cartItem = quantityInput.closest('.cart-item');
-    const price = parseFloat(cartItem.dataset.price);
-    const quantity = parseInt(quantityInput.value);
-    const subtotal = price * quantity;
+function updateCartItemAJAX(productId, quantity) {
+    console.log(`AJAX: Updating cart for product ID: ${productId}, New Quantity: ${quantity}`);
+    const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+    const endpoint = '/order/update-cart'; // Đảm bảo endpoint này đúng
 
-    // Update subtotal display
-    const subtotalElement = cartItem.querySelector('.cart-item-subtotal');
-    if (subtotalElement) {
-        subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-    }
-
-    // Update hidden input for form submission
-    const subtotalInput = cartItem.querySelector('.cart-item-subtotal-input');
-    if (subtotalInput) {
-        subtotalInput.value = subtotal.toFixed(2);
-    }
-}
-
-/**
- * Set up the update cart buttons
- */
-function setupUpdateCartButtons() {
-    const updateButtons = document.querySelectorAll('.update-cart-btn');
-
-    updateButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const cartItem = this.closest('.cart-item');
-            const productId = cartItem.dataset.productId;
-            const quantity = parseInt(cartItem.querySelector('.cart-quantity-input').value);
-
-            // Create form data
-            const formData = new FormData();
-            formData.append('product_id', productId);
-            formData.append('quantity', quantity);
-
-            // Send update request
-            fetch('/order/update-cart', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                }
-            })
-            .catch(error => console.error('Error updating cart:', error));
-        });
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json', // <-- GỬI JSON
+            'Accept': 'application/json',
+            ...(csrfToken && { 'X-CSRFToken': csrfToken }) // Gửi token nếu có
+        },
+        body: JSON.stringify({ // <-- GỬI BODY JSON
+            product_id: parseInt(productId), // Đảm bảo là số
+            quantity: parseInt(quantity)     // Đảm bảo là số
+        })
+    })
+    .then(response => {
+        // Xử lý lỗi HTTP trước khi parse JSON
+        if (!response.ok) {
+            // Cố gắng đọc lỗi từ server, nếu không thì dùng status text
+            return response.json().then(errData => {
+                throw new Error(errData.message || `Lỗi ${response.status}: ${response.statusText}`);
+            }).catch(() => { throw new Error(`Lỗi máy chủ: ${response.status}`); });
+        }
+        return response.json(); // Parse JSON nếu response OK
+    })
+    .then(data => {
+        console.log('Update cart response:', data);
+        if (data.success) {
+            // --- **CẬP NHẬT GIAO DIỆN TRANG GIỎ HÀNG** ---
+            updateCartItemUI(productId, quantity, data.item_subtotal);
+            updateCartSummaryUI(data.cart_subtotal, data.cart_tax, data.cart_total);
+            updateCartBadge(); // Cập nhật badge ở header
+            showToast(data.message || "Đã cập nhật số lượng.", 'success');
+        } else {
+            // Lỗi từ backend (vd: validation, không tìm thấy sản phẩm)
+            showToast(data.message || 'Lỗi cập nhật giỏ hàng từ máy chủ.', 'danger');
+            // Có thể cần khôi phục lại giá trị input cũ nếu muốn
+        }
+    })
+    .catch(error => {
+        console.error('AJAX Update Cart Item Error:', error);
+        showToast(`Lỗi cập nhật giỏ hàng: ${error.message}`, 'danger');
+        // Có thể cần khôi phục lại giá trị input cũ ở đây
+        // const input = document.querySelector(`.cart-item[data-product-id="${productId}"] .cart-quantity-input`);
+        // if(input) input.value = // giá trị cũ lưu ở đâu đó
     });
 }
 
 /**
- * Set up the remove from cart buttons
+ * Updates the specific cart item's quantity input and subtotal display.
  */
-function setupRemoveFromCartButtons() {
-    const removeButtons = document.querySelectorAll('.remove-from-cart-btn');
+function updateCartItemUI(productId, newQuantity, newItemSubtotal) {
+    const cartItemRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+    if (!cartItemRow) {
+        console.error(`Cannot find cart item UI row for product ID: ${productId}`);
+        return;
+    }
 
-    removeButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+    const quantityInput = cartItemRow.querySelector('.cart-quantity-input');
+    const subtotalElement = cartItemRow.querySelector('.cart-item-subtotal');
 
-            if (confirm('Are you sure you want to remove this item from your cart?')) {
-                const productId = this.dataset.productId;
+    if (quantityInput) {
+        quantityInput.value = newQuantity; // Cập nhật số lượng hiển thị
+    }
+    if (subtotalElement && newItemSubtotal !== undefined) {
+        // Cần format tiền tệ giống backend (hoặc đơn giản là $)
+        subtotalElement.textContent = `$${parseFloat(newItemSubtotal).toFixed(2)}`;
+    }
+}
 
-                // Send remove request
-                fetch(`/order/remove-from-cart/${productId}`, {
-                    method: 'POST'
-                })
-                .then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
+/**
+ * Updates the cart summary section (subtotal, tax, total).
+ */
+function updateCartSummaryUI(subtotal, tax, total) {
+    const subtotalEl = document.querySelector('.cart-subtotal-value');
+    const taxEl = document.querySelector('.cart-tax-value');
+    const totalEl = document.querySelector('.cart-total-value');
+
+    if (subtotalEl && subtotal !== undefined) subtotalEl.textContent = `$${parseFloat(subtotal).toFixed(2)}`;
+    if (taxEl && tax !== undefined) taxEl.textContent = `$${parseFloat(tax).toFixed(2)}`;
+    if (totalEl && total !== undefined) totalEl.textContent = `$${parseFloat(total).toFixed(2)}`;
+}
+
+
+/**
+ * Set up event listeners for quantity buttons and remove buttons on the cart page.
+ */
+function setupCartPageInteractions() {
+    console.log("Setting up Cart Page Interactions...");
+    const cartContainer = document.querySelector('.col-lg-8 .card-body'); // Tìm container chứa các cart-item
+
+    if (!cartContainer) {
+        console.warn("Cart items container not found. Cart interactions disabled.");
+        return;
+    }
+
+    cartContainer.addEventListener('click', function(event) {
+        const target = event.target;
+
+        // --- Handling Quantity Buttons (+ / -) ---
+        if (target.classList.contains('cart-quantity-btn')) {
+            event.preventDefault();
+            const cartItemRow = target.closest('.cart-item');
+            const input = cartItemRow ? cartItemRow.querySelector('.cart-quantity-input') : null;
+            const productId = cartItemRow ? cartItemRow.dataset.productId : null;
+
+            if (!input || !productId) {
+                console.error("Could not find quantity input or product ID for button:", target);
+                return;
+            }
+
+            let currentQuantity = parseInt(input.value);
+            let newQuantity = currentQuantity;
+
+            if (target.classList.contains('increment')) {
+                newQuantity++; // Tăng số lượng
+            } else if (target.classList.contains('decrement')) {
+                newQuantity = Math.max(1, currentQuantity - 1); // Giảm, tối thiểu là 1
+            }
+
+            if (newQuantity !== currentQuantity) {
+                // Chỉ gọi AJAX nếu số lượng thực sự thay đổi
+                updateCartItemAJAX(productId, newQuantity);
+                // Cập nhật UI tạm thời (có thể bị ghi đè bởi AJAX response)
+                 input.value = newQuantity;
+                 // Tạm thời ẩn/disable nút để tránh click liên tục trong khi chờ AJAX
+                 target.disabled = true;
+                 setTimeout(() => { if(target) target.disabled = false; }, 700); // Enable lại sau 0.7s
+            }
+        }
+
+        // --- Handling Remove Button ---
+        else if (target.closest('.remove-from-cart-btn')) {
+             event.preventDefault();
+             const removeButton = target.closest('.remove-from-cart-btn');
+             const cartItemRow = removeButton.closest('.cart-item');
+             const productId = removeButton.dataset.productId || (cartItemRow ? cartItemRow.dataset.productId : null);
+
+            if (productId && confirm('Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                console.log(`AJAX: Removing product ID: ${productId}`);
+                const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+                const endpoint = `/order/remove-from-cart/${productId}`; // Đảm bảo endpoint đúng
+
+                fetch(endpoint, {
+                    method: 'POST', // Backend route phải chấp nhận POST
+                    headers: {
+                         'Accept': 'application/json',
+                        ...(csrfToken && { 'X-CSRFToken': csrfToken })
                     }
                 })
-                .catch(error => console.error('Error removing from cart:', error));
+                .then(response => {
+                     if (!response.ok) { throw new Error(`Lỗi ${response.status}`); }
+                     return response.json();
+                 })
+                 .then(data => {
+                      if (data.success) {
+                           // Xóa hẳn row khỏi giao diện
+                           if(cartItemRow) cartItemRow.remove();
+                           // Cập nhật lại summary và badge
+                           updateCartSummaryUI(data.cart_subtotal, data.cart_tax, data.cart_total);
+                           updateCartBadge();
+                           showToast(data.message || 'Đã xóa sản phẩm.', 'success');
+                           // Kiểm tra nếu giỏ hàng rỗng thì hiển thị thông báo
+                           if(data.cart_count === 0) {
+                               cartContainer.innerHTML = '<div class="text-center py-4"><p>Giỏ hàng của bạn đang trống.</p><a href="/menu" class="btn btn-primary">Quay lại mua sắm</a></div>'; // Cập nhật lại nội dung báo rỗng
+                               // Ẩn luôn phần summary nếu muốn
+                               document.querySelector('.cart-summary')?.remove();
+                           }
+                      } else {
+                           showToast(data.message || 'Lỗi khi xóa sản phẩm.', 'danger');
+                      }
+                  })
+                 .catch(error => {
+                      console.error("Error removing item via AJAX:", error);
+                      showToast(`Lỗi: ${error.message}.`, 'danger');
+                  });
+            } else if (!productId) {
+                console.error("Remove button clicked, but 'data-product-id' attribute is missing!", removeButton);
             }
-        });
+        }
     });
+    console.log("Cart Page Interaction listeners are active.");
 }
 
-/**
- * Calculate and update cart totals
- */
-function updateCartTotals() {
-    // Get all cart items
-    const cartItems = document.querySelectorAll('.cart-item');
-    let subtotal = 0;
 
-    // Calculate subtotal
-    cartItems.forEach(item => {
-        const price = parseFloat(item.dataset.price);
-        const quantity = parseInt(item.querySelector('.cart-quantity-input').value);
-        subtotal += price * quantity;
-    });
-
-    // Update subtotal display
-    const subtotalElement = document.querySelector('.cart-subtotal-value');
-    if (subtotalElement) {
-        subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+// --- MAIN INITIALIZATION FOR CART PAGE ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Chỉ gọi các hàm cần thiết cho trang giỏ hàng
+    if (document.querySelector('.cart-item')) { // Chỉ chạy nếu có element cart-item -> chắc là trang cart
+        console.log("Cart page detected. Initializing cart interactions.");
+        initializeBootstrapComponents(); // Vẫn cần cho tooltip/popover (nếu có)
+        setupCartPageInteractions();    // <<< QUAN TRỌNG: Hàm xử lý riêng cho trang cart
+        updateCartBadge();              // Cập nhật badge ban đầu
+        // Không cần gọi setupAddToCartButtons từ main.js ở đây nữa
+        // Không cần gọi setupChatbot nếu không muốn chatbot trên trang cart
+    } else {
+         // Nếu không phải trang cart, vẫn có thể chạy các setup chung khác từ main.js (nếu gộp file)
+         // initializeBootstrapComponents();
+         // animateOnScroll();
+         // setupChatbot();
+         // updateCartBadge();
+         // setupAddToCartButtons(); // Gắn listener chung cho các trang khác
+         // console.log("Non-cart page detected. Skipping cart-specific setup.");
     }
-
-    // Calculate and update tax (if applicable)
-    const taxRate = 0.1; // 10% tax rate
-    const tax = subtotal * taxRate;
-    const taxElement = document.querySelector('.cart-tax-value');
-    if (taxElement) {
-        taxElement.textContent = `$${tax.toFixed(2)}`;
-    }
-
-    // Calculate and update total
-    const total = subtotal + tax;
-    const totalElement = document.querySelector('.cart-total-value');
-    if (totalElement) {
-        totalElement.textContent = `$${total.toFixed(2)}`;
-    }
-
-    // Update hidden input for form submission
-    const subtotalInput = document.querySelector('#subtotal-input');
-    const taxInput = document.querySelector('#tax-input');
-    const totalInput = document.querySelector('#total-input');
-
-    if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
-    if (taxInput) taxInput.value = tax.toFixed(2);
-    if (totalInput) totalInput.value = total.toFixed(2);
-}
-
-/**
- * Set up the order type toggle in checkout
- */
-function setupOrderTypeToggle() {
-    //This function is now largely redundant due to the new event listeners in DOMContentLoaded
-}
-
-/**
- * Set up the payment method selection in checkout
- */
-function setupPaymentMethodSelection() {
-    //This function is now largely redundant due to the new event listeners in DOMContentLoaded
-}
-
-/**
- * Set up the checkout form submission
- */
-function setupCheckoutForm() {
-    const checkoutForm = document.querySelector('#checkout-form');
-
-    if (!checkoutForm) return;
-
-    checkoutForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Disable submit button to prevent double submission
-        const submitButton = checkoutForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-
-        // Send form data
-        fetch('/order/checkout', {
-            method: 'POST',
-            body: new FormData(checkoutForm)
-        })
-        .then(response => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                return response.json();
-            }
-        })
-        .then(data => {
-            if (data && data.error) {
-                // Show error message
-                const errorAlert = document.querySelector('#checkout-error');
-                errorAlert.textContent = data.error;
-                errorAlert.classList.remove('d-none');
-
-                // Re-enable submit button
-                submitButton.disabled = false;
-                submitButton.innerHTML = 'Place Order';
-
-                // Scroll to error message
-                errorAlert.scrollIntoView({ behavior: 'smooth' });
-            }
-        })
-        .catch(error => {
-            console.error('Error during checkout:', error);
-
-            // Show error message
-            const errorAlert = document.querySelector('#checkout-error');
-            errorAlert.textContent = 'An error occurred during checkout. Please try again.';
-            errorAlert.classList.remove('d-none');
-
-            // Re-enable submit button
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Place Order';
-
-            // Scroll to error message
-            errorAlert.scrollIntoView({ behavior: 'smooth' });
-        });
-    });
-}
+});

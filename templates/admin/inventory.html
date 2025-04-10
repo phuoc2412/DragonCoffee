@@ -1,251 +1,297 @@
 {% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %} {# Đảm bảo macro đã được tạo và import đúng #}
 
-{% block title %}Dragon Coffee Shop - Inventory Management{% endblock %}
+{% block title %}Dragon Coffee Shop - Quản Lý Tồn Kho{% endblock %}
+
+{% block page_title %}Quản Lý Tồn Kho{% endblock %} {# Sử dụng block page_title cho AdminLTE #}
+
+{% block breadcrumb %}
+    {# Tạo breadcrumb phù hợp AdminLTE #}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Tồn kho</li>
+{% endblock %}
+
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Quản Lý Tồn Kho (Inventory Management)</h1>
-    <div class="d-flex align-items-center">
-        <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#batchUpdateModal">
-            <i class="fas fa-upload me-1"></i> Cập Nhật Hàng Loạt
-        </button>
-        <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Xuất
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Xuất Tồn Kho (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Xuất Hàng Sắp Hết (CSV)</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
+{# Giữ lại các thẻ thống kê - đã kiểm tra các biến đúng #}
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon products">
-                <i class="fas fa-boxes"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Tổng Sản Phẩm</h5>
-                <h3>{{ inventory_items|length }}</h3>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon sales">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Hàng Sắp Hết</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'lt', 'min_quantity')|list|length }}</h3>
+        <div class="info-box shadow-sm"> {# Sử dụng info-box của AdminLTE #}
+            <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Tổng Mặt Hàng</span>
+                {# Dùng total_all_items_count thay vì total_items #}
+                <span class="info-box-number">{{ total_all_items_count }}</span>
             </div>
         </div>
     </div>
-    
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon orders">
-                <i class="fas fa-ban"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Hết Hàng</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'equalto', 0)|list|length }}</h3>
+        <div class="info-box shadow-sm">
+             <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Hàng Sắp Hết</span>
+                <span class="info-box-number">{{ low_stock_count }}</span>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon customers">
-                <i class="fas fa-check-circle"></i>
+     <div class="col-xl-3 col-md-6 mb-4">
+        <div class="info-box shadow-sm">
+             <span class="info-box-icon bg-danger"><i class="fas fa-ban"></i></span>
+             <div class="info-box-content">
+                <span class="info-box-text">Hết Hàng</span>
+                <span class="info-box-number">{{ out_of_stock_count }}</span>
             </div>
-            <div class="stats-info">
-                <h5>Đủ Tồn Kho</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'ge', 'min_quantity')|list|length }}</h3>
+        </div>
+    </div>
+     <div class="col-xl-3 col-md-6 mb-4">
+         <div class="info-box shadow-sm">
+            <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
+             <div class="info-box-content">
+                <span class="info-box-text">Đủ Tồn Kho</span>
+                <span class="info-box-number">{{ adequate_stock_count }}</span>
             </div>
         </div>
     </div>
 </div>
 
-<div class="admin-card mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Trạng Thái Tồn Kho</h4>
-        <div class="d-flex">
-            <div class="input-group me-2">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="inventorySearch" placeholder="Tìm kiếm sản phẩm...">
-            </div>
-            <select class="form-select" id="inventoryFilter" style="width: auto;">
-                <option value="all">Tất Cả</option>
-                <option value="low">Sắp Hết</option>
-                <option value="out">Hết Hàng</option>
-                <option value="adequate">Đủ Tồn Kho</option>
-            </select>
+
+<!-- Card chứa bộ lọc và bảng -->
+<div class="card shadow-sm mb-4"> {# Thêm shadow #}
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap"> {# Thêm flex-wrap #}
+            <h3 class="card-title mb-2 mb-md-0">Trạng Thái Tồn Kho</h3>
+            {# Form lọc #}
+             <form method="GET" action="{{ url_for('admin.inventory') }}" class="d-flex flex-wrap align-items-center ms-auto">
+                {# Ô tìm kiếm #}
+                 <div class="input-group input-group-sm me-2 mb-2 mb-sm-0" style="width: auto; max-width: 250px;">
+                     <span class="input-group-text"><i class="fas fa-search"></i></span>
+                     <input type="text" class="form-control" name="search" id="inventorySearch" placeholder="Tìm tên sản phẩm..." value="{{ search_term or '' }}">
+                </div>
+                {# Select lọc trạng thái #}
+                <select class="form-select form-select-sm me-2 mb-2 mb-sm-0" name="status_filter" id="inventoryFilter" style="width: auto;" aria-label="Lọc trạng thái">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Tất cả trạng thái</option>
+                    <option value="low" {% if status_filter == 'low' %}selected{% endif %}>Sắp hết</option>
+                    <option value="out" {% if status_filter == 'out' %}selected{% endif %}>Hết hàng</option>
+                    <option value="adequate" {% if status_filter == 'adequate' %}selected{% endif %}>Đủ tồn kho</option>
+                </select>
+                {# Nút lọc #}
+                <button type="submit" class="btn btn-sm btn-primary mb-2 mb-sm-0">
+                    <i class="fas fa-filter"></i> Lọc
+                 </button>
+                 {# Nút xóa lọc #}
+                  {% if search_term or status_filter != 'all' %}
+                 <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2 mb-sm-0" title="Xóa bộ lọc"><i class="fas fa-times"></i></a>
+                  {% endif %}
+            </form>
+             {# Các nút Batch Update / Export #}
+              <div class="ms-md-3 mt-2 mt-md-0 d-flex gap-2">
+                 <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#batchUpdateModal">
+                    <i class="fas fa-upload me-1"></i> Cập nhật loạt
+                </button>
+                 <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                         <i class="fas fa-download me-1"></i> Xuất
+                    </button>
+                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                         <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status=status_filter, search=search_term) }}">Xuất Kết quả hiện tại (CSV)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='all') }}">Xuất Tất cả (CSV)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='low') }}">Xuất Sắp hết (CSV)</a></li>
+                         <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='out') }}">Xuất Hết hàng (CSV)</a></li>
+                     </ul>
+                </div>
+             </div>
+
         </div>
-    </div>
-    
-    {% if inventory_items %}
-    <div class="table-responsive">
-        <table class="admin-table inventory-table" id="inventoryTable">
-            <thead>
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th>Danh mục</th>
-                    <th>Tồn kho</th>
-                    <th>Tồn kho tối thiểu</th>
-                    <th>Trạng thái</th>
-                    <th>Cập nhật gần đây</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in inventory_items %}
-                <tr data-status="{% if item.quantity == 0 %}out{% elif item.quantity < item.min_quantity %}low{% else %}adequate{% endif %}">
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <img src="{{ item.product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ item.product.name }}" width="40" height="40" class="rounded me-2" style="object-fit: cover;">
-                            {{ item.product.name }}
-                        </div>
-                    </td>
-                    <td>{{ item.product.category.name }}</td>
-                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
-                    <td>{{ item.min_quantity }} {{ item.unit or 'units' }}</td>
-                    <td>
-                        {% if item.quantity == 0 %}
-                        <span class="status-badge cancelled">Hết hàng</span>
-                        {% elif item.quantity < item.min_quantity %}
-                        <span class="status-badge pending">Sắp hết</span>
-                        {% else %}
-                        <span class="status-badge completed">Còn hàng</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if item.last_restocked %}
-                        {{ item.last_restocked.strftime('%Y-%m-%d') }}
-                        {% else %}
-                        Never
-                        {% endif %}
-                    </td>
-                    <td>
-                        <button type="button" class="table-action edit me-1" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ item.id }}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="table-action view" data-bs-toggle="modal" data-bs-target="#historyModal{{ item.id }}">
-                            <i class="fas fa-history"></i>
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Update Stock Modal -->
-                <div class="modal fade" id="updateStockModal{{ item.id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ item.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="updateStockModalLabel{{ item.id }}">Cập nhật tồn kho - {{ item.product.name }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div> {# /.card-header #}
+
+    <div class="card-body p-0"> {# Remove padding for full-width table #}
+        {% if inventory_items %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm align-middle mb-0" id="inventoryTable"> {# table-sm, align-middle #}
+                <thead class="table-light">
+                    <tr>
+                        {# Header bảng #}
+                         <th style="width: 40%;">Sản phẩm</th> {# Tăng độ rộng #}
+                        <th>Danh mục</th>
+                        <th class="text-end">Tồn kho</th>
+                        <th class="text-end">Tối thiểu</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Cập nhật</th> {# Đổi tên #}
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory_items %}
+                    {# --- ĐÂY LÀ PHẦN ĐÃ SỬA TRUY CẬP `product_inventory` --- #}
+                    {# Thêm class row dựa trên trạng thái #}
+                    <tr class="{% if item.quantity <= 0 %}table-danger{% elif item.quantity <= item.min_quantity %}table-warning{% endif %}"
+                        data-product-name="{{ item.product_inventory.name|lower if item.product_inventory else '' }}"
+                        data-category-name="{{ item.product_inventory.category.name|lower if item.product_inventory and item.product_inventory.category else '' }}"
+                        data-status="{% if item.quantity <= 0 %}out{% elif item.quantity <= item.min_quantity %}low{% else %}adequate{% endif %}">
+                        <td>
+                            {% if item.product_inventory %}
+                            <div class="d-flex align-items-center">
+                                 <img src="{{ item.product_inventory.image_url or url_for('static', filename='images/default_product.png') }}"
+                                      alt="{{ item.product_inventory.name }}" width="40" height="40" class="rounded me-3 shadow-sm" style="object-fit: cover;"> {# Thêm shadow #}
+                                 <div class="flex-grow-1">
+                                     <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}" class="fw-medium text-dark text-decoration-none">
+                                         {{ item.product_inventory.name }}
+                                     </a>
+                                      {# Hiển thị SKU hoặc ID nếu cần #}
+                                     {# <small class="d-block text-muted">ID: {{ item.product_id }}</small> #}
+                                </div>
                             </div>
-                            <div class="modal-body">
-                                <form action="{{ url_for('admin.update_inventory', inventory_id=item.id) }}" method="POST" class="inventory-update-form" data-inventory-id="{{ item.id }}">
-                                    <div class="mb-3">
-                                        <label for="quantity{{ item.id }}" class="form-label">Số lượng hiện tại</label>
-                                        <input type="number" class="form-control" name="quantity" id="quantity{{ item.id }}" value="{{ item.quantity }}" min="0">
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                        <button type="submit" class="btn btn-primary">Cập nhật</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Stock History Modal -->
-                <div class="modal fade" id="historyModal{{ item.id }}" tabindex="-1" aria-labelledby="historyModalLabel{{ item.id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="historyModalLabel{{ item.id }}">Lịch sử tồn kho - {{ item.product.name }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Dữ liệu lịch sử không có sẵn tại thời điểm này.</p>
-                                <div id="stockChart{{ item.id }}" style="height: 300px;"></div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
-        <h4>Không tìm thấy sản phẩm nào trong kho</h4>
-        <p class="text-muted">Bắt đầu bằng cách thêm sản phẩm vào menu.</p>
-        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary mt-2">Thêm sản phẩm</a>
+                            {% else %}
+                                <span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Lỗi SP (ID: {{ item.product_id }})</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {# Hiển thị tên category nếu có #}
+                             {{ item.product_inventory.category.name if item.product_inventory and item.product_inventory.category else 'N/A' }}
+                         </td>
+                         <td class="text-end fw-medium">{{ item.quantity }} <small class="text-muted">{{ item.unit or '' }}</small></td>
+                         <td class="text-end">{{ item.min_quantity }} <small class="text-muted">{{ item.unit or '' }}</small></td>
+                        <td class="text-center">
+                            {# Sử dụng macro status_badge #}
+                            {{ status_badge('out' if item.quantity <= 0 else ('low' if item.quantity <= item.min_quantity else 'adequate'),
+                                custom_classes={'out': 'badge bg-danger', 'low': 'badge bg-warning text-dark', 'adequate': 'badge bg-success'} ) }}
+                        </td>
+                        <td class="text-center">
+                            {# Ưu tiên last_updated, fallback last_restocked #}
+                            <span title="{{ item.last_updated if item.last_updated else item.last_restocked }}">
+                                {{ (item.last_updated or item.last_restocked) | format_datetime('%d/%m/%y %H:%M') if (item.last_updated or item.last_restocked) else 'Chưa có' }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                             {# Giữ nguyên các nút thao tác #}
+                            <button type="button" class="btn btn-xs btn-outline-primary me-1" title="Cập nhật số lượng"
+                                    data-bs-toggle="modal" data-bs-target="#updateStockModal"
+                                    data-item-id="{{ item.id }}"
+                                    data-product-name="{{ item.product_inventory.name if item.product_inventory else 'Lỗi SP' }}"
+                                    data-current-quantity="{{ item.quantity }}"
+                                    data-current-min-quantity="{{ item.min_quantity }}"
+                                    data-update-url="{{ url_for('admin.update_inventory', inventory_id=item.id, page=pagination.page, search=search_term, status_filter=status_filter) }}"> {# Thêm params vào URL #}
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-info" title="Xem lịch sử"
+                                    data-bs-toggle="modal" data-bs-target="#historyModal"
+                                    data-item-id="{{ item.id }}"
+                                    data-product-name="{{ item.product_inventory.name if item.product_inventory else 'Lỗi SP' }}">
+                                <i class="fas fa-history"></i>
+                            </button>
+                        </td>
+                    </tr>
+                     {# --- Kết thúc Sửa ---- #}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center p-5">
+                 <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                {% if search_term or status_filter != 'all' %}
+                    <p class="lead text-muted">Không tìm thấy mặt hàng nào khớp với bộ lọc.</p>
+                     <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-secondary mt-2"><i class="fas fa-times me-1"></i> Xóa bộ lọc</a>
+                 {% else %}
+                    <p class="lead text-muted">Kho hàng hiện đang trống.</p>
+                    <p><small>Bạn có thể bắt đầu bằng cách <a href="{{ url_for('admin.add_product') }}">thêm sản phẩm</a> mới.</small></p>
+                 {% endif %}
+            </div>
+        {% endif %}
+    </div> {# /.card-body #}
+
+     {# Hiển thị phân trang nếu cần #}
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer clearfix">
+         {# Sử dụng macro render_pagination với các tham số filter hiện tại #}
+        {{ render_pagination(pagination, 'admin.inventory',
+                             search=search_term, status_filter=status_filter) }}
     </div>
     {% endif %}
+</div> {# /.card #}
+
+{# --- Giữ nguyên các Modals --- #}
+<!-- Universal Update Stock Modal -->
+<div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+     {# ... Nội dung Modal Update Stock ... #}
+     <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateStockModalLabel">Cập nhật tồn kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStockForm" method="POST"> {# Action sẽ được set bởi JS #}
+                    <p><strong>Sản phẩm:</strong> <span id="updateProductName"></span></p>
+                    <div class="mb-3">
+                        <label for="updateQuantity" class="form-label">Số lượng mới<span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="quantity" id="updateQuantity" min="0" required>
+                    </div>
+                     <div class="mb-3">
+                         <label for="updateMinQuantity" class="form-label">Tồn kho tối thiểu mới (Tùy chọn)</label>
+                         <input type="number" class="form-control" name="min_quantity" id="updateMinQuantity" min="0">
+                         <div class="form-text">Để trống nếu không muốn thay đổi mức cảnh báo.</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Universal Stock History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+     {# ... Nội dung Modal History ... #}
+     <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">Lịch sử tồn kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Sản phẩm:</strong> <span id="historyProductName"></span></p>
+                <div id="historyContent" class="text-center">
+                     <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div>
+                </div>
+                {# Ví dụ canvas cho biểu đồ #}
+                {# <div id="stockChartContainer" style="height: 300px; display: none;" class="mt-3"><canvas id="stockChart"></canvas></div> #}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Batch Update Modal -->
 <div class="modal fade" id="batchUpdateModal" tabindex="-1" aria-labelledby="batchUpdateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+     {# ... Nội dung Modal Batch Update ... #}
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="batchUpdateModalLabel">Cập Nhật Hàng Loạt</h5>
+                <h5 class="modal-title" id="batchUpdateModalLabel">Cập Nhật Hàng Loạt Bằng CSV</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="batchUpdateForm" action="/admin/inventory/batch-update" method="POST">
+                <form id="batchUpdateForm" action="{{ url_for('admin.batch_update_inventory') }}" method="POST" enctype="multipart/form-data">
+                     {{ csrf_token() if csrf_token }} {# Thêm CSRF nếu bạn cấu hình #}
                     <div class="mb-3">
-                        <label for="batchFile" class="form-label">Tải lên file CSV</label>
-                        <input class="form-control" type="file" id="batchFile" accept=".csv">
-                        <div class="form-text">Tải lên file CSV với cột: product_id, quantity</div>
+                        <label for="batchFile" class="form-label">Chọn file CSV</label>
+                        <input class="form-control" type="file" name="batch_file" id="batchFile" accept=".csv" required>
+                        <div class="form-text">
+                             File CSV cần có 2 cột header bắt buộc: <code>product_name</code> và <code>quantity</code>.
+                             <a href="{{ url_for('admin.download_inventory_template') }}" download>Tải file mẫu tại đây</a>.
+                        </div>
                     </div>
-                    
-                    <h5 class="mt-4">Hoặc Nhập Thủ Công</h5>
-                    <div class="table-responsive">
-                        <table class="table" id="batchUpdateTable">
-                            <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Tồn kho hiện tại</th>
-                                    <th>Số lượng mới</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in inventory_items[:5] %}
-                                <tr>
-                                    <td>{{ item.product.name }}</td>
-                                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
-                                    <td>
-                                        <input type="number" class="form-control" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="0">
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                                {% if inventory_items|length > 5 %}
-                                <tr>
-                                    <td colspan="3" class="text-center">
-                                        <button type="button" class="btn btn-link">Xem thêm sản phẩm</button>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
+                    <div class="alert alert-warning">
+                         <strong>Quan trọng:</strong> Thao tác này sẽ <strong>ghi đè</strong> số lượng tồn kho hiện tại của các sản phẩm có trong file bằng số lượng mới từ file CSV. Hãy chắc chắn dữ liệu trong file là chính xác.
                     </div>
-                    
                     <div class="d-flex justify-content-end mt-3">
                         <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Cập nhật tồn kho</button>
+                        <button type="submit" class="btn btn-primary">Thực hiện Cập Nhật</button>
                     </div>
                 </form>
             </div>
@@ -254,9 +300,67 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<!-- Chart.js for stock history charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+{% block scripts %} {# Sửa tên block thành scripts cho AdminLTE #}
+{{ super() }} {# Kế thừa script từ base #}
+
 <!-- Custom inventory management JS -->
-<script src="{{ url_for('static', filename='js/admin/inventory.js') }}"></script>
+<script>
+// JS cho modal và history giữ nguyên như bạn đã có
+document.addEventListener('DOMContentLoaded', function() {
+    var updateStockModal = document.getElementById('updateStockModal');
+    if (updateStockModal) {
+        updateStockModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var itemId = button.getAttribute('data-item-id');
+            var productName = button.getAttribute('data-product-name');
+            var currentQuantity = button.getAttribute('data-current-quantity');
+            var currentMinQuantity = button.getAttribute('data-current-min-quantity'); // Lấy min quantity
+            var updateUrl = button.getAttribute('data-update-url');
+
+            var modalTitle = updateStockModal.querySelector('.modal-title');
+            var productNameSpan = updateStockModal.querySelector('#updateProductName');
+            var quantityInput = updateStockModal.querySelector('#updateQuantity');
+            var minQuantityInput = updateStockModal.querySelector('#updateMinQuantity');
+            var form = updateStockModal.querySelector('#updateStockForm');
+
+            modalTitle.textContent = 'Cập nhật: ' + productName; // Đổi title
+            productNameSpan.textContent = productName;
+            quantityInput.value = currentQuantity;
+            minQuantityInput.value = ''; // Reset field min
+            minQuantityInput.placeholder = 'Hiện tại: ' + (currentMinQuantity || '10'); // Hiển thị min hiện tại
+            if (form) form.action = updateUrl; // Đặt action cho form
+        });
+    }
+
+    var historyModal = document.getElementById('historyModal');
+    if (historyModal) {
+        historyModal.addEventListener('show.bs.modal', function (event) {
+             // Logic fetch history giữ nguyên
+             var button = event.relatedTarget;
+             var itemId = button.getAttribute('data-item-id');
+             var productName = button.getAttribute('data-product-name');
+
+             var modalTitle = historyModal.querySelector('.modal-title');
+             var productNameSpan = historyModal.querySelector('#historyProductName');
+             var historyContentDiv = historyModal.querySelector('#historyContent');
+
+             modalTitle.textContent = 'Lịch sử tồn kho - ' + productName;
+             productNameSpan.textContent = productName;
+             historyContentDiv.innerHTML = `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div>`;
+
+            fetch(`/admin/inventory/${itemId}/history`)
+                 .then(response => {
+                    if (!response.ok) { throw new Error('Lỗi mạng hoặc server.'); }
+                    return response.text();
+                })
+                 .then(html => { historyContentDiv.innerHTML = html; })
+                 .catch(error => {
+                    console.error('Lỗi tải lịch sử:', error);
+                    historyContentDiv.innerHTML = '<div class="alert alert-danger">Không thể tải dữ liệu lịch sử.</div>';
+                });
+        });
+    }
+});
+</script>
 {% endblock %}

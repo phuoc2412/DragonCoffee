@@ -1,0 +1,211 @@
+{% extends "admin/base.html" %}
+{# Import macro render_field nếu có #}
+{# {% from "macros/_form_helpers.html" import render_field %} #}
+
+{% block title %}{{ title }} - Quản lý Câu chuyện{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.interesting_stories') }}">Câu chuyện thú vị</a></li>
+    <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="admin-form-card card shadow-sm">
+            <div class="card-body">
+                {# Thêm div để hiển thị thông báo flash động bằng JS #}
+                <div id="dynamic-flash-messages"></div>
+
+                <form class="admin-form" method="POST" action="{{ request.url }}">
+                    {{ form.hidden_tag() }} {# CSRF token #}
+
+                    {# Hiển thị thông tin chỉ đọc #}
+                    {% if story %}
+                    <div class="mb-3 row">
+                         <label class="col-sm-2 col-form-label text-sm-end fw-bold">ID:</label>
+                         <div class="col-sm-10"><p class="form-control-plaintext">#{{ story.id }}</p></div>
+                    </div>
+                     <div class="mb-3 row">
+                         <label class="col-sm-2 col-form-label text-sm-end fw-bold">Trạng thái:</label>
+                         <div class="col-sm-10">
+                            <p class="form-control-plaintext">
+                                <span class="badge
+                                    {% if story.status == 'published' %} bg-success
+                                    {% elif story.status == 'draft' %} bg-warning text-dark
+                                    {% else %} bg-secondary {% endif %}">
+                                    {{ story.status|capitalize }}
+                                </span>
+                                {% if story.generated_by_ai %}
+                                <span class="ms-2 badge bg-info bg-opacity-75">AI Generated</span>
+                                {% endif %}
+                             </p>
+                         </div>
+                    </div>
+                    <hr class="my-4">
+                    {% endif %}
+
+                    {# Trường Tiêu đề #}
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback">{% for error in form.title.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    {# Trường Nội dung #}
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {# *** QUAN TRỌNG: Thêm id="content" cho textarea *** #}
+                        {{ form.content(id="content", class="form-control" + (" is-invalid" if form.content.errors else ""), rows=10) }}
+                        {% if form.content.errors %}
+                        <div class="invalid-feedback">{% for error in form.content.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                        {# Thêm nút Viết Lại AI dưới đây #}
+                        <div class="mt-2 d-flex justify-content-between align-items-center">
+                            <span class="form-text">Admin có thể chỉnh sửa lại nội dung do AI tạo ra.</span>
+                            {# Nút Viết Lại chỉ hiển thị khi đang chỉnh sửa story đã có ID #}
+                            {% if story %}
+                            <button type="button" class="btn btn-outline-info btn-sm" id="rewrite-story-btn" data-story-id="{{ story.id }}">
+                                <i class="fas fa-magic me-1"></i> Viết lại bằng AI
+                                <span class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span> {# Spinner ẩn ban đầu #}
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Trường URL Hình ảnh #}
+                    <div class="mb-4">
+                        {{ form.image_url.label(class="form-label") }}
+                        {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else ""), placeholder="https://example.com/image.jpg") }}
+                        {% if form.image_url.errors %}
+                        <div class="invalid-feedback">{% for error in form.image_url.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                        {% if form.image_url.data or (story and story.image_url) %}
+                        <div class="mt-2">
+                            <img src="{{ form.image_url.data or story.image_url }}" alt="Xem trước ảnh" style="max-height: 150px; max-width: 100%; border-radius: 4px;">
+                         </div>
+                        {% endif %}
+                        <div class="form-text">Dán URL của hình ảnh minh họa cho câu chuyện (nếu có).</div>
+                    </div>
+
+                    {# Nút Lưu #}
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('admin.interesting_stories') }}" class="btn btn-secondary">Hủy</a>
+                        {{ form.submit(class="btn btn-primary") }} {# Nút Lưu chính của form #}
+                    </div>
+                </form>
+            </div> {# end card-body #}
+        </div> {# end admin-form-card #}
+    </div> {# end col #}
+</div> {# end row #}
+{% endblock %}
+
+{# --- THÊM JAVASCRIPT VÀO BLOCK extra_js --- #}
+{% block extra_js %}
+{{ super() }} {# Giữ lại script từ base nếu có #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rewriteBtn = document.getElementById('rewrite-story-btn');
+    const contentTextarea = document.getElementById('content');
+    // Tìm CSRF token trong form (nếu bạn dùng Flask-WTF/SeaSurf)
+    const csrfTokenInput = document.querySelector('input[name="csrf_token"]');
+    const dynamicFlashContainer = document.getElementById('dynamic-flash-messages'); // Vùng hiển thị thông báo
+
+    // Hàm hiển thị thông báo động
+    function showDynamicFlash(message, category = 'info') {
+        if (!dynamicFlashContainer) return;
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${category} alert-dismissible fade show mb-3`; // Thêm margin bottom
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        dynamicFlashContainer.appendChild(alertDiv); // Thêm vào vùng chứa
+
+        // Tự động ẩn sau vài giây
+        setTimeout(() => {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+            if (bsAlert) {
+                bsAlert.close();
+            } else {
+                alertDiv.remove(); // Xóa nếu không dùng bootstrap alert
+            }
+        }, 5000); // 5 giây
+    }
+
+    if (rewriteBtn && contentTextarea) {
+        rewriteBtn.addEventListener('click', function() {
+            const storyId = this.dataset.storyId;
+            const spinner = this.querySelector('.spinner-border');
+
+            if (!storyId) {
+                showDynamicFlash('Không tìm thấy ID của câu chuyện.', 'danger');
+                return;
+            }
+
+            // Vô hiệu hóa nút và hiện spinner
+            this.disabled = true;
+            if (spinner) spinner.classList.remove('d-none');
+
+            // Chuẩn bị headers, bao gồm CSRF token nếu có
+            const headers = {
+                // 'Content-Type': 'application/json', // Không cần cho POST không body
+                'Accept': 'application/json'
+            };
+            if (csrfTokenInput && csrfTokenInput.value) {
+                 headers['X-CSRFToken'] = csrfTokenInput.value;
+             }
+
+            fetch(`/admin/interesting-stories/rewrite/${storyId}`, {
+                method: 'POST',
+                headers: headers
+                // Không cần gửi body nếu chỉ cần ID trong URL
+            })
+            .then(response => {
+                // Kiểm tra xem response có phải JSON không trước khi parse
+                 const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return response.json().then(data => ({ ok: response.ok, status: response.status, data }));
+                } else {
+                    // Nếu không phải JSON, đọc text và tạo lỗi
+                     return response.text().then(text => {
+                         throw new Error(`Server response not JSON: ${text}`);
+                     });
+                 }
+            })
+            .then(result => {
+                 if (!result.ok) {
+                    // Lấy message lỗi từ server hoặc tạo message mặc định
+                     throw new Error(result.data.message || `Lỗi server (${result.status})`);
+                 }
+                 if (result.data.success && result.data.new_content) {
+                    contentTextarea.value = result.data.new_content; // Cập nhật textarea
+                    showDynamicFlash('Đã viết lại nội dung bằng AI. Xem và Lưu nếu bạn thích.', 'success');
+                 } else {
+                     throw new Error(result.data.message || 'Không nhận được nội dung mới.');
+                 }
+            })
+            .catch(error => {
+                console.error('Rewrite Error:', error);
+                showDynamicFlash('Lỗi khi yêu cầu viết lại: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                // Kích hoạt lại nút và ẩn spinner
+                this.disabled = false;
+                 if (spinner) spinner.classList.add('d-none');
+            });
+        });
+    } else {
+         if (!rewriteBtn) console.warn('Rewrite button not found');
+         if (!contentTextarea) console.warn('Content textarea (id="content") not found');
+     }
+});
+</script>
+{% endblock %}

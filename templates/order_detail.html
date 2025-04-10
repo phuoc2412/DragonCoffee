@@ -1,153 +1,248 @@
 {% extends "base.html" %}
+{% from "macros/_ui_helpers.html" import status_badge with context %} {# Import macro status_badge nếu có #}
 
-{% block title %}Dragon Coffee Shop - Order #{{ order.order_number }}{% endblock %}
+{% block title %}Dragon Coffee Shop - Đơn hàng #{{ order.order_number }}{% endblock %}
+
+{# Thêm block extra_css nếu cần style riêng cho trang này #}
+{% block extra_css %}
+{{ super() }}
+<style>
+    .card-body h5 {
+        color: var(--primary-color); /* Màu tiêu đề nhỏ */
+    }
+    .order-summary-table tfoot th,
+    .order-summary-table tfoot td {
+        border-top: 2px solid #dee2e6; /* Đường kẻ đậm hơn cho footer table */
+    }
+     .order-summary-table tfoot tr:last-child th,
+     .order-summary-table tfoot tr:last-child td {
+        font-size: 1.15rem; /* Tổng cộng to hơn */
+        font-weight: bold;
+         color: var(--primary-color);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="content-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="section-title mb-0">Order Details</h1>
-            <a href="{{ url_for('order.my_orders') }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i> Back to Orders
+    <div class="content-container"> {# Giữ lại container chính nếu base.html dùng nó #}
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap"> {# Thêm flex-wrap #}
+             {# Sử dụng lại section-title nếu đã định nghĩa #}
+            <h1 class="section-title mb-0" style="margin-bottom: 0 !important;">Chi tiết Đơn hàng</h1>
+            <a href="{{ url_for('order.my_orders') }}" class="btn btn-outline-primary btn-sm"> {# btn-sm cho nhỏ hơn #}
+                <i class="fas fa-arrow-left me-1"></i> Quay lại Danh sách Đơn hàng
             </a>
         </div>
-        
+
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h4>Order #{{ order.order_number }}</h4>
-                        <p class="text-muted mb-0">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <h5>
-                            Status: 
-                            <span class="badge 
-                                {% if order.status == 'pending' %}bg-warning
-                                {% elif order.status == 'processing' %}bg-info
-                                {% elif order.status == 'completed' %}bg-success
-                                {% elif order.status == 'cancelled' %}bg-danger
-                                {% else %}bg-secondary{% endif %}">
-                                {{ order.status|capitalize }}
-                            </span>
-                        </h5>
-                        <p class="text-muted mb-0">
-                            Payment: 
-                            <span class="badge 
-                                {% if order.payment_status == 'pending' %}bg-warning
-                                {% elif order.payment_status == 'completed' %}bg-success
-                                {% elif order.payment_status == 'failed' %}bg-danger
-                                {% else %}bg-secondary{% endif %}">
-                                {{ order.payment_status|capitalize }}
-                            </span>
+            <div class="card-body p-lg-5 p-4"> {# Tăng padding trên màn lớn #}
+                 {# --- Hàng thông tin chính của đơn hàng --- #}
+                <div class="row mb-4 pb-3 border-bottom"> {# Thêm border bottom #}
+                    <div class="col-md-6 mb-3 mb-md-0">
+                         {# Dùng span thay vì h4 cho semantic tốt hơn #}
+                        <span class="h5 d-block mb-1">Đơn hàng #{{ order.order_number }}</span>
+                        <p class="text-muted small mb-0">
+                            <i class="far fa-calendar-alt me-1"></i> Đặt lúc: {{ order.created_at | format_datetime if order.created_at }} {# Dùng filter đã tạo #}
                         </p>
+                         {# Thêm thông tin người đặt hàng nếu là admin xem #}
+                         {% if current_user.is_admin or current_user.is_staff %}
+                             {% if order.customer %}
+                             <p class="text-muted small mb-0">
+                                 <i class="far fa-user me-1"></i> Khách hàng: <a href="#">{{ order.customer.full_name }}</a> (#{{ order.customer.id }})
+                            </p>
+                             {% else %}
+                                 <p class="text-muted small mb-0"><i class="far fa-user me-1"></i> Khách vãng lai</p>
+                            {% endif %}
+                        {% endif %}
                     </div>
-                </div>
-                
+                     <div class="col-md-6 text-md-end">
+                        <div class="mb-2">
+                             <span class="text-muted">Trạng thái:</span>
+                             {# Sử dụng macro status_badge nếu có, hoặc dùng span như cũ #}
+                            {# {{ status_badge(order.status) }} #}
+                             <span class="badge ms-1 rounded-pill
+                                {% if order.status == 'pending' %} bg-warning text-dark
+                                {% elif order.status == 'processing' %} bg-info text-dark
+                                {% elif order.status in ['completed', 'delivered'] %} bg-success
+                                {% elif order.status == 'cancelled' %} bg-danger
+                                {% elif order.status == 'ready_for_pickup' %} bg-primary
+                                {% elif order.status == 'out_for_delivery' %} bg-purple # Giả sử có class này
+                                {% else %} bg-secondary {% endif %}">
+                                {{ order.get_status_display() }} {# Gọi hàm để lấy text tiếng Việt #}
+                             </span>
+                         </div>
+                         <div>
+                            <span class="text-muted">Thanh toán:</span>
+                             {# {{ status_badge(order.payment_status) }} #}
+                            <span class="badge ms-1 rounded-pill
+                                {% if order.payment_status == 'pending' %} bg-warning text-dark
+                                {% elif order.payment_status == 'completed' or order.payment_status == 'paid' %} bg-success
+                                {% elif order.payment_status == 'failed' or order.payment_status == 'cancelled' %} bg-danger
+                                {% elif order.payment_status == 'refunded' %} bg-dark
+                                {% else %} bg-secondary {% endif %}">
+                                {{ order.payment_status|replace('_', ' ')|capitalize }}
+                            </span>
+                         </div>
+                    </div>
+                </div> {# End row thông tin chính #}
+
+                {# --- Hàng thông tin đặt hàng và giao hàng/khách hàng --- #}
                 <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5 class="mb-3">Order Information</h5>
-                        <p><strong>Order Type:</strong> {{ order.order_type|capitalize }}</p>
-                        <p><strong>Payment Method:</strong> {{ order.payment_method|capitalize }}</p>
+                    {# Thông tin Đặt hàng #}
+                     <div class="col-md-6 mb-4 mb-md-0">
+                        <h5 class="mb-3"><i class="fas fa-clipboard-list me-2 text-primary"></i>Thông tin Đơn hàng</h5>
+                        <p><strong>Loại đơn:</strong> {{ order.order_type | capitalize }}</p>
+                         <p><strong>Thanh toán:</strong> {{ order.payment_method | replace('_', ' ')|capitalize if order.payment_method else 'Chưa chọn' }}</p>
                         {% if order.contact_phone %}
-                        <p><strong>Contact Phone:</strong> {{ order.contact_phone }}</p>
-                        {% endif %}
-                        {% if order.notes %}
-                        <p><strong>Notes:</strong> {{ order.notes }}</p>
-                        {% endif %}
-                    </div>
-                    
+                         <p><strong>Điện thoại LH:</strong> {{ order.contact_phone }}</p>
+                        {% elif order.customer and order.customer.phone %}
+                             <p><strong>Điện thoại KH:</strong> {{ order.customer.phone }}</p>
+                         {% endif %}
+                         {% if order.notes %}
+                         <p class="mb-0"><strong>Ghi chú đơn:</strong><br><span class="text-muted fst-italic">{{ order.notes }}</span></p>
+                         {% endif %}
+                     </div>
+
+                     {# Địa chỉ Giao hàng / Thông tin KH #}
                     <div class="col-md-6">
                         {% if order.order_type == 'delivery' and order.address %}
-                        <h5 class="mb-3">Delivery Address</h5>
-                        <p>{{ order.address }}</p>
-                        {% endif %}
-                        
-                        {% if order.user_id %}
-                        <h5 class="mb-3">Customer Details</h5>
-                        <p><strong>Name:</strong> {{ current_user.first_name }} {{ current_user.last_name }}</p>
-                        <p><strong>Email:</strong> {{ current_user.email }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <h5 class="mb-3">Order Items</h5>
+                         <h5 class="mb-3"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Địa chỉ Giao hàng</h5>
+                         <p class="mb-0">{{ order.address }}</p>
+                         {% elif order.customer %} {# Hiển thị thông tin KH nếu không phải delivery #}
+                         <h5 class="mb-3"><i class="fas fa-user me-2 text-info"></i>Chi tiết Khách hàng</h5>
+                         {# Chỉ hiển thị nếu user hiện tại đang xem là chính họ HOẶC là admin/staff #}
+                         {% if order.user_id == current_user.id or current_user.is_admin or current_user.is_staff %}
+                             <p class="mb-1"><strong>Tên:</strong> {{ order.customer.full_name }}</p>
+                             <p class="mb-1"><strong>Email:</strong> {{ order.customer.email }}</p>
+                             <p class="mb-0"><strong>Địa chỉ KH:</strong> {{ order.customer.address or 'Chưa cung cấp' }}</p>
+                         {% else %}
+                             <p><i>(Thông tin khách hàng)</i></p>
+                         {% endif %}
+                         {% endif %}
+                     </div>
+                </div> {# End row thông tin #}
+
+                <hr> {# Thêm đường kẻ phân cách #}
+
+                 {# --- Bảng Chi tiết Sản phẩm --- #}
+                 <h5 class="mb-3 mt-4"><i class="fas fa-shopping-basket me-2 text-success"></i>Sản phẩm đã đặt</h5>
                 <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+                    {# Thêm class để style tổng tiền #}
+                    <table class="table order-summary-table table-hover">
+                        <thead class="table-light">
                             <tr>
-                                <th>Item</th>
-                                <th class="text-center">Quantity</th>
-                                <th class="text-end">Price</th>
-                                <th class="text-end">Subtotal</th>
+                                <th>Sản phẩm</th>
+                                <th class="text-center" style="width: 15%;">Số lượng</th>
+                                <th class="text-end" style="width: 20%;">Đơn giá</th>
+                                <th class="text-end" style="width: 20%;">Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for detail in order_details %}
                             <tr>
                                 <td>
-                                    {{ detail.product.name }}
-                                    {% if detail.notes %}
-                                    <br><small class="text-muted">{{ detail.notes }}</small>
-                                    {% endif %}
+                                    {# --- **SỬA SANG DÙNG ordered_product (backref)** --- #}
+                                    <div class="fw-medium">
+                                         {% if detail.ordered_product %}
+                                            <a href="{{ url_for('main.product_detail', product_id=detail.product_id) }}" class="text-dark text-decoration-none">{{ detail.ordered_product.name }}</a>
+                                         {% else %}
+                                             <span class="text-danger">Sản phẩm đã bị xóa</span>
+                                        {% endif %}
+                                     </div>
+                                     {# --- ------------------------------------------ --- #}
+                                     {% if detail.notes %}
+                                         <small class="d-block text-muted fst-italic ps-2">- {{ detail.notes }}</small>
+                                     {% endif %}
                                 </td>
                                 <td class="text-center">{{ detail.quantity }}</td>
-                                <td class="text-end">${{ "%.2f"|format(detail.unit_price) }}</td>
-                                <td class="text-end">${{ "%.2f"|format(detail.subtotal) }}</td>
-                            </tr>
+                                <td class="text-end">{{ detail.unit_price | format_price if detail.unit_price is not none }}</td>
+                                <td class="text-end">{{ detail.subtotal | format_price if detail.subtotal is not none }}</td>
+                             </tr>
+                            {% else %}
+                                <tr><td colspan="4" class="text-center text-muted py-4">Đơn hàng này không có sản phẩm chi tiết.</td></tr>
                             {% endfor %}
                         </tbody>
+                         {# Tính toán lại phần tổng cộng này nếu bạn có thuế/phí ship/discount #}
+                        {% if order_details %}
                         <tfoot>
+                            {# Giả sử total_amount đã bao gồm thuế, cần tính subtotal #}
+                             {% set subtotal_calc = order_details | sum(attribute='subtotal') %}
+                             {% set tax_calc = (order.total_amount - subtotal_calc) if order.total_amount >= subtotal_calc else 0 %} {# Ước tính thuế/phí #}
+
+                             <tr>
+                                <td colspan="3" class="text-end border-0"><strong>Tổng tiền hàng:</strong></td>
+                                <td class="text-end border-0">{{ subtotal_calc | format_price if subtotal_calc is not none }}</td>
+                             </tr>
+                             {% if tax_calc > 0 %} {# Chỉ hiển thị nếu có thuế/phí #}
                             <tr>
-                                <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                                <td class="text-end">${{ "%.2f"|format(order.total_amount / 1.1) }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Tax (10%):</strong></td>
-                                <td class="text-end">${{ "%.2f"|format(order.total_amount - (order.total_amount / 1.1)) }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                <td class="text-end"><strong>${{ "%.2f"|format(order.total_amount) }}</strong></td>
+                                 <td colspan="3" class="text-end border-0"><strong>Thuế/Phí khác:</strong></td>
+                                 <td class="text-end border-0">{{ tax_calc | format_price }}</td>
+                             </tr>
+                            {% endif %}
+                             {# Luôn hiển thị tổng cuối cùng từ order.total_amount #}
+                             <tr class="table-group-divider"> {# Thêm đường kẻ đậm cuối #}
+                                <th colspan="3" class="text-end pt-2">Tổng Cộng Thanh Toán:</th>
+                                <td class="text-end pt-2">{{ order.total_amount | format_price if order.total_amount is not none }}</td>
                             </tr>
                         </tfoot>
+                        {% endif %}
                     </table>
-                </div>
-            </div>
-        </div>
-        
+                </div> {# End table-responsive #}
+            </div> {# End card-body #}
+        </div> {# End card #}
+
+        {# --- Phần thông báo trạng thái đơn hàng (Giữ nguyên) --- #}
         {% if order.status == 'pending' %}
-        <div class="alert alert-info" role="alert">
-            <h5><i class="fas fa-info-circle me-2"></i> Order Status</h5>
-            <p class="mb-0">Your order has been received and is being processed. You'll receive updates as your order status changes.</p>
+        <div class="alert alert-warning shadow-sm" role="alert"> {# Đổi sang warning #}
+            <h5 class="alert-heading"><i class="fas fa-hourglass-half me-2"></i> Trạng thái Đơn hàng</h5>
+            <p class="mb-0">Đơn hàng của bạn đã được tiếp nhận và đang **chờ xử lý**. Chúng tôi sẽ cập nhật khi có thay đổi.</p>
         </div>
         {% elif order.status == 'processing' %}
-        <div class="alert alert-info" role="alert">
-            <h5><i class="fas fa-info-circle me-2"></i> Order Status</h5>
-            <p class="mb-0">Your order is currently being prepared. 
-            {% if order.order_type == 'delivery' %}
-            It will be out for delivery soon.
-            {% else %}
-            It will be ready for pickup shortly.
-            {% endif %}
-            </p>
+        <div class="alert alert-info shadow-sm" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-cogs me-2"></i> Trạng thái Đơn hàng</h5>
+            <p class="mb-0">Đơn hàng đang được **chuẩn bị**. {% if order.order_type == 'delivery' %}Shipper sẽ sớm lấy hàng.{% else %}Sẽ sẵn sàng để bạn nhận sớm.{% endif %}</p>
         </div>
-        {% elif order.status == 'completed' %}
-        <div class="alert alert-success" role="alert">
-            <h5><i class="fas fa-check-circle me-2"></i> Order Status</h5>
-            <p class="mb-0">Your order has been completed. Thank you for choosing Dragon Coffee!</p>
+         {% elif order.status == 'ready_for_pickup' %}
+        <div class="alert alert-primary shadow-sm" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-box-open me-2"></i> Trạng thái Đơn hàng</h5>
+             <p class="mb-0">Đơn hàng của bạn đã **sẵn sàng để lấy** tại cửa hàng!</p>
+        </div>
+         {% elif order.status == 'out_for_delivery' %}
+         <div class="alert alert-purple shadow-sm" role="alert"> {# Giả sử có class alert-purple #}
+             <h5 class="alert-heading"><i class="fas fa-shipping-fast me-2"></i> Trạng thái Đơn hàng</h5>
+             <p class="mb-0">Shipper đang **trên đường giao hàng** đến bạn. Vui lòng chuẩn bị nhận hàng.</p>
+         </div>
+        {% elif order.status == 'completed' or order.status == 'delivered' %}
+        <div class="alert alert-success shadow-sm" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i> Trạng thái Đơn hàng</h5>
+            <p class="mb-0">Đơn hàng đã **hoàn thành**. Cảm ơn bạn đã lựa chọn Dragon Coffee!</p>
         </div>
         {% elif order.status == 'cancelled' %}
-        <div class="alert alert-danger" role="alert">
-            <h5><i class="fas fa-times-circle me-2"></i> Order Status</h5>
-            <p class="mb-0">This order has been cancelled. If you have any questions, please contact our customer support.</p>
+        <div class="alert alert-danger shadow-sm" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-times-circle me-2"></i> Trạng thái Đơn hàng</h5>
+            <p class="mb-0">Đơn hàng này đã **bị hủy**. Nếu có thắc mắc, vui lòng liên hệ hỗ trợ.</p>
         </div>
         {% endif %}
-        
+        {# --- Kết thúc thông báo trạng thái --- #}
+
+        {# --- Các nút hành động --- #}
         <div class="d-flex justify-content-center gap-3 mt-4">
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
-            <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Order Again</a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary"><i class="fas fa-home me-1"></i> Về trang chủ</a>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-outline-secondary"><i class="fas fa-redo me-1"></i> Khám phá Menu</a>
+        
+            {# --- THÊM FORM HỦY ĐƠN HÀNG VÀO ĐÂY --- #}
+            {% if order.status in ['pending', 'processing'] and order.user_id == current_user.id %} {# Chỉ chủ đơn hàng và khi trạng thái cho phép #}
+            <form action="{{ url_for('order.cancel_order', order_id=order.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #{{ order.order_number }} không? Hành động này không thể hoàn tác.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {# Quan trọng nếu bạn dùng CSRF #}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-times-circle me-1"></i> Hủy đơn hàng này
+                </button>
+            </form>
+            {% endif %}
+            {# --- KẾT THÚC FORM HỦY --- #}
         </div>
-    </div>
-</div>
+
+    </div> {# End content-container #}
+</div> {# End container #}
 {% endblock %}

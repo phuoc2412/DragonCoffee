@@ -9,86 +9,92 @@
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Checkout</h1>
-        
+        <h1 class="section-title">Thanh toán</h1>
+
         <div id="checkout-error" class="alert alert-danger d-none" role="alert"></div>
-        
+
         <div class="row">
             <div class="col-lg-8 mb-4 mb-lg-0">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Order Details</h3>
-                        
+                        <h3 class="card-title mb-4">Chi tiết đơn hàng</h3>
+
                         <form id="checkout-form" method="POST" action="{{ url_for('order.checkout') }}">
+                            {# --- SỬA Ở ĐÂY: Tự tạo thẻ input CSRF --- #}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {# ------------------------------------- #}
+
                             <input type="hidden" id="subtotal-input" name="subtotal" value="{{ total }}">
                             <input type="hidden" id="tax-input" name="tax" value="{{ total * 0.1 }}">
                             <input type="hidden" id="total-input" name="total" value="{{ total * 1.1 }}">
-                            
+
                             <div class="mb-4">
-                                <h5>Order Type</h5>
+                                <h5>Loại đơn hàng</h5>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="order_type" id="orderTypeTakeaway" value="takeaway" checked>
-                                    <label class="form-check-label" for="orderTypeTakeaway">Takeaway</label>
+                                    <label class="form-check-label" for="orderTypeTakeaway">Mua mang về</label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="order_type" id="orderTypeDelivery" value="delivery">
-                                    <label class="form-check-label" for="orderTypeDelivery">Delivery</label>
+                                    <label class="form-check-label" for="orderTypeDelivery">Vận chuyển</label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="order_type" id="orderTypeDineIn" value="dine-in">
-                                    <label class="form-check-label" for="orderTypeDineIn">Dine-In</label>
+                                    <label class="form-check-label" for="orderTypeDineIn">Ăn tối tại nhà</label>
                                 </div>
                             </div>
-                            
+
                             <div id="delivery-address-container" class="mb-4 d-none">
-                                <h5>Delivery Address</h5>
+                                <h5>Địa chỉ giao hàng</h5>
                                 <div class="mb-3">
-                                    <label for="address" class="form-label">Full Address</label>
-                                    <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your delivery address"></textarea>
+                                    <label for="address" class="form-label">Địa chỉ đầy đủ</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3" placeholder="Nhập địa chỉ giao hàng của bạn"></textarea>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <h5>Contact Information</h5>
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" required value="{{ current_user.first_name ~ ' ' ~ current_user.last_name if current_user.is_authenticated else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone" required value="{{ current_user.phone if current_user.is_authenticated and current_user.phone else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email" required value="{{ current_user.email if current_user.is_authenticated else '' }}">
-                                </div>
+                                <h5>Thông tin liên lạc</h5>
+                                <fieldset>
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Tên</label>
+                                        <input type="text" class="form-control" id="name" name="name" required value="{{ current_user.first_name ~ ' ' ~ current_user.last_name if current_user.is_authenticated else '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Số điện thoại</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" required value="{{ current_user.phone if current_user.is_authenticated and current_user.phone else '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Địa chỉ Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                                    </div>
+                                </fieldset>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <h5>Payment Method</h5>
+                                <h5>Phương thức thanh toán</h5>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked>
-                                    <label class="form-check-label" for="paymentCash">Cash on Pickup/Delivery</label>
+                                    <label class="form-check-label" for="paymentCash">Thanh toán khi nhận hàng/Giao hàng</label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="payment_method" id="paymentCard" value="card">
-                                    <label class="form-check-label" for="paymentCard">Credit/Debit Card</label>
+                                    <label class="form-check-label" for="paymentCard">Thẻ tín dụng/ghi nợ</label>
                                 </div>
                             </div>
-                            
+
                             <div id="card-details-container" class="mb-4 d-none">
                                 <h5>Card Details</h5>
                                 <div class="mb-3">
-                                    <label for="card_number" class="form-label">Card Number</label>
+                                    <label for="card_number" class="form-label">Số thẻ</label>
                                     <input type="text" class="form-control" id="card_number" name="card_number" placeholder="•••• •••• •••• ••••">
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="card_name" class="form-label">Cardholder Name</label>
+                                        <label for="card_name" class="form-label">Tên chủ thẻ</label>
                                         <input type="text" class="form-control" id="card_name" name="card_name">
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <label for="card_expiry" class="form-label">Expiry Date</label>
+                                        <label for="card_expiry" class="form-label">Ngày hết hạn</label>
                                         <input type="text" class="form-control" id="card_expiry" name="card_expiry" placeholder="MM/YY">
                                     </div>
                                     <div class="col-md-3 mb-3">
@@ -97,25 +103,25 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <h5>Additional Notes</h5>
-                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any special instructions for your order?"></textarea>
+                                <h5>Ghi chú bổ sung</h5>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Hướng dẫn đặc biệt cho đơn hàng của bạn?"></textarea>
                             </div>
-                            
+
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                                <button type="submit" class="btn btn-primary btn-lg">Đặt hàng</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 cart-summary sticky-top" style="top: 85px;">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Order Summary</h3>
-                        
+                        <h3 class="card-title mb-4">Tóm tắt đơn hàng</h3>
+
                         {% for item in cart_items %}
                         <div class="d-flex justify-content-between mb-2">
                             <div>
@@ -128,44 +134,44 @@
                         </div>
                         {% if not loop.last %}<hr class="my-2">{% endif %}
                         {% endfor %}
-                        
+
                         <hr class="my-3">
-                        
+
                         <div class="summary-item">
-                            <span>Subtotal</span>
-                            <span>${{ "%.2f"|format(total) }}</span>
+                            <span>Tổng cộng</span>
+                            <span class="cart-subtotal-value">${{ "%.2f"|format(total) }}</span>
                         </div>
-                        
+
                         <div class="summary-item">
-                            <span>Tax (10%)</span>
-                            <span>${{ "%.2f"|format(total * 0.1) }}</span>
+                            <span>Thuế (10%)</span>
+                            <span class="cart-tax-value">${{ "%.2f"|format(total * 0.1) }}</span>
                         </div>
-                        
+
                         <hr>
-                        
-                        <div class="summary-item">
-                            <span class="fw-bold">Total</span>
-                            <span class="summary-total">${{ "%.2f"|format(total * 1.1) }}</span>
+
+                        <div class="summary-item total">
+                            <span class="fw-bold">Tổng cộng</span>
+                            <span class="summary-total cart-total-value">${{ "%.2f"|format(total * 1.1) }}</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <h5 class="mb-3">We Accept</h5>
+                        <h5 class="mb-3">Chúng tôi chấp nhận</h5>
                         <div class="d-flex gap-2">
                             <div class="payment-icon"><i class="fab fa-cc-visa fa-2x"></i></div>
                             <div class="payment-icon"><i class="fab fa-cc-mastercard fa-2x"></i></div>
                             <div class="payment-icon"><i class="fab fa-cc-amex fa-2x"></i></div>
                             <div class="payment-icon"><i class="fab fa-cc-paypal fa-2x"></i></div>
                         </div>
-                        
+
                         <hr class="my-3">
-                        
-                        <h5 class="mb-3">Need Help?</h5>
+
+                        <h5 class="mb-3">Cần trợ giúp?</h5>
                         <p class="mb-0">
-                            <i class="fas fa-phone me-2"></i> Call us at: (123) 456-7890<br>
-                            <i class="fas fa-envelope me-2"></i> Email: support@dragoncoffee.com
+                            <i class="fas fa-phone me-2"></i> Gọi cho chúng tôi theo số: 00024122003<br>
+                            <i class="fas fa-envelope me-2"></i> Email: phuoclongthan@gmail.com
                         </p>
                     </div>
                 </div>
@@ -175,6 +181,62 @@
 </div>
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{# Kế thừa JS từ base nếu có #}
+{{ super() }}
+{# Bạn có thể giữ JS này ở đây hoặc chuyển vào cart.js nếu nó cũng xử lý trang checkout #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
+    const deliveryAddressContainer = document.getElementById('delivery-address-container');
+    const addressTextarea = document.getElementById('address');
+
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const cardDetailsContainer = document.getElementById('card-details-container');
+
+    // --- Hàm xử lý hiển thị/ẩn địa chỉ ---
+    function toggleDeliveryAddress() {
+        const selectedType = document.querySelector('input[name="order_type"]:checked');
+        if (selectedType && selectedType.value === 'delivery') {
+            if(deliveryAddressContainer) deliveryAddressContainer.classList.remove('d-none');
+            if(addressTextarea) addressTextarea.required = true;
+        } else {
+            if(deliveryAddressContainer) deliveryAddressContainer.classList.add('d-none');
+            if(addressTextarea) {
+                 addressTextarea.required = false;
+                 addressTextarea.value = ''; // Clear value when hidden
+             }
+        }
+    }
+
+    // --- Hàm xử lý hiển thị/ẩn chi tiết thẻ ---
+    function toggleCardDetails() {
+        const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+        if (selectedPayment && selectedPayment.value === 'card') {
+            if(cardDetailsContainer) cardDetailsContainer.classList.remove('d-none');
+            // Đặt required cho các trường thẻ nếu cần
+             if(cardDetailsContainer) {
+                 cardDetailsContainer.querySelectorAll('input').forEach(input => input.required = true);
+             }
+        } else {
+            if(cardDetailsContainer) {
+                 cardDetailsContainer.classList.add('d-none');
+                 // Bỏ required khi ẩn đi
+                 cardDetailsContainer.querySelectorAll('input').forEach(input => input.required = false);
+             }
+        }
+    }
+
+    // --- Gắn sự kiện change cho radio buttons ---
+    if(orderTypeRadios.length > 0) {
+        orderTypeRadios.forEach(radio => radio.addEventListener('change', toggleDeliveryAddress));
+        toggleDeliveryAddress(); // Gọi lần đầu khi tải trang
+    }
+
+    if(paymentMethodRadios.length > 0) {
+        paymentMethodRadios.forEach(radio => radio.addEventListener('change', toggleCardDetails));
+        toggleCardDetails(); // Gọi lần đầu khi tải trang
+    }
+});
+</script>
 {% endblock %}
 {% endblock %}

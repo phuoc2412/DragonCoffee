@@ -1,0 +1,8 @@
+User:
+Phuoc@gmail.com 24122003
+Rong@gmail.com 241203
+
+
+
+
+Lưu ý mỗi lần tìm ảnh sản phẩm thì chạy code trước rồi mới upload ảnh: python scripts/precompute_image_features.py 

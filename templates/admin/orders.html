@@ -1,199 +1,135 @@
+{# /templates/admin/orders.html #}
 {% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
 
-{% block title %}Dragon Coffee Shop - Order Management{% endblock %}
+{% block title %}Quản lý Đơn hàng - Trang quản trị{% endblock %}
+
+{% block page_title %}Quản lý Đơn hàng{% endblock %}
+
+{% block breadcrumb %}
+    {# AdminLTE version - if you are using plain bootstrap, adjust this #}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Đơn hàng</li>
+{% endblock %}
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Order Management</h1>
-    <div class="d-flex align-items-center">
-        <a href="{{ url_for('admin.pos') }}" class="btn btn-primary me-2">
-            <i class="fas fa-cash-register me-1"></i> POS System
-        </a>
-        <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Export All Orders (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Export Filtered Orders (CSV)</a></li>
-            </ul>
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h3 class="card-title mb-2 mb-md-0">Danh sách tất cả đơn hàng</h3>
+            <form method="GET" action="{{ url_for('admin.orders') }}" class="ms-auto d-flex flex-wrap">
+                 <div class="input-group input-group-sm me-2 mb-2 mb-sm-0" style="max-width: 280px;">
+                    <input type="text" name="q" class="form-control" placeholder="Tìm ID, Tên KH, SĐT, Email..." value="{{ request.args.get('q', '') }}" aria-label="Tìm kiếm đơn hàng">
+                 </div>
+                 <select name="status" class="form-select form-select-sm me-2 mb-2 mb-sm-0" style="width: auto;" aria-label="Lọc theo trạng thái">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Chờ xử lý</option>
+                    <option value="processing" {% if request.args.get('status') == 'processing' %}selected{% endif %}>Đang xử lý</option>
+                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Hoàn thành</option>
+                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+                    <option value="delivered" {% if request.args.get('status') == 'delivered' %}selected{% endif %}>Đã giao</option> {# Giả sử các giá trị status là lowercase #}
+                    <option value="ready_for_pickup" {% if request.args.get('status') == 'ready_for_pickup' %}selected{% endif %}>Sẵn sàng</option>
+                    <option value="out_for_delivery" {% if request.args.get('status') == 'out_for_delivery' %}selected{% endif %}>Đang giao</option>
+                    <option value="failed" {% if request.args.get('status') == 'failed' %}selected{% endif %}>Thất bại</option>
+                 </select>
+                <button type="submit" class="btn btn-sm btn-primary mb-2 mb-sm-0" title="Lọc/Tìm kiếm"><i class="fas fa-search"></i> Lọc</button>
+                {% if request.args.get('q') or request.args.get('status') %}
+                    <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2 mb-sm-0" title="Xóa bộ lọc"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </form>
         </div>
     </div>
-</div>
+    <div class="card-body p-0">
+        {% if pagination and pagination.items %} {# Use pagination object here #}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 5%" class="text-center">ID</th>
+                        <th style="width: 25%">Khách hàng</th>
+                        <th style="width: 15%">Ngày đặt</th>
+                        <th style="width: 12%" class="text-end">Tổng tiền</th>
+                        <th style="width: 10%" class="text-center">Thanh toán</th>
+                        <th style="width: 10%" class="text-center">Trạng thái ĐH</th>
+                        <th style="width: 23%;" class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in pagination.items %} {# Loop through pagination.items #}
+                    <tr>
+                        <td class="text-center fw-bold">#{{ order.id }}</td>
+                        <td>
+                            <div class="fw-medium">{{ order.customer.full_name if order.customer else order.contact_phone or 'Khách vãng lai' }}</div>
+                            <div class="small text-muted">
+                               {% if order.customer and order.customer.email %} {{ order.customer.email }} {% elif order.contact_email %} {{ order.contact_email }} {% endif %}
+                               {% if order.customer and order.customer.phone %}<br>{{ order.customer.phone }} {% elif order.contact_phone %} <br>{{ order.contact_phone }} {% endif %}
+                            </div>
+                        </td>
+                         <td>
+                            <span title="{{ order.created_at }}">{{ order.created_at.strftime('%d/%m/%y %H:%M') if order.created_at else '' }}</span> {# Adjusted date format #}
+                         </td>
+                         <td class="text-end fw-medium">{{ "%.0f₫"|format(order.final_amount if order.final_amount is not none else order.total_amount) }}</td> {# Use final_amount if available #}
+                        <td class="text-center">
+                            {{ status_badge(order.payment_status | default('Chưa TT')) }}
+                         </td>
+                        <td class="project-state text-center">
+                             {{ status_badge(order.status | default('Pending')) }}
+                         </td>
+                        <td class="project-actions text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if url_for('admin.view_invoice', order_id=order.id) %}
+                                <a href="{{ url_for('admin.view_invoice', order_id=order.id) }}" class="btn btn-outline-info" data-bs-toggle="tooltip" title="Xem Hóa đơn Web" target="_blank">
+                                    <i class="fas fa-receipt"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('admin.print_invoice_pdf', order_id=order.id) }}" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="In Hóa đơn PDF" target="_blank">
+                                     <i class="fas fa-print"></i>
+                                </a>
+                                <a href="{{ url_for('admin.order_details', order_id=order.id) }}#edit-status" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="Đến mục cập nhật trạng thái"> {# <--- Đổi title ở đây #}
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+         <div class="text-center p-5">
+             <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+             <p class="lead text-muted">Không tìm thấy đơn hàng nào.</p>
+              {% if request.args.get('q') or request.args.get('status') %}
+                 <p class="small text-muted">Hãy thử bỏ bộ lọc hoặc tìm kiếm với từ khóa khác.</p>
+                 <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-secondary">Xem tất cả đơn hàng</a>
+              {% else %}
+                  <p class="small text-muted">Chưa có đơn hàng nào được tạo.</p>
+             {% endif %}
+         </div>
+         {% endif %}
+    </div>
 
-<div class="admin-card mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center me-3 mb-3 mb-md-0">
-            <span class="me-2">Filter by status:</span>
-            <div class="btn-group" role="group">
-                <a href="{{ url_for('admin.orders', status='all') }}" class="btn btn-outline-secondary {{ 'active' if current_filter == 'all' or not current_filter }}">All</a>
-                <a href="{{ url_for('admin.orders', status='pending') }}" class="btn btn-outline-warning {{ 'active' if current_filter == 'pending' }}">Pending</a>
-                <a href="{{ url_for('admin.orders', status='processing') }}" class="btn btn-outline-info {{ 'active' if current_filter == 'processing' }}">Processing</a>
-                <a href="{{ url_for('admin.orders', status='completed') }}" class="btn btn-outline-success {{ 'active' if current_filter == 'completed' }}">Completed</a>
-                <a href="{{ url_for('admin.orders', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if current_filter == 'cancelled' }}">Cancelled</a>
-            </div>
-        </div>
-        
-        <div class="d-flex align-items-center mb-3 mb-md-0">
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search orders..." id="orderSearch">
-                <button class="btn btn-outline-secondary" type="button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    {% if orders %}
-    <div class="table-responsive">
-        <table class="admin-table" id="ordersTable">
-            <thead>
-                <tr>
-                    <th>Order #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Order Type</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.order_number }}</td>
-                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td>
-                        {% if order.customer %}
-                        {{ order.customer.first_name }} {{ order.customer.last_name }}
-                        {% else %}
-                        Guest
-                        {% endif %}
-                    </td>
-                    <td>{{ order.order_type|capitalize }}</td>
-                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
-                    <td>
-                        <span class="status-badge {{ order.status }}">{{ order.status|capitalize }}</span>
-                    </td>
-                    <td>
-                        <span class="status-badge {{ order.payment_status }}">{{ order.payment_status|capitalize }}</span>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="table-action view" data-bs-toggle="tooltip" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        {% if order.status != 'completed' and order.status != 'cancelled' %}
-                        <a href="#" class="table-action edit" data-bs-toggle="tooltip" title="Process Order">
-                            <i class="fas fa-tasks"></i>
-                        </a>
-                        {% endif %}
-                        <a href="#" class="table-action" data-bs-toggle="tooltip" title="Print Invoice">
-                            <i class="fas fa-print"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Pagination -->
-    <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-                <a class="page-link" href="#">Next</a>
-            </li>
-        </ul>
-    </nav>
-    {% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
-        <h4>No orders found</h4>
-        <p class="text-muted">There are no orders matching your filter criteria.</p>
+    {% if pagination and pagination.pages > 1 %} {# Check pagination object for footer #}
+    <div class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.orders', align='end', size='sm', q=request.args.get('q'), status=request.args.get('status')) }}
     </div>
     {% endif %}
 </div>
 
-<div class="admin-card">
-    <h4 class="mb-4">Order Statistics</h4>
-    
-    <div class="row">
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Orders</h5>
-                    <h3 class="mb-0">{{ orders|length }}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Revenue</h5>
-                    <h3 class="mb-0">${{ "%.2f"|format(orders|sum(attribute='total_amount')) }}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Average Order</h5>
-                    <h3 class="mb-0">
-                        {% if orders|length > 0 %}
-                        ${{ "%.2f"|format(orders|sum(attribute='total_amount') / orders|length) }}
-                        {% else %}
-                        $0.00
-                        {% endif %}
-                    </h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Pending Orders</h5>
-                    <h3 class="mb-0">{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
+{# No specific scripts needed for just displaying the list, but keep the block if base template uses it #}
+{{ super() }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Order search functionality
-        const orderSearch = document.getElementById('orderSearch');
-        const ordersTable = document.getElementById('ordersTable');
-        
-        if (orderSearch && ordersTable) {
-            orderSearch.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const rows = ordersTable.querySelectorAll('tbody tr');
-                
-                rows.forEach(row => {
-                    const orderNumber = row.querySelector('td:first-child').textContent.toLowerCase();
-                    const customer = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                    
-                    if (orderNumber.includes(searchTerm) || customer.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            });
-        }
-    });
-</script>
+ document.addEventListener('DOMContentLoaded', function () {
+     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+         return new bootstrap.Tooltip(tooltipTriggerEl)
+     })
+ });
+ </script>
 {% endblock %}

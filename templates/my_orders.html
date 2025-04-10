@@ -1,58 +1,153 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {# Giả sử kế thừa từ base template của người dùng #}
+{% from "macros/_ui_helpers.html" import status_badge with context %} {# Import macro status_badge nếu có và muốn dùng #}
 
-{% block title %}Dragon Coffee Shop - My Orders{% endblock %}
+{% block title %}Đơn hàng của tôi - Dragon Coffee{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="content-container">
-        <h1 class="section-title">My Orders</h1>
-        
+    <div class="content-container"> {# Sử dụng class content-container nếu có trong CSS chung #}
+        <h1 class="section-title mb-4">Đơn hàng của tôi</h1>
+
+        {# --- Hiển thị thông báo nếu có --- #}
+        {# Ví dụ dùng flash messages (cần backend flash message khi có lỗi/thành công) #}
+        {# {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %} #}
+
+
+        {# --- Bảng liệt kê đơn hàng --- #}
         {% if orders %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Type</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td>{{ order.order_number }}</td>
-                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
-                        <td>
-                            <span class="badge 
-                                {% if order.status == 'pending' %}bg-warning
-                                {% elif order.status == 'processing' %}bg-info
-                                {% elif order.status == 'completed' %}bg-success
-                                {% elif order.status == 'cancelled' %}bg-danger
-                                {% else %}bg-secondary{% endif %}">
-                                {{ order.status|capitalize }}
-                            </span>
-                        </td>
-                        <td>{{ order.order_type|capitalize }}</td>
-                        <td>
-                            <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <div class="card border-0 shadow-sm"> {# Bọc bảng trong card cho đẹp #}
+            <div class="card-body p-0"> {# p-0 để bảng chiếm full card #}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0"> {# align-middle để căn giữa dọc #}
+                        <thead class="table-light"> {# Nền sáng cho thead #}
+                            <tr>
+                                <th scope="col" style="width: 15%;">Mã Đơn hàng</th>
+                                <th scope="col" style="width: 20%;">Ngày đặt</th>
+                                <th scope="col" style="width: 15%;" class="text-end">Tổng tiền</th>
+                                <th scope="col" style="width: 15%;" class="text-center">Trạng thái ĐH</th>
+                                <th scope="col" style="width: 15%;" class="text-center">Trạng thái TT</th>
+                                <th scope="col" style="width: 20%;" class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                    {# Link đến trang chi tiết đơn hàng #}
+                                    <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="fw-medium text-decoration-none">
+                                        #{{ order.order_number }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span title="{{ order.created_at }}">
+                                        {{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                     {# Hiển thị final_amount nếu có, fallback về total_amount #}
+                                     {# Sử dụng filter format_price đã tạo trong app.py nếu có #}
+                                     {{ (order.final_amount if order.final_amount is not none else order.total_amount) | format_price if order.final_amount is not none or order.total_amount is not none }}
+                                </td>
+                                <td class="text-center">
+                                    {# Sử dụng macro status_badge nếu có, hoặc span như cũ #}
+                                    {# {{ status_badge(order.status) }} #}
+                                    {# Thay thế bằng cách gọi hàm get_status_display từ model #}
+                                     <span class="badge rounded-pill
+                                        {% if order.status == 'pending' %} bg-warning text-dark
+                                        {% elif order.status == 'processing' %} bg-info text-dark
+                                        {% elif order.status in ['completed', 'delivered'] %} bg-success
+                                        {% elif order.status == 'cancelled' %} bg-danger
+                                        {% elif order.status == 'ready_for_pickup' %} bg-primary
+                                        {% elif order.status == 'out_for_delivery' %} bg-purple {# Giả sử có class này #}
+                                        {% else %} bg-secondary {% endif %}">
+                                        {{ order.get_status_display() }} {# <--- GỌI HÀM NÀY #}
+                                     </span>
+                                </td>
+                                <td class="text-center">
+                                     {# {{ status_badge(order.payment_status) }} #}
+                                      <span class="badge rounded-pill
+                                        {% if order.payment_status == 'pending' %} bg-warning text-dark
+                                        {% elif order.payment_status in ['completed', 'paid'] %} bg-success
+                                        {% elif order.payment_status == 'failed' %} bg-danger text-white
+                                        {% elif order.payment_status == 'cancelled' %} bg-secondary
+                                        {% elif order.payment_status == 'refunded' %} bg-dark text-white
+                                        {% else %} bg-light text-dark {% endif %}">
+                                        {{ order.payment_status|replace('_', ' ')|capitalize if order.payment_status else 'N/A' }}
+                                      </span>
+                                </td>
+                                <td class="text-center">
+                                     <div class="d-flex justify-content-center gap-1 flex-wrap"> {# Dùng flex để nút xuống hàng nếu cần #}
+                                        {# Nút Xem Chi Tiết #}
+                                        <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                             <i class="fas fa-eye"></i>
+                                             {# Có thể ẩn text nếu muốn chỉ icon: Xem #}
+                                        </a>
+                                        {# Form Hủy Đơn Hàng #}
+                                        {% if order.status in ['pending', 'processing'] %}
+                                        <form action="{{ url_for('order.cancel_order', order_id=order.id) }}" method="POST" class="d-inline"
+                                              onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng #{{ order.order_number }}?');">
+                                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hủy đơn hàng">
+                                                <i class="fas fa-times-circle"></i>
+                                                 {# Có thể ẩn text: Hủy #}
+                                            </button>
+                                        </form>
+                                         {% endif %}
+                                          {# Thêm các nút khác nếu cần (VD: Đặt lại, Theo dõi) #}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+             </div> {# End card-body #}
+        </div> {# End card #}
+
+        {# TODO: Thêm phân trang nếu có nhiều đơn hàng #}
+        {# Ví dụ:
+           {% if pagination and pagination.pages > 1 %}
+               <div class="mt-4 d-flex justify-content-center">
+                   {{ render_pagination(pagination, 'order.my_orders') }} {# Macro phân trang nếu có #}
+               {#</div>
+           {% endif %}
+       #}
+
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-clipboard-list fa-4x mb-3 text-muted"></i>
-            <h3>No orders yet</h3>
-            <p class="lead mb-4">You haven't placed any orders yet.</p>
-            <a href="{{ url_for('main.menu') }}" class="btn btn-primary">Start Shopping</a>
+         {# Hiển thị khi chưa có đơn hàng nào #}
+        <div class="text-center py-5 my-5 bg-light rounded shadow-sm">
+            <i class="fas fa-receipt fa-4x mb-4 text-muted"></i>
+            <h3 class="mb-3">Chưa có đơn hàng nào</h3>
+            <p class="lead mb-4 text-muted">Bạn hãy bắt đầu khám phá thực đơn và đặt món nhé!</p>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag me-2"></i> Bắt đầu mua sắm
+            </a>
         </div>
         {% endif %}
-    </div>
-</div>
+
+    </div> {# End content-container #}
+</div> {# End container #}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }} {# Giữ lại script từ base nếu có #}
+    {# Thêm script riêng cho trang này nếu cần (ví dụ: xử lý AJAX cho hủy đơn) #}
+    <script>
+        // Script khởi tạo tooltip (nếu dùng)
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
 {% endblock %}

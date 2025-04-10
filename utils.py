@@ -17,6 +17,7 @@ def admin_required(f):
 def staff_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        print("--- staff_required decorator ---")
         if not current_user.is_authenticated or (not current_user.is_admin and not current_user.is_staff):
             flash('You do not have permission to access this page.', 'danger')
             return redirect(url_for('main.index'))
@@ -25,8 +26,8 @@ def staff_required(f):
 
 def generate_order_number():
     """Generate a unique order number"""
-    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    random_str = str(uuid.uuid4())[:8]
+    timestamp = datetime.utcnow().strftime('%y%m%d%H%M%S')
+    random_str = str(uuid.uuid4())[:4] # <---- GIẢM random_str XUỐNG CÒN 4 KÝ TỰ (CHẮC CHẮN LUÔN DƯỚI 20)
     return f"ORD-{timestamp}-{random_str}"
 
 def calculate_order_total(items):

@@ -4,16 +4,16 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">Dashboard</h1>
+    <h1 class="admin-title">Bảng điều khiển</h1>
     <div class="d-flex align-items-center">
         <div class="dropdown me-2">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Export
+                <i class="fas fa-download me-1"></i> Xuất khẩu
             </button>
             <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Sales Report (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Inventory Report (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Customer Report (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Báo cáo bán hàng (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Báo cáo hàng tồn kho (CSV)</a></li>
+                <li><a class="dropdown-item" href="#">Báo cáo khách hàng (CSV)</a></li>
             </ul>
         </div>
         <button class="btn btn-primary">
@@ -30,7 +30,7 @@
                 <i class="fas fa-dollar-sign"></i>
             </div>
             <div class="stats-info">
-                <h5>Total Revenue</h5>
+                <h5>Tổng doanh thu</h5>
                 <h3>${{ "%.2f"|format(total_revenue) }}</h3>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 <i class="fas fa-shopping-cart"></i>
             </div>
             <div class="stats-info">
-                <h5>Total Orders</h5>
+                <h5>Tổng số đơn hàng</h5>
                 <h3>{{ total_orders }}</h3>
             </div>
         </div>
@@ -54,7 +54,7 @@
                 <i class="fas fa-coffee"></i>
             </div>
             <div class="stats-info">
-                <h5>Products</h5>
+                <h5>Các sản phẩm</h5>
                 <h3>{{ total_products }}</h3>
             </div>
         </div>
@@ -66,7 +66,7 @@
                 <i class="fas fa-users"></i>
             </div>
             <div class="stats-info">
-                <h5>Users</h5>
+                <h5>Người sử dụng</h5>
                 <h3>{{ total_users }}</h3>
             </div>
         </div>
@@ -77,15 +77,15 @@
     <!-- Sales Chart -->
     <div class="col-lg-8 mb-4">
         <div class="admin-card">
-            <h4 class="mb-4">Sales Overview (Last 7 Days)</h4>
-            <canvas id="salesChart" height="300" data-chart='{{ sales_data|tojson }}'></canvas>
+            <h4 class="mb-4">Tổng quan về doanh số (7 ngày qua)</h4>
+            <canvas id="salesChart" height="300" data-chart='{{ chart_data|tojson }}'></canvas> {# Thay sales_data thành chart_data #}
         </div>
     </div>
     
     <!-- Top Products -->
     <div class="col-lg-4 mb-4">
         <div class="admin-card">
-            <h4 class="mb-4">Top Selling Products</h4>
+            <h4 class="mb-4">Sản phẩm bán chạy nhất</h4>
             {% if top_products %}
             <div class="list-group">
                 {% for product, total_sold in top_products %}
@@ -99,7 +99,7 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-center text-muted">No sales data available yet.</p>
+            <p class="text-center text-muted">Hiện chưa có dữ liệu bán hàng.</p>
             {% endif %}
         </div>
     </div>
@@ -110,8 +110,8 @@
     <div class="col-lg-12 mb-4">
         <div class="admin-card">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0">Recent Orders</h4>
-                <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                <h4 class="mb-0">Đơn hàng gần đây</h4>
+                <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
             </div>
             
             {% if recent_orders %}
@@ -119,12 +119,12 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Order #</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Đặt hàng #</th>
+                            <th>Ngày</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng cộng</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,7 +154,7 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-center text-muted">No orders available yet.</p>
+            <p class="text-center text-muted">Chưa có đơn hàng nào.</p>
             {% endif %}
         </div>
     </div>
@@ -165,8 +165,8 @@
     <div class="col-lg-12 mb-4">
         <div class="admin-card">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0">Inventory Alerts</h4>
-                <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-primary">View Inventory</a>
+                <h4 class="mb-0">Cảnh báo hàng tồn kho</h4>
+                <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-primary">Xem hàng tồn kho</a>
             </div>
             
             {% if low_inventory_items %}
@@ -174,12 +174,12 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Current Stock</th>
-                            <th>Minimum Stock</th>
-                            <th>Status</th>
-                            <th>Last Restocked</th>
-                            <th>Actions</th>
+                            <th>Sản phẩm</th>
+                            <th>Cổ phiếu hiện tại</th>
+                            <th>Số lượng tối thiểu</th>
+                            <th>Trạng thái</th>
+                            <th>Đã bổ sung hàng lần cuối</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -190,11 +190,11 @@
                             <td>{{ item.min_quantity }}</td>
                             <td>
                                 {% if item.quantity == 0 %}
-                                <span class="status-badge cancelled">Out of Stock</span>
+                                <span class="status-badge cancelled">Hết hàng</span>
                                 {% elif item.quantity < item.min_quantity %}
-                                <span class="status-badge pending">Low Stock</span>
+                                <span class="status-badge pending">Còn ít hàng</span>
                                 {% else %}
-                                <span class="status-badge completed">In Stock</span>
+                                <span class="status-badge completed">Còn hàng</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -216,7 +216,7 @@
             </div>
             {% else %}
             <div class="alert alert-success">
-                <i class="fas fa-check-circle me-2"></i> All inventory items are at adequate levels.
+                <i class="fas fa-check-circle me-2"></i> Tất cả các mặt hàng tồn kho đều ở mức phù hợp.
             </div>
             {% endif %}
         </div>

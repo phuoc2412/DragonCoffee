@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dragon Coffee Shop - Welcome</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: #1A0000;
+        }
+        
+        .loading-container {
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+        
+        .door-container {
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+        }
+        
+        .door {
+            width: 50%;
+            height: 100%;
+            position: relative;
+            transition: transform 1.5s ease-in-out;
+            transform-style: preserve-3d;
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(80, 0, 0, 0.9) 100%);
+        }
+        
+        .door.left {
+            transform-origin: left;
+        }
+        
+        .door.right {
+            transform-origin: right;
+        }
+        
+        .door.left.open {
+            transform: rotateY(-105deg);
+        }
+        
+        .door.right.open {
+            transform: rotateY(105deg);
+        }
+        
+        .door::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/static/images/dragon_bg.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            opacity: 0.15;
+        }
+        
+        .dragon-logo {
+            position: absolute;
+            width: 400px;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .dragon-logo.visible {
+            opacity: 1;
+        }
+        
+        .open-btn {
+            position: absolute;
+            z-index: 3;
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #FFD700;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .open-btn:hover {
+            background: #FFC500;
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <img src="/static/images/dragon_bg.svg" class="dragon-logo" id="dragonLogo">
+        <button class="open-btn" onclick="openDoors()">Nhấn Mở</button>
+        <div class="door-container">
+            <div class="door left"></div>
+            <div class="door right"></div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('dragonLogo').classList.add('visible');
+            }, 500);
+        }
+
+        function openDoors() {
+            document.querySelector('.door.left').classList.add('open');
+            document.querySelector('.door.right').classList.add('open');
+            document.querySelector('.open-btn').style.opacity = '0';
+            document.getElementById('dragonLogo').style.opacity = '0';
+            
+            setTimeout(() => {
+                window.location.href = '/home';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

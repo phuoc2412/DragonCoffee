@@ -1,0 +1,240 @@
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import status_badge %}
+
+{% block title %}Báo cáo Doanh thu{% endblock %}
+{% block page_header %}Báo cáo Doanh thu{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.reports') }}">Báo cáo</a></li>
+    <li class="breadcrumb-item active">Doanh thu</li>
+{% endblock %}
+
+{% block content %}
+{# --- Card Bộ lọc (Giữ nguyên) --- #}
+<div class="card card-primary card-outline mb-4">
+    {# ... Form lọc ... #}
+    <div class="card-header"><h3 class="card-title">Bộ lọc báo cáo</h3></div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin.reports') }}">
+            <input type="hidden" name="type" value="sales">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-2">
+                    <label for="start_date" class="form-label form-label-sm">Từ ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="end_date" class="form-label form-label-sm">Đến ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-filter me-1"></i> Xem báo cáo</button>
+                </div>
+                <div class="col-md-3 mb-2">
+                     <div class="btn-group d-block w-100" role="group">
+                         {# --- Cập nhật logic active cho nút khoảng thời gian --- #}
+                          <a href="{{ url_for('admin.reports', type='sales', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' and not request.args.get('start_date') and not request.args.get('end_date') %}active{% endif %}">Hôm nay</a>
+                          <a href="{{ url_for('admin.reports', type='sales', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' and not request.args.get('start_date') and not request.args.get('end_date') %}active{% endif %}">7 ngày</a>
+                          <a href="{{ url_for('admin.reports', type='sales', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' and not request.args.get('start_date') and not request.args.get('end_date') %}active{% endif %}">Tháng này</a>
+                          <a href="{{ url_for('admin.reports', type='sales', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' and not request.args.get('start_date') and not request.args.get('end_date') %}active{% endif %}">Năm nay</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# --- Card Kết quả Báo cáo --- #}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="card-title">Kết quả báo cáo (Từ {{ start_date }} đến {{ end_date }})</h3>
+        <div class="card-tools">
+            {# Export/Print buttons ... #}
+             <button type="button" class="btn btn-tool btn-secondary" onclick="window.print();" title="In trang này">
+                <i class="fas fa-print"></i>
+            </button>
+         </div>
+    </div>
+    <div class="card-body">
+        {# Thẻ thông tin tổng hợp (Small Boxes) #}
+        <div class="row mb-4">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                 <div class="small-box bg-success">
+                    <div class="inner"> <h3>{{ "%.0f₫"|format(total_sales) }}</h3> <p>Tổng Doanh Thu</p> </div>
+                    <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+                 </div>
+            </div>
+             <div class="col-lg-4 col-md-6 col-sm-12">
+                 <div class="small-box bg-info">
+                    <div class="inner"> <h3>{{ total_orders }}</h3> <p>Đơn Hoàn Thành</p> </div> {# Sửa lại label #}
+                    <div class="icon"><i class="fas fa-receipt"></i></div>
+                 </div>
+            </div>
+             <div class="col-lg-4 col-md-12 col-sm-12"> {# Cho cột này full width trên mobile #}
+                 <div class="small-box bg-warning">
+                     <div class="inner"> <h3>{{ ("%.0f₫"|format(total_sales / total_orders)) if total_orders > 0 else '0₫' }}</h3> <p>Trung bình/Đơn</p> </div>
+                    <div class="icon"><i class="fas fa-balance-scale"></i></div>
+                 </div>
+            </div>
+        </div>
+
+        {# ----- KHU VỰC BIỂU ĐỒ (Đã sửa) ----- #}
+        <div class="mb-4 border rounded p-3 bg-light"> {# Thêm background nhẹ #}
+            <h5 class="mb-3 border-bottom pb-2">Biểu đồ Doanh thu theo Ngày</h5>
+             {# Thêm div để chứa canvas và thông báo lỗi/loading #}
+            <div id="salesChartContainer" style="position: relative; min-height: 300px;">
+                <canvas id="salesReportChart" data-chart='{{ chart_data | tojson | safe }}'></canvas>
+                {# Thêm một div để hiển thị thông báo nếu không vẽ được chart #}
+                <div id="salesChartMessage" class="text-center text-muted py-5" style="position: absolute; top: 0; left: 0; width: 100%; display: none;">
+                    <i class="fas fa-chart-line fa-2x mb-2"></i><br>
+                    Không có dữ liệu doanh thu để hiển thị cho khoảng thời gian này.
+                </div>
+            </div>
+        </div>
+        {# ----- KẾT THÚC KHU VỰC BIỂU ĐỒ ----- #}
+
+         {# Bảng danh sách đơn hàng hoàn thành #}
+        <div class="mt-4">
+             <h5 class="mb-3">Danh sách Đơn hàng Hoàn thành (trong kỳ báo cáo)</h5>
+             {% if orders %} {# Kiểm tra list orders có dữ liệu không #}
+             <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped table-sm">
+                    {# ... thead ... #}
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">ID Đơn</th>
+                            <th>Mã ĐH</th>
+                            <th>Ngày đặt</th>
+                            <th>Khách hàng</th>
+                             <th class="text-center">Số SP</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                           {# ... Các cột td như cũ ... #}
+                            <td class="text-center">{{ order.id }}</td>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.created_at.strftime('%d/%m/%y %H:%M') }}</td>
+                            <td>
+                                {% if order.customer %} {{ order.customer.full_name }}
+                                {% else %} {{ order.contact_phone or 'Khách vãng lai' }} {% endif %}
+                            </td>
+                            <td class="text-center">{{ order.details.count() }}</td>
+                            <td class="text-end">{{ "%.0f₫"|format(order.final_amount if order.final_amount else order.total_amount) }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-xs btn-outline-primary" title="Xem chi tiết"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+             </div>
+             {% else %}
+                 <div class="alert alert-light text-center">
+                     Không có đơn hàng nào hoàn thành trong khoảng thời gian đã chọn.
+                 </div>
+             {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const salesChartCanvas = document.getElementById('salesReportChart');
+        const chartMessageDiv = document.getElementById('salesChartMessage'); // Div thông báo
+        const chartContainer = document.getElementById('salesChartContainer'); // Div chứa
+
+        if (salesChartCanvas && chartMessageDiv && chartContainer) {
+            const chartDataString = salesChartCanvas.dataset.chart;
+            console.log("Raw chart data from attribute:", chartDataString); // DEBUG
+
+            if (chartDataString) {
+                let salesChartData = null;
+                try {
+                    salesChartData = JSON.parse(chartDataString);
+                    console.log("Parsed chart data:", salesChartData); // DEBUG
+
+                    // ----- **KIỂM TRA DỮ LIỆU TRƯỚC KHI VẼ** -----
+                    if (salesChartData && salesChartData.labels && salesChartData.values &&
+                        salesChartData.labels.length > 0 && salesChartData.values.length > 0 &&
+                        salesChartData.values.some(val => val > 0)) { // Kiểm tra có giá trị > 0 không
+
+                        const ctx = salesChartCanvas.getContext('2d');
+                        if (ctx) {
+                             try {
+                                 new Chart(ctx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: salesChartData.labels,
+                                        datasets: [{
+                                            label: 'Doanh thu',
+                                            data: salesChartData.values,
+                                            borderColor: 'rgb(54, 162, 235)', // Xanh dương
+                                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                            fill: true,
+                                            tension: 0.3, // Làm mịn đường line
+                                            pointBackgroundColor: 'rgb(54, 162, 235)',
+                                            pointRadius: 3,
+                                            pointHoverRadius: 5
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + '₫'; } } },
+                                            x: { grid: { display: false } } // Ẩn lưới trục X
+                                        },
+                                         plugins: {
+                                             tooltip: { callbacks: { label: function(c) { return `${c.dataset.label}: ${c.parsed.y.toLocaleString('vi-VN')}₫`; }}},
+                                            legend: { display: false }
+                                        }
+                                    }
+                                 });
+                                 console.log("Sales chart rendered successfully.");
+                                 chartMessageDiv.style.display = 'none'; // Ẩn thông báo
+                                 salesChartCanvas.style.display = ''; // Hiện canvas
+                             } catch (chartError) {
+                                  console.error("Chart.js Instantiation Error:", chartError);
+                                  chartMessageDiv.textContent = "Lỗi khi vẽ biểu đồ.";
+                                  chartMessageDiv.style.display = 'block';
+                                  salesChartCanvas.style.display = 'none';
+                              }
+                        } else {
+                              console.error("Failed to get 2D context for canvas.");
+                              chartMessageDiv.textContent = "Không thể khởi tạo vùng vẽ biểu đồ.";
+                              chartMessageDiv.style.display = 'block';
+                              salesChartCanvas.style.display = 'none';
+                          }
+                    } else {
+                         // Hiển thị thông báo nếu không có dữ liệu labels/values hoặc toàn giá trị 0
+                         console.warn("No valid data points found to render the chart.");
+                         chartMessageDiv.style.display = 'block'; // Hiện thông báo
+                         salesChartCanvas.style.display = 'none';  // Ẩn canvas
+                     }
+                 } catch (e) {
+                    console.error("Error parsing chart data JSON:", e);
+                    chartMessageDiv.textContent = "Lỗi dữ liệu biểu đồ.";
+                    chartMessageDiv.style.display = 'block';
+                    salesChartCanvas.style.display = 'none';
+                }
+            } else {
+                console.error("Canvas 'data-chart' attribute is empty or missing.");
+                chartMessageDiv.textContent = "Thiếu dữ liệu biểu đồ.";
+                chartMessageDiv.style.display = 'block';
+                salesChartCanvas.style.display = 'none';
+            }
+        } else {
+             console.error("Required elements for chart ('salesReportChart', 'salesChartMessage', 'salesChartContainer') not found.");
+        }
+    });
+</script>
+{% endblock %}

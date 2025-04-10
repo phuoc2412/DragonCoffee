@@ -1,0 +1,170 @@
+{# templates/macros/_ui_helpers.html #}
+
+{# --- Macro hiển thị Badge trạng thái --- #}
+{% macro status_badge(status, true_text='Hoạt động', false_text='Không hoạt động', custom_classes={}) %}
+    {# Args:
+        status: Giá trị trạng thái (chuỗi hoặc boolean)
+        true_text: Text hiển thị cho boolean True (mặc định 'Hoạt động')
+        false_text: Text hiển thị cho boolean False (mặc định 'Không hoạt động')
+        custom_classes: Dictionary để map giá trị status cụ thể với lớp CSS tùy chỉnh
+                       Ví dụ: {'completed': 'badge bg-light text-success border border-success'}
+    #}
+    {% set status_str = status|string|lower %}
+    {% set default_classes = {
+        'true': 'badge bg-success',
+        'active': 'badge bg-success',
+        'completed': 'badge bg-success',
+        'delivered': 'badge bg-success',
+        'paid': 'badge bg-success',
+        'published': 'badge bg-success',
+        'approved': 'badge bg-success',
+        'open': 'badge bg-success',
+
+        'false': 'badge bg-secondary',
+        'inactive': 'badge bg-secondary',
+        'disabled': 'badge bg-secondary',
+        'closed': 'badge bg-secondary',
+        'archived': 'badge bg-secondary',
+
+        'processing': 'badge bg-info',
+        'shipped': 'badge bg-info',
+        'in_progress': 'badge bg-info',
+
+        'pending': 'badge bg-warning text-dark',
+        'on_hold': 'badge bg-warning text-dark',
+        'requires_action': 'badge bg-warning text-dark',
+
+        'cancelled': 'badge bg-danger',
+        'failed': 'badge bg-danger',
+        'rejected': 'badge bg-danger',
+        'error': 'badge bg-danger',
+
+        'refunded': 'badge bg-dark',
+        'draft': 'badge bg-light text-dark'
+    } %}
+
+    {# Kết hợp class mặc định và class tùy chỉnh #}
+    {% set classes = default_classes.update(custom_classes) or default_classes %}
+    {% set badge_class = classes.get(status_str, 'badge bg-light text-dark') %} {# Lớp mặc định nếu không khớp #}
+
+    <span class="{{ badge_class }}">
+        {% if status is boolean %}
+            {{ true_text if status else false_text }}
+        {% else %}
+            {{ status | string | replace('_', ' ') | title }}
+        {% endif %}
+    </span>
+{% endmacro %}
+
+
+{# --- Macro hiển thị phân trang (Pagination) sử dụng đối tượng Pagination của Flask-SQLAlchemy --- #}
+{% macro render_pagination(pagination, endpoint, fragment='', align='center', size='sm') %}
+    {# Args:
+        pagination: Đối tượng Pagination trả về từ query.paginate()
+        endpoint: Tên endpoint của route (ví dụ: 'admin.orders')
+        fragment: Hash fragment (nếu cần, ví dụ '#comments')
+        align: Căn chỉnh ('start', 'center', 'end') - tương ứng justify-content-start/center/end
+        size: Kích thước pagination ('sm' hoặc 'lg', mặc định là nhỏ 'sm')
+        **kwargs: Các tham số khác cho url_for (ví dụ: status=current_filter)
+    #}
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-{{ size }} justify-content-{{ align }}"> {# Kích thước và căn chỉnh #}
+
+            {# Nút Trang đầu & Trang trước #}
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for(endpoint, page=1, **kwargs) }}{{ fragment }}" aria-label="First">
+                    <span aria-hidden="true">««</span> {# << #}
+                </a>
+            </li>
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num if pagination.has_prev else 1, **kwargs) }}{{ fragment }}" aria-label="Previous">
+                    <span aria-hidden="true">«</span> {# < #}
+                </a>
+            </li>
+
+            {# Các trang ở giữa #}
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for(endpoint, page=page_num, **kwargs) }}{{ fragment }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    {# Dấu ... #}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+
+            {# Nút Trang sau & Trang cuối #}
+             <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num if pagination.has_next else pagination.pages, **kwargs) }}{{ fragment }}" aria-label="Next">
+                     <span aria-hidden="true">»</span> {# > #}
+                </a>
+            </li>
+             <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                 <a class="page-link" href="{{ url_for(endpoint, page=pagination.pages, **kwargs) }}{{ fragment }}" aria-label="Last">
+                    <span aria-hidden="true">»»</span> {# >> #}
+                 </a>
+            </li>
+
+        </ul>
+    </nav>
+     <p class="text-{{ align }} text-muted mt-2"><small>Trang {{ pagination.page }} / {{ pagination.pages }} (Tổng {{ pagination.total }} mục)</small></p>
+    {% endif %}
+{% endmacro %}
+
+{# --- Macro hiển thị thông báo Flash --- #}
+{% macro render_flash_messages() %}
+    {# Hiển thị tất cả các flash messages #}
+     {% with messages = get_flashed_messages(with_categories=true) %}
+         {% if messages %}
+            <div class="container flash-messages-container mt-3 mb-0"> {# Container để dễ quản lý vị trí #}
+                {% for category, message in messages %}
+                    {% set alert_class = 'alert-' + (category if category in ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'] else 'info') %}
+                     <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+             </div>
+        {% endif %}
+     {% endwith %}
+{% endmacro %}
+
+
+{# --- Macro hiển thị ảnh đại diện (Avatar) với fallback --- #}
+{% macro render_avatar(user, size=40, css_class='rounded-circle', alt_text=None) %}
+    {% set initial_fallback_bg = ['bg-primary', 'bg-secondary', 'bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-dark'] | random %}
+    {% set initials = (user.first_name[0] ~ user.last_name[0]) if user.first_name and user.last_name else (user.username[0] if user.username else '?') %}
+    {% set display_name = alt_text or user.full_name() or user.username or 'User' %}
+
+     <span class="avatar-container d-inline-block" title="{{ display_name }}"
+           style="width: {{ size }}px; height: {{ size }}px; line-height: {{ size }}px; font-size: {{ size * 0.5 }}px;">
+
+         {% if user.avatar_url %}
+            <img src="{{ user.avatar_url }}" alt="Ảnh đại diện {{ display_name }}"
+                 width="{{ size }}" height="{{ size }}" class="{{ css_class }}" style="object-fit: cover;">
+         {% else %}
+             {# Fallback dùng chữ cái đầu #}
+             <span class="avatar-initials {{ css_class }} d-flex align-items-center justify-content-center text-white {{ initial_fallback_bg }}"
+                  style="width: 100%; height: 100%; font-weight: 500;">
+                 {{ initials | upper }}
+             </span>
+        {% endif %}
+    </span>
+{% endmacro %}
+
+
+{# --- Macro tạo breadcrumb từ list các item --- #}
+{% macro render_breadcrumb(items) %}
+  <ol class="breadcrumb float-sm-right">
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    {% for item in items %}
+      {% if loop.last %}
+        <li class="breadcrumb-item active">{{ item.text }}</li>
+      {% else %}
+        <li class="breadcrumb-item"><a href="{{ item.url }}">{{ item.text }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+{% endmacro %}

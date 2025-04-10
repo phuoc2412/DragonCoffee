@@ -4,16 +4,16 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">Reports & Analytics</h1>
+    <h1 class="admin-title">Báo cáo & Phân tích</h1>
     <div class="d-flex align-items-center">
         <div class="dropdown me-2">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Export
+                <i class="fas fa-download me-1"></i> Xuất file
             </button>
             <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Export as CSV</a></li>
-                <li><a class="dropdown-item" href="#">Export as PDF</a></li>
-                <li><a class="dropdown-item" href="#">Export as Excel</a></li>
+                <li><a class="dropdown-item" href="#">Xuất dưới dạng CSV</a></li>
+                <li><a class="dropdown-item" href="#">Xuất dưới dạng PDF</a></li>
+                <li><a class="dropdown-item" href="#">Xuất dưới dạng Excel</a></li>
             </ul>
         </div>
         <button class="btn btn-primary">
@@ -25,22 +25,22 @@
 <div class="admin-card mb-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center mb-3 mb-md-0">
-            <span class="me-2">Report Type:</span>
+            <span class="me-2">Loại báo cáo:</span>
             <div class="btn-group" role="group">
-                <a href="{{ url_for('admin.reports', type='sales') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'sales' }}">Sales</a>
-                <a href="{{ url_for('admin.reports', type='products') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'products' }}">Products</a>
-                <a href="{{ url_for('admin.reports', type='customers') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'customers' }}">Customers</a>
-                <a href="{{ url_for('admin.reports', type='inventory') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'inventory' }}">Inventory</a>
+                <a href="{{ url_for('admin.reports', type='sales') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'sales' }}">Việc bán hàng</a>
+                <a href="{{ url_for('admin.reports', type='products') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'products' }}">Các sản phẩm</a>
+                <a href="{{ url_for('admin.reports', type='customers') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'customers' }}">Khách hàng</a>
+                <a href="{{ url_for('admin.reports', type='inventory') }}" class="btn btn-outline-secondary {{ 'active' if report_type == 'inventory' }}">Hàng tồn kho</a>
             </div>
         </div>
         
         <div class="d-flex align-items-center">
             <span class="me-2">Time Period:</span>
             <div class="btn-group" role="group">
-                <a href="{{ url_for('admin.reports', type=report_type, period='day') }}" class="btn btn-outline-secondary {{ 'active' if period == 'day' }}">Day</a>
-                <a href="{{ url_for('admin.reports', type=report_type, period='week') }}" class="btn btn-outline-secondary {{ 'active' if period == 'week' }}">Week</a>
-                <a href="{{ url_for('admin.reports', type=report_type, period='month') }}" class="btn btn-outline-secondary {{ 'active' if period == 'month' }}">Month</a>
-                <a href="{{ url_for('admin.reports', type=report_type, period='year') }}" class="btn btn-outline-secondary {{ 'active' if period == 'year' }}">Year</a>
+                <a href="{{ url_for('admin.reports', type=report_type, period='day') }}" class="btn btn-outline-secondary {{ 'active' if period == 'day' }}">Ngày</a>
+                <a href="{{ url_for('admin.reports', type=report_type, period='week') }}" class="btn btn-outline-secondary {{ 'active' if period == 'week' }}">Tuần</a>
+                <a href="{{ url_for('admin.reports', type=report_type, period='month') }}" class="btn btn-outline-secondary {{ 'active' if period == 'month' }}">Tháng</a>
+                <a href="{{ url_for('admin.reports', type=report_type, period='year') }}" class="btn btn-outline-secondary {{ 'active' if period == 'year' }}">Năm</a>
             </div>
         </div>
     </div>
@@ -49,28 +49,28 @@
     <!-- Sales Report -->
     <div class="row">
         <div class="col-lg-8 mb-4">
-            <h4 class="mb-3">Sales Overview</h4>
+            <h4 class="mb-3">Tổng quan về bán hàng</h4>
             <canvas id="salesChart" height="300" data-chart='{{ chart_data|tojson }}'></canvas>
         </div>
         
         <div class="col-lg-4 mb-4">
             <div class="card border-0 bg-light mb-4">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Sales</h5>
+                    <h5 class="card-title text-muted">Tổng doanh số</h5>
                     <h2 class="mb-0">${{ "%.2f"|format(total_sales) }}</h2>
                 </div>
             </div>
             
             <div class="card border-0 bg-light mb-4">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Orders</h5>
+                    <h5 class="card-title text-muted">Tổng số đơn hàng</h5>
                     <h2 class="mb-0">{{ orders|length }}</h2>
                 </div>
             </div>
             
             <div class="card border-0 bg-light">
                 <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Average Order Value</h5>
+                    <h5 class="card-title text-muted">Giá trị đơn hàng trung bình</h5>
                     <h2 class="mb-0">
                         {% if orders|length > 0 %}
                         ${{ "%.2f"|format(total_sales / orders|length) }}
@@ -83,13 +83,13 @@
         </div>
     </div>
     
-    <h4 class="mb-3">Sales by Order Type</h4>
+    <h4 class="mb-3">Bán theo loại đơn hàng</h4>
     <div class="row mb-4">
         <div class="col-lg-4 mb-4 mb-lg-0">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0">Dine-in</h5>
+                        <h5 class="card-title mb-0">Ăn tối tại chỗ</h5>
                         <span class="badge bg-primary">{{ orders|selectattr('order_type', 'equalto', 'dine-in')|list|length }} orders</span>
                     </div>
                     <h3 class="mb-1">${{ "%.2f"|format(orders|selectattr('order_type', 'equalto', 'dine-in')|sum(attribute='total_amount')) }}</h3>
@@ -111,7 +111,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0">Takeaway</h5>
+                        <h5 class="card-title mb-0">Mua mang về</h5>
                         <span class="badge bg-success">{{ orders|selectattr('order_type', 'equalto', 'takeaway')|list|length }} orders</span>
                     </div>
                     <h3 class="mb-1">${{ "%.2f"|format(orders|selectattr('order_type', 'equalto', 'takeaway')|sum(attribute='total_amount')) }}</h3>
@@ -133,7 +133,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0">Delivery</h5>
+                        <h5 class="card-title mb-0">Vận chuyển</h5>
                         <span class="badge bg-info">{{ orders|selectattr('order_type', 'equalto', 'delivery')|list|length }} orders</span>
                     </div>
                     <h3 class="mb-1">${{ "%.2f"|format(orders|selectattr('order_type', 'equalto', 'delivery')|sum(attribute='total_amount')) }}</h3>
@@ -152,18 +152,18 @@
         </div>
     </div>
     
-    <h4 class="mb-3">Recent Sales</h4>
+    <h4 class="mb-3">Bán hàng gần đây</h4>
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Order #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Order Type</th>
-                    <th>Items</th>
-                    <th>Total</th>
-                    <th>Payment Method</th>
+                    <th>Đặt hàng #</th>
+                    <th>Ngày</th>
+                    <th>Khách hàng</th>
+                    <th>Loại đơn hàng</th>
+                    <th>Mặt hàng</th>
+                    <th>Tổng cộng</th>
+                    <th>Phương thức thanh toán</th>
                 </tr>
             </thead>
             <tbody>
@@ -192,12 +192,12 @@
     <!-- Products Report -->
     <div class="row">
         <div class="col-lg-8 mb-4">
-            <h4 class="mb-3">Top Selling Products</h4>
+            <h4 class="mb-3">Sản phẩm bán chạy nhất</h4>
             <canvas id="productsChart" height="400" data-chart='{{ chart_data|tojson }}'></canvas>
         </div>
         
         <div class="col-lg-4 mb-4">
-            <h4 class="mb-3">Product Performance</h4>
+            <h4 class="mb-3">Hiệu suất sản phẩm</h4>
             {% for product in product_sales[:5] %}
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
@@ -206,7 +206,7 @@
                         <span class="badge bg-primary">{{ product[1] }} sold</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span>Revenue: ${{ "%.2f"|format(product[2]) }}</span>
+                        <span>Doanh thu: ${{ "%.2f"|format(product[2]) }}</span>
                         <span class="text-muted">{{ (product[1] / product_sales|sum(attribute='1') * 100)|int }}% of sales</span>
                     </div>
                 </div>
@@ -215,15 +215,15 @@
         </div>
     </div>
     
-    <h4 class="mb-3">Product Sales by Category</h4>
+    <h4 class="mb-3">Doanh số bán sản phẩm theo danh mục</h4>
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Category</th>
-                    <th>Products Sold</th>
-                    <th>Revenue</th>
-                    <th>% of Total Sales</th>
+                    <th>Loại</th>
+                    <th>Sản phẩm đã bán</th>
+                    <th>Doanh thu</th>
+                    <th>% của Tổng doanh số</th>
                 </tr>
             </thead>
             <tbody>
@@ -268,13 +268,13 @@
     {% elif report_type == 'customers' %}
     <!-- Customers Report -->
     <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i> Customer analytics data is being compiled. This report will be available soon.
+        <i class="fas fa-info-circle me-2"></i> Dữ liệu phân tích khách hàng đang được biên soạn. Báo cáo này sẽ sớm có sẵn.
     </div>
     
     {% elif report_type == 'inventory' %}
     <!-- Inventory Report -->
     <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i> Inventory usage analytics is being compiled. This report will be available soon.
+        <i class="fas fa-info-circle me-2"></i> Phân tích sử dụng hàng tồn kho đang được biên soạn. Báo cáo này sẽ sớm có sẵn.
     </div>
     {% endif %}
 </div>

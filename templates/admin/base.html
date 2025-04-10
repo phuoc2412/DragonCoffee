@@ -32,49 +32,55 @@
         <!-- Sidebar -->
         <aside class="admin-sidebar d-none d-lg-block">
             <div class="sidebar-brand">
-                <i class="fas fa-dragon me-2"></i> Dragon Admin
+                <i class="fas fa-dragon me-2"></i> Quản trị viên rồng
             </div>
             
             <ul class="sidebar-menu">
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt sidebar-icon"></i> Dashboard
+                        <i class="fas fa-tachometer-alt sidebar-icon"></i> Bảng điều khiển
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.menu_management') }}" class="sidebar-link {% if request.endpoint == 'admin.menu_management' %}active{% endif %}">
-                        <i class="fas fa-coffee sidebar-icon"></i> Menu Management
+                        <i class="fas fa-coffee sidebar-icon"></i> Quản lý thực đơn
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.orders') }}" class="sidebar-link {% if request.endpoint == 'admin.orders' %}active{% endif %}">
-                        <i class="fas fa-shopping-cart sidebar-icon"></i> Orders
+                        <i class="fas fa-shopping-cart sidebar-icon"></i> Đơn hàng
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.inventory') }}" class="sidebar-link {% if request.endpoint == 'admin.inventory' %}active{% endif %}">
-                        <i class="fas fa-boxes sidebar-icon"></i> Inventory
+                        <i class="fas fa-boxes sidebar-icon"></i> Hàng tồn kho
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.pos') }}" class="sidebar-link {% if request.endpoint == 'admin.pos' %}active{% endif %}">
-                        <i class="fas fa-cash-register sidebar-icon"></i> POS System
+                        <i class="fas fa-cash-register sidebar-icon"></i> Hệ thống POS
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.reports') }}" class="sidebar-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
-                        <i class="fas fa-chart-bar sidebar-icon"></i> Reports
+                        <i class="fas fa-chart-bar sidebar-icon"></i> Báo cáo
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('admin.employees') }}" class="sidebar-link {% if request.endpoint == 'admin.employees' %}active{% endif %}">
-                        <i class="fas fa-users sidebar-icon"></i> Employees
+                        <i class="fas fa-users sidebar-icon"></i> Người lao động
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="{{ url_for('admin.interesting_stories') }}" class="sidebar-link {% if request.endpoint.startswith('admin.interesting_stories') or request.endpoint in ['admin.generate_story', 'admin.edit_story'] %}active{% endif %}">
+                        <i class="fas fa-book-reader sidebar-icon"></i> Câu chuyện Thú vị
                     </a>
                 </li>
                 
@@ -82,13 +88,13 @@
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('main.index') }}" class="sidebar-link">
-                        <i class="fas fa-store sidebar-icon"></i> View Website
+                        <i class="fas fa-store sidebar-icon"></i> Xem trang web
                     </a>
                 </li>
                 
                 <li class="sidebar-item">
                     <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
-                        <i class="fas fa-sign-out-alt sidebar-icon"></i> Logout
+                        <i class="fas fa-sign-out-alt sidebar-icon"></i> Đăng xuất
                     </a>
                 </li>
             </ul>
@@ -106,9 +112,9 @@
                         <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">My Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Hồ sơ của tôi</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>

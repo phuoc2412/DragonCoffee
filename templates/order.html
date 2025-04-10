@@ -1,143 +1,181 @@
-{% extends "base.html" %}
+{# /templates/admin/orders.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %} {# Import macros #}
 
-{% block title %}Dragon Coffee Shop - Order Online{% endblock %}
+{% block title %}Quản lý Đơn hàng - Trang quản trị{% endblock %}
+
+{% block page_title %}Quản lý Đơn hàng{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">Đơn hàng</li>
+{% endblock %}
+
 
 {% block content %}
-<div class="container py-5">
-    <div class="content-container">
-        <h1 class="section-title">Order Online</h1>
-        
-        <div class="row mt-4">
-            <div class="col-lg-3 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Categories</h5>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('main.menu') }}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
-                                All Products
-                            </a>
-                            {% for category in categories %}
-                            <a href="{{ url_for('main.menu', category=category.id) }}" class="list-group-item list-group-item-action {% if current_category and current_category.id == category.id %}active{% endif %}">
-                                {{ category.name }}
-                            </a>
-                            {% endfor %}
-                        </div>
-                    </div>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Danh sách tất cả đơn hàng</h3>
+        <div class="card-tools">
+             {# Form tìm kiếm và lọc #}
+             <form method="GET" action="{{ url_for('admin.orders') }}" class="input-group input-group-sm" style="width: 350px;">
+                <input type="text" name="q" class="form-control float-right" placeholder="Tìm theo ID, tên KH, SĐT..." value="{{ request.args.get('q', '') }}">
+                 {# Bộ lọc trạng thái #}
+                 <select name="status" class="form-select form-select-sm" style="width: 120px; margin-left: 5px;">
+                     <option value="">Tất cả trạng thái</option>
+                     {# Lấy các trạng thái từ OrderStatus enum nếu có, hoặc hardcode #}
+                     <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Chờ xử lý</option>
+                     <option value="Processing" {% if request.args.get('status') == 'Processing' %}selected{% endif %}>Đang xử lý</option>
+                     <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>Hoàn thành</option>
+                     <option value="Cancelled" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>Đã hủy</option>
+                      <option value="Delivered" {% if request.args.get('status') == 'Delivered' %}selected{% endif %}>Đã giao</option> {# Thêm nếu cần #}
+                 </select>
+                <div class="input-group-append" style="margin-left: 5px;">
+                    <button type="submit" class="btn btn-default"><i class="fas fa-search"></i> Tìm</button>
+                     <a href="{{ url_for('admin.orders') }}" class="btn btn-secondary" style="margin-left: 5px;" title="Xóa bộ lọc"><i class="fas fa-times"></i></a>
                 </div>
-                
-                <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Order Type</h5>
-                        <div class="list-group list-group-flush">
-                            <a href="#" class="list-group-item list-group-item-action active">
-                                <i class="fas fa-shopping-bag me-2"></i> Takeaway
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <i class="fas fa-utensils me-2"></i> Dine-in
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <i class="fas fa-motorcycle me-2"></i> Delivery
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Your Cart</h5>
-                        
-                        {% if session.get('cart') and session.get('cart')|length > 0 %}
-                        <div class="small">
-                            {% for item in session.get('cart') %}
-                            {% set product = get_product(item.product_id) %}
-                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
-                                <div>
-                                    <span class="fw-bold">{{ item.quantity }}x</span> {{ product.name }}
-                                </div>
-                                <div>${{ "%.2f"|format(product.price * item.quantity) }}</div>
-                            </div>
-                            {% endfor %}
-                            
-                            <div class="d-flex justify-content-between mb-2 pt-2">
-                                <strong>Total:</strong>
-                                <strong>${{ "%.2f"|format(calculate_cart_total()) }}</strong>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 mt-3">
-                            <a href="{{ url_for('order.cart') }}" class="btn btn-primary">
-                                <i class="fas fa-shopping-cart me-2"></i> View Cart
-                            </a>
-                            <a href="{{ url_for('order.checkout') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-check me-2"></i> Checkout
-                            </a>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-3">
-                            <p class="text-muted">Your cart is empty</p>
-                            <a href="{{ url_for('main.menu') }}" class="btn btn-sm btn-primary">Start Shopping</a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+            </form>
+        </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body p-0"> {# Xóa padding để table full width #}
+        {% if orders and orders.items %}
+        <table class="table table-striped table-hover projects">
+            <thead>
+                <tr>
+                    <th style="width: 5%">#ID</th>
+                    <th style="width: 20%">Khách hàng</th>
+                    <th style="width: 15%">Ngày đặt</th>
+                    <th style="width: 15%" class="text-center">Tổng tiền</th>
+                     <th style="width: 10%" class="text-center">Thanh toán</th> {# Thêm cột trạng thái thanh toán #}
+                    <th style="width: 10%" class="text-center">Đơn hàng</th>
+                    <th style="width: 25%;" class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders.items %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>
+                        <a>{{ order.customer_name or (order.user.full_name() if order.user else 'Khách vãng lai') }}</a>
+                        <br>
+                        <small class="text-muted">
+                           {{ order.customer_phone or (order.user.phone if order.user else '') }}
+                           {{ ( '<br>' + order.customer_email) if order.customer_email }} {# Thêm email nếu có #}
+                        </small>
+                    </td>
+                     <td>{{ order.created_at | format_datetime }}</td> {# Giả sử có filter format_datetime #}
+                     <td class="text-center">{{ "%.0f₫"|format(order.total_amount) }}</td>
+                    <td class="text-center">
+                         {# Sử dụng macro status_badge cho Payment Status #}
+                        {{ status_badge(order.payment_status or 'Chưa thanh toán') }}
+                     </td>
+                    <td class="project-state text-center">
+                         {# Sử dụng macro status_badge cho Order Status #}
+                         {{ status_badge(order.status or 'Pending') }}
+                     </td>
+                     {# --- TẠM THỜI COMMENT ĐỂ TEST ---
+                    <td class="project-actions text-center">
+                        {# Xem chi tiết đơn hàng #}
+                        <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                            <i class="fas fa-eye"></i>
+                            {# Xem #}
+                        </a>
+                        {# Xem hóa đơn HTML (Nếu bạn có route view_invoice) #}
+                        <a href="{{ url_for('admin.view_invoice', order_id=order.id) }}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem Hóa đơn" target="_blank">
+                            <i class="fas fa-receipt"></i>
+                             {# Xem HĐ #}
+                        </a>
+                         {# ---- ĐÂY LÀ DÒNG ĐÃ SỬA LỖI ---- #}
+                         {# In hóa đơn PDF (Sửa endpoint thành print_invoice_pdf) #}
+                        <a href="{{ url_for('admin.print_invoice_pdf', order_id=order.id) }}" class="btn btn-secondary btn-sm" data-bs-toggle="tooltip" title="In Hóa đơn PDF" target="_blank">
+                             <i class="fas fa-print"></i>
+                            {# In PDF #}
+                         </a>
+                        {# Sửa đơn hàng (Liên kết đến trang chi tiết để chỉnh sửa) #}
+                        <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Chỉnh sửa"> {# Sửa thành warning hoặc info #}
+                            <i class="fas fa-pencil-alt"></i>
+                             {# Sửa #}
+                        </a>
+                        {# Nút xóa đơn hàng (Cần có modal xác nhận) #}
+                         {# <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteOrderModal" data-order-id="{{ order.id }}" data-order-customer="{{ order.customer_name or order.user.full_name() }}" title="Xóa">
+                             <i class="fas fa-trash"></i>
+                             Xóa
+                         </button> }
+                         --- KẾT THÚC COMMENT --- #}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+         <div class="text-center p-4">
+             <p class="text-muted">Không tìm thấy đơn hàng nào khớp với tiêu chí tìm kiếm.</p>
+              {% if request.args.get('q') or request.args.get('status') %}
+             <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-primary">Xem tất cả đơn hàng</a>
+             {% endif %}
+         </div>
+         {% endif %}
+    </div>
+    <!-- /.card-body -->
+    {% if orders and orders.pages > 1 %}
+    <div class="card-footer clearfix">
+        {# Hiển thị phân trang sử dụng Macro #}
+        {{ render_pagination(orders, 'admin.orders', align='right', q=request.args.get('q'), status=request.args.get('status')) }}
+    </div>
+    {% endif %}
+</div>
+<!-- /.card -->
+
+{# Thêm Modal xác nhận xóa nếu bạn dùng nút xóa #}
+{# <div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteOrderModalLabel">Xác nhận xóa đơn hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
-            <div class="col-lg-9">
-                {% if current_category %}
-                <div class="alert alert-light mb-4">
-                    <h3 class="mb-2">{{ current_category.name }}</h3>
-                    <p class="mb-0">{{ current_category.description }}</p>
-                </div>
-                {% endif %}
-                
-                <div class="row">
-                    {% if products %}
-                    {% for product in products %}
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
-                            {% if product.is_featured %}
-                            <div class="featured-badge">Featured</div>
-                            {% endif %}
-                            <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text">{{ product.description|truncate(80) }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
-                                        <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
-                                            <i class="fas fa-cart-plus"></i> Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="col-12 text-center py-5">
-                        <p class="lead">No products available in this category yet.</p>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Pagination -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mt-4">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa đơn hàng <strong id="order-info"></strong>? Hành động này không thể hoàn tác.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="deleteOrderForm" method="POST" action="" style="display: inline;">
+                    {{ csrf_token() if csrf_token else '' }}
+                    <input type="hidden" name="_method" value="DELETE"> {# Hoặc dùng POST nếu route là POST #}
+                    {# <button type="submit" class="btn btn-danger">Xóa đơn hàng</button>
+                </form>
             </div>
         </div>
     </div>
-</div>
+</div> #}
+
 {% endblock %}
+
+{% block scripts %}
+{# <script>
+ // Script để cập nhật action của form xóa khi modal hiện lên (nếu dùng)
+ document.addEventListener('DOMContentLoaded', function () {
+     var deleteModal = document.getElementById('deleteOrderModal');
+     if(deleteModal) {
+         deleteModal.addEventListener('show.bs.modal', function (event) {
+             var button = event.relatedTarget;
+             var orderId = button.getAttribute('data-order-id');
+             var orderCustomer = button.getAttribute('data-order-customer');
+             var modalBody = deleteModal.querySelector('.modal-body #order-info');
+             var deleteForm = deleteModal.querySelector('#deleteOrderForm');
+
+             modalBody.textContent = `#${orderId} của khách ${orderCustomer || 'vãng lai'}`;
+              // Giả sử URL xóa là /admin/orders/<order_id>/delete
+             // Nhớ tạo route này trong Flask nhé!
+             deleteForm.action = `/admin/orders/${orderId}/delete`;
+        });
+     }
+
+     // Khởi tạo tooltip của Bootstrap 5
+     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+         return new bootstrap.Tooltip(tooltipTriggerEl)
+     })
+ });
+ </script> #}
+ {% endblock %}

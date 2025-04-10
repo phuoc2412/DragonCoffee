@@ -3,17 +3,58 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Inventory search and filter functionality
-    setupInventorySearch();
-    
-    // Batch update functionality
-    setupBatchUpdate();
-    
-    // Stock update form submission
-    setupStockUpdateForms();
-    
-    // Stock history chart
-    setupStockHistoryCharts();
+    var historyModal = document.getElementById('historyModal');
+    if (historyModal) {
+        historyModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var itemId = button.getAttribute('data-item-id');
+            var productName = button.getAttribute('data-product-name');
+
+            var modalTitle = historyModal.querySelector('.modal-title');
+            var productNameSpan = historyModal.querySelector('#historyProductName'); // ID trong modal body
+            var historyContentDiv = historyModal.querySelector('#historyContent'); // ID của div chứa nội dung
+
+            // Cập nhật title và tên SP trong modal
+            if (modalTitle) modalTitle.textContent = 'Lịch sử tồn kho - ' + productName;
+            if (productNameSpan) productNameSpan.textContent = productName; // Hiển thị tên SP trong body
+
+            // Hiển thị spinner và xóa nội dung cũ
+            if (historyContentDiv) {
+                historyContentDiv.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>`;
+            } else {
+                 console.error("History content container '#historyContent' not found in modal!");
+                 return; // Dừng lại nếu không tìm thấy container
+             }
+
+             // Tạo URL động
+            const historyUrl = `/admin/inventory/${itemId}/history`; // Đảm bảo URL này đúng với route Flask
+
+             // Gọi AJAX fetch
+            fetch(historyUrl)
+                .then(response => {
+                     if (!response.ok) { // Kiểm tra lỗi HTTP
+                        throw new Error(`Lỗi mạng (${response.status}): ${response.statusText}`);
+                     }
+                    // Quan trọng: Mong đợi HTML, không phải JSON
+                    return response.text();
+                 })
+                .then(html => {
+                     // Cập nhật nội dung modal bằng HTML nhận được
+                     if (historyContentDiv) {
+                         historyContentDiv.innerHTML = html;
+                     }
+                 })
+                 .catch(error => {
+                    console.error('Lỗi tải lịch sử tồn kho:', error);
+                    // Hiển thị lỗi trong modal
+                     if (historyContentDiv) {
+                         historyContentDiv.innerHTML = `<div class="alert alert-danger">Không thể tải dữ liệu lịch sử. Lỗi: ${error.message}</div>`;
+                    }
+                 });
+        });
+    } else {
+         console.warn("History modal '#historyModal' not found.");
+    }
 });
 
 /**

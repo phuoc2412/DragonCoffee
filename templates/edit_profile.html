@@ -8,9 +8,9 @@
         <div class="col-md-8">
             <div class="content-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="section-title mb-0">Edit Profile</h1>
+                    <h1 class="section-title mb-0">Chỉnh sửa hồ sơ</h1>
                     <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i> Back to Profile
+                        <i class="fas fa-arrow-left me-2"></i> Quay lại hồ sơ
                     </a>
                 </div>
                 
@@ -83,13 +83,13 @@
                             
                             <hr class="my-4">
                             
-                            <h5>Change Password (Optional)</h5>
-                            <p class="text-muted small mb-3">Leave blank if you don't want to change your password.</p>
+                            <h5>Thay đổi mật khẩu (Tùy chọn)</h5>
+                            <p class="text-muted small mb-3">Để trống nếu bạn không muốn thay đổi mật khẩu.</p>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     {{ form.password.label(class="form-label") }}
-                                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="New password") }}
+                                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Mật khẩu mới") }}
                                     {% if form.password.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.password.errors %}
@@ -101,7 +101,7 @@
                                 
                                 <div class="col-md-6 mb-3">
                                     {{ form.password2.label(class="form-label") }}
-                                    {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), placeholder="Confirm new password") }}
+                                    {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), placeholder="Xác nhận mật khẩu mới") }}
                                     {% if form.password2.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.password2.errors %}

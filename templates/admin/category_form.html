@@ -6,7 +6,7 @@
 <div class="admin-header">
     <h1 class="admin-title">{{ title }}</h1>
     <a href="{{ url_for('admin.menu_management') }}" class="btn btn-outline-primary">
-        <i class="fas fa-arrow-left me-1"></i> Back to Menu
+        <i class="fas fa-arrow-left me-1"></i> Quay lại Menu
     </a>
 </div>
 
@@ -53,16 +53,16 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="mb-0">Products in this Category</h4>
+                <h4 class="mb-0">Sản phẩm trong danh mục này</h4>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Product</th>
-                                <th>Price</th>
-                                <th>Status</th>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -77,9 +77,9 @@
                                 <td>${{ "%.2f"|format(product.price) }}</td>
                                 <td>
                                     {% if product.is_available %}
-                                    <span class="badge bg-success">Available</span>
+                                    <span class="badge bg-success">Có sẵn</span>
                                     {% else %}
-                                    <span class="badge bg-danger">Unavailable</span>
+                                    <span class="badge bg-danger">Không có sẵn</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -88,7 +88,7 @@
                     </table>
                 </div>
                 <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i> Please reassign or delete these products before deleting this category.
+                    <i class="fas fa-exclamation-triangle me-2"></i> Vui lòng chỉ định lại hoặc xóa các sản phẩm này trước khi xóa danh mục này.
                 </div>
             </div>
         </div>

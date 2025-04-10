@@ -1,0 +1,49 @@
+{# /templates/admin/_inventory_history_content.html #}
+
+<h5>Lịch sử Giao dịch Gần đây ({{ limit }} tối đa)</h5>
+
+{# ---- Phần Lịch Sử Bán Hàng ---- #}
+<h6><i class="fas fa-arrow-down text-danger me-1"></i> Xuất kho (Đơn hàng đã bán)</h6>
+{% if sales_history %}
+    <div class="table-responsive mb-3" style="max-height: 200px; overflow-y: auto;">
+        <table class="table table-sm table-striped table-bordered">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th>Ngày</th>
+                    <th>Mã ĐH</th>
+                    <th class="text-center">Số lượng bán</th>
+                    <th class="text-end">Đơn giá</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales_history %}
+                <tr>
+                    <td>{{ sale.created_at.strftime('%d/%m/%y %H:%M') }}</td>
+                    <td><a href="{{ url_for('admin.order_details', order_id=sale.order_id) if sale.order_id else '#' }}">{{ sale.order_number }}</a></td> {# Thêm link nếu có order_id #}
+                    <td class="text-center">{{ sale.quantity }}</td>
+                    <td class="text-end">{{ "%.0f₫"|format(sale.unit_price) if sale.unit_price else '-'}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="text-muted small"><em>Không có lịch sử bán hàng gần đây cho sản phẩm này.</em></p>
+{% endif %}
+
+{# ---- Phần Lịch Sử Nhập Kho (NẾU CÓ) ---- #}
+<h6 class="mt-3"><i class="fas fa-arrow-up text-success me-1"></i> Nhập kho</h6>
+{% if receipt_history %}
+     {# Phần hiển thị lịch sử nhập kho - tương tự như bán hàng #}
+    <p class="text-muted small"><em>(Bảng lịch sử nhập kho)</em></p>
+{% else %}
+    <p class="text-muted small"><em>Không có lịch sử nhập kho gần đây hoặc tính năng chưa hỗ trợ.</em></p>
+{% endif %}
+
+<hr>
+{# ---- Thông tin tồn kho hiện tại ---- #}
+<div class="row small">
+    <div class="col"><strong>Hiện tại:</strong> {{ item.quantity }} {{ item.unit or '' }}</div>
+    <div class="col"><strong>Tối thiểu:</strong> {{ item.min_quantity }}</div>
+    <div class="col text-end"><strong>Cập nhật cuối:</strong> {{ item.last_updated.strftime('%d/%m %H:%M') if item.last_updated else 'N/A' }}</div>
+</div>

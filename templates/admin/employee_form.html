@@ -6,7 +6,7 @@
 <div class="admin-header">
     <h1 class="admin-title">{{ title }}</h1>
     <a href="{{ url_for('admin.employees') }}" class="btn btn-outline-primary">
-        <i class="fas fa-arrow-left me-1"></i> Back to Employees
+        <i class="fas fa-arrow-left me-1"></i> Quay lại Nhân viên
     </a>
 </div>
 
@@ -52,7 +52,7 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <div class="form-text">This email will be used for login credentials.</div>
+                    <div class="form-text">Email này sẽ được sử dụng để đăng nhập.</div>
                 </div>
                 
                 <div class="mb-3">
@@ -107,10 +107,22 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <div class="mb-3 form-check"> <div class="mb-3 form-check">
+                    {{ form.is_staff(class="form-check-input") }}
+                    {{ form.is_staff.label(class="form-check-label") }}
+                    {% if form.is_staff.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.is_staff.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
                 
                 {% if not employee %}
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> A default password will be generated for this employee. They can change it after first login.
+                    <i class="fas fa-info-circle me-2"></i> Mật khẩu mặc định sẽ được tạo cho nhân viên này. Họ có thể thay đổi mật khẩu sau lần đăng nhập đầu tiên.
                 </div>
                 {% endif %}
                 
@@ -127,37 +139,39 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="mb-0">Account Status</h4>
+                <h4 class="mb-0">Trạng thái tài khoản</h4>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="mb-1">Account Status</h5>
+                        <h5 class="mb-1">Trạng thái tài khoản</h5>
                         <p class="mb-0">
                             {% if employee.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">Tích cực</span>
                             {% else %}
-                            <span class="badge bg-danger">Inactive</span>
+                            <span class="badge bg-danger">Không hoạt động</span>
                             {% endif %}
                         </p>
                     </div>
-                    <form action="{{ url_for('admin.toggle_employee_status', employee_id=employee.id) }}" method="POST">
-                        <button type="submit" class="btn btn-outline-{{ 'danger' if employee.is_active else 'success' }}">
-                            <i class="fas {{ 'fa-user-slash' if employee.is_active else 'fa-user-check' }} me-1"></i>
-                            {{ 'Deactivate' if employee.is_active else 'Activate' }} Account
-                        </button>
-                    </form>
+                    <form action="{{ url_for('admin.toggle_employee_active_status', employee_id=employee.id) }}" method="POST">
+                        {# Thêm CSRF token nếu cần #}
+                        {# {{ csrf_token() }} #}
+                       <button type="submit" class="btn btn-outline-{{ 'danger' if user_data.is_active else 'success' }}"> {# Dùng user_data.is_active đã truyền vào #}
+                           <i class="fas {{ 'fa-user-slash' if user_data.is_active else 'fa-user-check' }} me-1"></i>
+                           {{ 'Vô hiệu hóa' if user_data.is_active else 'Kích hoạt' }} Tài khoản {# Hoặc 'Activate' / 'Deactivate' #}
+                       </button>
+                   </form>
                 </div>
                 
                 <hr>
                 
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="mb-1">Reset Password</h5>
-                        <p class="mb-0 text-muted">Send a password reset link to the employee's email</p>
+                        <h5 class="mb-1">Đặt lại mật khẩu</h5>
+                        <p class="mb-0 text-muted">Gửi liên kết đặt lại mật khẩu đến email của nhân viên</p>
                     </div>
                     <button type="button" class="btn btn-outline-primary">
-                        <i class="fas fa-key me-1"></i> Reset Password
+                        <i class="fas fa-key me-1"></i> Đặt lại mật khẩu
                     </button>
                 </div>
             </div>

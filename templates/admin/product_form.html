@@ -6,7 +6,7 @@
 <div class="admin-header">
     <h1 class="admin-title">{{ title }}</h1>
     <a href="{{ url_for('admin.menu_management') }}" class="btn btn-outline-primary">
-        <i class="fas fa-arrow-left me-1"></i> Back to Menu
+        <i class="fas fa-arrow-left me-1"></i> Quay lại Menu
     </a>
 </div>
 
@@ -14,86 +14,96 @@
     <div class="col-lg-8">
         <div class="admin-form-card">
             <form class="admin-form" method="POST" action="{{ request.url }}">
-                {{ form.hidden_tag() }}
-                
+                {{ form.hidden_tag() }} {# Giữ lại csrf token #}
+
+                {# Trường Tên sản phẩm #}
                 <div class="mb-3">
                     {{ form.name.label(class="form-label") }}
                     {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
                     {% if form.name.errors %}
                     <div class="invalid-feedback">
-                        {% for error in form.name.errors %}
-                        {{ error }}
-                        {% endfor %}
+                        {% for error in form.name.errors %} {{ error }} {% endfor %}
                     </div>
                     {% endif %}
                 </div>
-                
+
+                {# Trường Danh mục #}
                 <div class="mb-3">
                     {{ form.category_id.label(class="form-label") }}
                     {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
                     {% if form.category_id.errors %}
                     <div class="invalid-feedback">
-                        {% for error in form.category_id.errors %}
-                        {{ error }}
-                        {% endfor %}
+                        {% for error in form.category_id.errors %} {{ error }} {% endfor %}
                     </div>
                     {% endif %}
                 </div>
-                
+
+                {# --- HÀNG CHO GIÁ BÁN, TỒN KHO, TỒN KHO TỐI THIỂU --- #}
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        {{ form.price.label(class="form-label") }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else "")) }}
+                    {# --- **BỔ SUNG TRƯỜNG GIÁ BÁN (PRICE)** --- #}
+                    <div class="col-md-4 mb-3">
+                        {{ form.price.label(class="form-label") }} {# Label: Giá bán #}
+                        <div class="input-group"> {# Dùng input-group để có ký hiệu tiền tệ #}
+                            <span class="input-group-text">₫</span> {# Ký hiệu tiền tệ Việt Nam #}
+                            {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder='Nhập giá bán') }}
                             {% if form.price.errors %}
                             <div class="invalid-feedback">
-                                {% for error in form.price.errors %}
-                                {{ error }}
-                                {% endfor %}
+                                {% for error in form.price.errors %} {{ error }} {% endfor %}
                             </div>
                             {% endif %}
                         </div>
                     </div>
-                    
-                    <div class="col-md-6 mb-3">
+                    {# --- **KẾT THÚC BỔ SUNG GIÁ BÁN** --- #}
+
+                    {# Trường số lượng tồn kho #}
+                    <div class="col-md-4 mb-3">
                         {{ form.stock_quantity.label(class="form-label") }}
-                        {{ form.stock_quantity(class="form-control" + (" is-invalid" if form.stock_quantity.errors else "")) }}
+                        {{ form.stock_quantity(class="form-control" + (" is-invalid" if form.stock_quantity.errors else ""), placeholder='Nhập số lượng') }}
                         {% if form.stock_quantity.errors %}
                         <div class="invalid-feedback">
-                            {% for error in form.stock_quantity.errors %}
-                            {{ error }}
-                            {% endfor %}
+                            {% for error in form.stock_quantity.errors %}{{ error }}{% endfor %}
                         </div>
                         {% endif %}
                     </div>
+
+                    {# Trường số lượng tối thiểu #}
+                    <div class="col-md-4 mb-3">
+                        {{ form.min_quantity.label(class="form-label") }}
+                        {{ form.min_quantity(class="form-control" + (" is-invalid" if form.min_quantity.errors else ""), placeholder='Mặc định: 10') }}
+                        {% if form.min_quantity.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.min_quantity.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text" style="font-size: 0.8em;">Để trống sẽ dùng giá trị mặc định (10).</div> {# Sửa gợi ý rõ hơn #}
+                    </div>
                 </div>
-                
+                {# --- KẾT THÚC HÀNG --- #}
+
+                {# Trường Mô tả #}
                 <div class="mb-3">
                     {{ form.description.label(class="form-label") }}
                     {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=4) }}
                     {% if form.description.errors %}
                     <div class="invalid-feedback">
-                        {% for error in form.description.errors %}
-                        {{ error }}
-                        {% endfor %}
+                        {% for error in form.description.errors %} {{ error }} {% endfor %}
                     </div>
                     {% endif %}
                 </div>
-                
+
+                {# Trường URL hình ảnh #}
                 <div class="mb-3">
                     {{ form.image_url.label(class="form-label") }}
                     {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else "")) }}
                     {% if form.image_url.errors %}
                     <div class="invalid-feedback">
-                        {% for error in form.image_url.errors %}
-                        {{ error }}
-                        {% endfor %}
+                        {% for error in form.image_url.errors %} {{ error }} {% endfor %}
                     </div>
                     {% endif %}
-                    <div class="form-text">Enter a valid URL for the product image. Recommended size: 800x600 pixels.</div>
+                    <div class="form-text">Nhập URL hình ảnh hoặc để trống để dùng ảnh mặc định.</div> {# Sửa gợi ý #}
                 </div>
-                
+
+                {# Hàng cho Còn hàng và Nổi bật #}
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="form-check form-switch">
@@ -108,7 +118,8 @@
                         </div>
                     </div>
                 </div>
-                
+
+                {# Nút Submit #}
                 <div class="d-grid mt-4">
                     {{ form.submit(class="btn btn-primary btn-lg") }}
                 </div>
@@ -117,32 +128,36 @@
     </div>
 </div>
 
+{# Phần Xem trước Sản phẩm (giữ nguyên) #}
 {% if product %}
 <div class="row justify-content-center mt-4">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-light">
-                <h4 class="mb-0">Product Preview</h4>
+                <h4 class="mb-0">Xem trước sản phẩm</h4>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
-                        <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ product.name }}" class="img-fluid rounded">
+                        {# Dùng URL mặc định nếu image_url trống #}
+                        <img src="{{ product.image_url or url_for('static', filename='images/product-placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid rounded">
                     </div>
                     <div class="col-md-8">
                         <h4>{{ product.name }}</h4>
-                        <p class="badge bg-secondary">{{ product.category.name }}</p>
-                        <h5 class="text-primary">${{ "%.2f"|format(product.price) }}</h5>
-                        <p>{{ product.description }}</p>
+                        {# Hiển thị tên danh mục nếu có #}
+                        <p class="badge bg-secondary">{{ product.category.name if product.category else 'Chưa có danh mục' }}</p>
+                        {# Dùng filter format_price #}
+                        <h5 class="text-primary">{{ product.price | format_price if product.price is not none }}</h5>
+                        <p>{{ product.description or 'Chưa có mô tả' }}</p>
                         <div>
                             {% if product.is_available %}
-                            <span class="badge bg-success">Available</span>
+                            <span class="badge bg-success">Còn hàng</span>
                             {% else %}
-                            <span class="badge bg-danger">Unavailable</span>
+                            <span class="badge bg-danger">Hết hàng</span>
                             {% endif %}
-                            
+
                             {% if product.is_featured %}
-                            <span class="badge bg-warning">Featured</span>
+                            <span class="badge bg-warning">Nổi bật</span>
                             {% endif %}
                         </div>
                     </div>

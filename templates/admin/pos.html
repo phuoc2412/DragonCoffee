@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">POS System</h1>
+    <h1 class="admin-title">Hệ thống POS</h1>
     <div class="d-flex align-items-center">
         <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-primary">
-            <i class="fas fa-list me-1"></i> View Orders
+            <i class="fas fa-list me-1"></i> Xem đơn hàng
         </a>
     </div>
 </div>
@@ -25,7 +25,7 @@
         
         <!-- Categories -->
         <div class="pos-category-nav">
-            <button class="pos-category-btn active" data-category-id="">All Categories</button>
+            <button class="pos-category-btn active" data-category-id="">Tất cả các danh mục</button>
             {% for category in categories %}
             <button class="pos-category-btn" data-category-id="{{ category.id }}">{{ category.name }}</button>
             {% endfor %}
@@ -36,65 +36,65 @@
             <!-- Products will be loaded dynamically via JavaScript -->
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Loading products...</p>
+                <p class="mt-2">Đang tải sản phẩm...</p>
             </div>
         </div>
     </div>
     
     <!-- Cart Section -->
     <div class="pos-cart">
-        <h4 class="mb-3">Current Order</h4>
+        <h4 class="mb-3">Đơn hàng hiện tại</h4>
         
         <div class="pos-cart-items">
             <!-- Cart items will be added dynamically via JavaScript -->
             <div class="text-center py-4">
-                <p>Cart is empty</p>
+                <p>Giỏ hàng trống rỗng</p>
             </div>
         </div>
         
         <div class="pos-cart-summary">
             <div class="pos-cart-total">
-                <span class="pos-cart-total-label">Total</span>
+                <span class="pos-cart-total-label">Tổng cộng</span>
                 <span class="pos-cart-total-amount">$0.00</span>
             </div>
             
             <div class="mb-3">
-                <label for="pos-order-notes" class="form-label">Order Notes</label>
+                <label for="pos-order-notes" class="form-label">Ghi chú đơn hàng</label>
                 <textarea class="form-control" id="pos-order-notes" rows="2" placeholder="Add notes for this order..."></textarea>
             </div>
             
-            <h5 class="mb-2">Order Type</h5>
+            <h5 class="mb-2">Loại đơn hàng</h5>
             <div class="pos-order-type mb-3">
                 <div class="pos-order-type-option active" data-type="dine-in">
-                    <i class="fas fa-utensils me-1"></i> Dine-in
+                    <i class="fas fa-utensils me-1"></i> Ăn tối tại chỗ
                 </div>
                 <div class="pos-order-type-option" data-type="takeaway">
-                    <i class="fas fa-shopping-bag me-1"></i> Takeaway
+                    <i class="fas fa-shopping-bag me-1"></i> Mua mang về
                 </div>
                 <div class="pos-order-type-option" data-type="delivery">
-                    <i class="fas fa-motorcycle me-1"></i> Delivery
+                    <i class="fas fa-motorcycle me-1"></i> Vận chuyển
                 </div>
             </div>
             
-            <h5 class="mb-2">Payment Method</h5>
+            <h5 class="mb-2">Phương thức thanh toán</h5>
             <div class="pos-payment-methods mb-3">
                 <div class="pos-payment-method active" data-method="cash">
-                    <i class="fas fa-money-bill-wave me-1"></i> Cash
+                    <i class="fas fa-money-bill-wave me-1"></i> Tiền mặt
                 </div>
                 <div class="pos-payment-method" data-method="card">
-                    <i class="fas fa-credit-card me-1"></i> Card
+                    <i class="fas fa-credit-card me-1"></i> Thẻ
                 </div>
                 <div class="pos-payment-method" data-method="mobile">
-                    <i class="fas fa-mobile-alt me-1"></i> Mobile
+                    <i class="fas fa-mobile-alt me-1"></i> Di động
                 </div>
             </div>
             
             <div class="pos-cart-actions">
                 <button class="btn btn-lg btn-outline-danger pos-clear-btn">
-                    <i class="fas fa-trash me-1"></i> Clear
+                    <i class="fas fa-trash me-1"></i> Dọn sạch
                 </button>
                 <button class="btn btn-lg btn-primary pos-checkout-btn">
-                    <i class="fas fa-check me-1"></i> Complete
+                    <i class="fas fa-check me-1"></i> Hoàn thành
                 </button>
             </div>
         </div>
@@ -106,18 +106,18 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="orderSuccessModalLabel">Order Completed</h5>
+                <h5 class="modal-title" id="orderSuccessModalLabel">Đơn hàng đã hoàn thành</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                <h4>Order #<span id="successOrderNumber"></span></h4>
-                <p class="lead">The order has been successfully processed!</p>
+                <h4>Đặt hàng #<span id="successOrderNumber"></span></h4>
+                <p class="lead">Đơn hàng đã được xử lý thành công!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-primary" id="printReceiptBtn">
-                    <i class="fas fa-print me-1"></i> Print Receipt
+                    <i class="fas fa-print me-1"></i> In Biên lai
                 </button>
             </div>
         </div>
