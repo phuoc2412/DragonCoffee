@@ -1,0 +1,56 @@
+ 
+# Môi trường ảo Python
+venv/
+*/venv/
+.venv/
+*/.venv/
+env/
+*/env/
+ENV/
+*/ENV/
+
+# Byte-code hoặc các file object biên dịch
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# File cấu hình chứa thông tin bí mật
+.env
+*.env.*
+
+# File CSDL SQLite cục bộ (nếu dùng)
+*.sqlite3
+local_dev.db
+
+# Các file tạm hoặc cấu hình của IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Thư mục uploads tạm (nếu có, bạn cần tạo nếu dùng upload)
+static/uploads/temp/ # Giả sử file xử lý ảnh lưu vào đây
+# Nếu bạn không muốn đưa file uploads chính lên:
+# static/uploads/ # Uncomment nếu không muốn đưa cả thư mục uploads lên
+
+# File đặc trưng ảnh và models AI đã tính toán/huấn luyện
+# Quan trọng: Không đưa file pickle hoặc model lớn lên GitHub trực tiếp
+ai_services/data/image_features/product_features.pkl
+ai_services/models/*.joblib
+# Nếu có file dữ liệu lớn khác trong data
+ai_services/data/*.csv
+ai_services/data/*.txt
+
+# Các thư mục build, distribution
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
