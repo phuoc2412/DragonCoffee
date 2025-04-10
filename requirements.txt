@@ -111,12 +111,12 @@ opencv-python-headless==4.9.0.80
 opt_einsum==3.4.0
 optree==0.15.0
 orjson==3.10.1
+pillow==10.2.0
 packaging==24.0
 -e git+https://github.com/eclipse/paho.mqtt.python@d45de3737879cfe7a6acc361631fa5cb1ef584bb#egg=paho_mqtt
 pandas==2.2.2
 parso==0.8.4
 pika==1.3.2
-pillow==11.1.0
 platformdirs==4.2.0
 prettytable==3.10.0
 prompt-toolkit==3.0.43
