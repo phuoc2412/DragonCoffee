@@ -16,3 +16,4 @@ PyJWT
 transformers
 torch
 python-magic
+Flask-Babel
