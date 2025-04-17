@@ -23,5 +23,5 @@ Flask-Mail
 WeasyPrint
 numpy
 pandas
-tensorflow
+tensorflow-cpu
 email-validator
