@@ -24,3 +24,4 @@ WeasyPrint
 numpy
 pandas
 tensorflow
+email-validator
