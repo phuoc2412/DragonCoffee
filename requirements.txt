@@ -13,6 +13,6 @@ Pillow
 openai
 python-jose
 PyJWT
-python-magic-bin
 transformers
 torch
+python-magic
