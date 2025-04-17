@@ -17,3 +17,10 @@ transformers
 torch
 python-magic
 Flask-Babel
+Flask-Moment
+Flask-Migrate
+Flask-Mail
+WeasyPrint
+numpy
+pandas
+tensorflow
