@@ -1,0 +1,158 @@
+{# templates/admin/reports/general_inventory_report.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import status_badge %}
+
+{% block title %}Báo cáo Tồn kho Chung - Quản trị viên{% endblock %}
+
+{% block page_header %}Báo cáo Trạng thái Tồn kho Hiện tại{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.reports') }}">Báo cáo</a></li>
+    <li class="breadcrumb-item active">Tồn kho Hiện tại</li>
+{% endblock %}
+
+{% block content %}
+{# --- Card Bộ lọc và Chọn Loại Báo Cáo --- #}
+<div class="card card-report card-outline card-primary mb-4">
+    <div class="card-header">
+        <h3 class="card-title">Bộ lọc & Tùy chọn Báo cáo</h3>
+         <div class="card-tools"><button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button></div>
+    </div>
+    <div class="card-body">
+        {# Nhóm nút chọn loại báo cáo #}
+         <div class="mb-3">
+            <label class="form-label form-label-sm d-block mb-1 fw-bold">Chọn Loại Báo Cáo:</label>
+             <div class="btn-group btn-group-sm w-100 flex-wrap" role="group">
+                 <a href="{{ url_for('admin.reports', type='sales', period=period, start_date=start_date, end_date=end_date) }}"
+                    class="btn btn-outline-secondary {% if report_type == 'sales' %}active{% endif %}"><i class="fas fa-dollar-sign me-1"></i> Doanh thu</a>
+                 <a href="{{ url_for('admin.reports', type='products', period=period, start_date=start_date, end_date=end_date) }}"
+                    class="btn btn-outline-secondary {% if report_type == 'products' %}active{% endif %}"><i class="fas fa-coffee me-1"></i> Sản phẩm</a>
+                 <a href="{{ url_for('admin.reports', type='customers', period=period, start_date=start_date, end_date=end_date) }}"
+                    class="btn btn-outline-secondary {% if report_type == 'customers' %}active{% endif %}"><i class="fas fa-users me-1"></i> Khách hàng</a>
+                 <a href="{{ url_for('admin.reports', type='inventory') }}"
+                    class="btn btn-outline-secondary {% if report_type == 'inventory' %}active{% endif %}"><i class="fas fa-boxes me-1"></i> Tồn kho</a>
+                 <a href="{{ url_for('ai.inventory_predictions') }}" class="btn btn-outline-secondary {% if request.endpoint == 'ai.inventory_predictions' %}active{% endif %}" title="Dự đoán Tồn kho (AI)"><i class="fas fa-robot me-1"></i> Dự đoán AI</a>
+             </div>
+        </div>
+         <hr class="my-3">
+         {# Thông báo bộ lọc ngày không áp dụng #}
+         <p class="text-muted small mt-2">*Báo cáo này hiển thị trạng thái tồn kho <strong>hiện tại</strong> và không sử dụng bộ lọc ngày tháng.</p>
+    </div>
+</div>
+
+{# --- Card Báo cáo Tồn kho Hiện tại --- #}
+<div class="card card-report shadow-sm">
+    <div class="card-header">
+         {# Ô Tìm Kiếm Sản Phẩm Riêng #}
+         <div class="d-flex justify-content-between align-items-center flex-wrap">
+             <h3 class="card-title mb-2 mb-md-0">Trạng thái Tồn kho Hiện tại</h3>
+            <form method="GET" action="{{ url_for('admin.reports') }}">
+                 <input type="hidden" name="type" value="inventory"> {# Luôn gửi kèm type inventory #}
+                 <div class="input-group input-group-sm" style="width: 300px;">
+                    <input type="text" name="search_inventory" class="form-control" placeholder="Tìm tên sản phẩm..." value="{{ search_inventory or '' }}" aria-label="Tìm kiếm tồn kho">
+                     <button class="btn btn-outline-secondary" type="submit" title="Tìm kiếm">
+                        <i class="fas fa-search"></i>
+                     </button>
+                     {% if search_inventory %}
+                     <a href="{{ url_for('admin.reports', type='inventory') }}" class="btn btn-outline-secondary" title="Xóa tìm kiếm">
+                         <i class="fas fa-times"></i>
+                    </a>
+                     {% endif %}
+                 </div>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        {# Các thẻ thống kê tồn kho #}
+        <div class="row mb-4 text-center">
+             <div class="col-md-3 col-6 mb-3">
+                 <div class="statistic-box border rounded p-3">
+                    <span class="d-block text-muted">Tổng Mặt Hàng</span>
+                    <span class="fs-4 fw-bold">{{ total_items_count | default('0') }}</span>
+                 </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="statistic-box border rounded p-3 bg-success bg-opacity-10">
+                    <span class="d-block text-muted">Đủ Tồn Kho</span>
+                     <span class="fs-4 fw-bold text-success">{{ adequate_stock_count | default('0') }}</span>
+                 </div>
+            </div>
+             <div class="col-md-3 col-6 mb-3">
+                <div class="statistic-box border rounded p-3 bg-warning bg-opacity-10">
+                    <span class="d-block text-muted">Sắp Hết</span>
+                    <span class="fs-4 fw-bold text-warning">{{ low_stock_count | default('0') }}</span>
+                 </div>
+            </div>
+             <div class="col-md-3 col-6 mb-3">
+                 <div class="statistic-box border rounded p-3 bg-danger bg-opacity-10">
+                    <span class="d-block text-muted">Hết Hàng</span>
+                    <span class="fs-4 fw-bold text-danger">{{ out_of_stock_count | default('0') }}</span>
+                 </div>
+            </div>
+        </div>
+
+        {# Bảng chi tiết tồn kho #}
+        <div class="mt-4">
+            <h5 class="mb-3">Chi tiết Tồn kho Hiện tại</h5>
+            {% if inventory_items %}
+            <div class="table-responsive">
+                 <table class="table table-bordered table-hover table-striped table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                             <th style="width: 35%;">Sản phẩm</th>
+                             <th>Danh mục</th>
+                            <th class="text-end">Tồn kho</th>
+                            <th class="text-end">Tối thiểu</th>
+                             <th class="text-center">Trạng thái</th>
+                             <th>Cập nhật cuối</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                         <tr class="{% if item.quantity <= 0 %}table-danger{% elif item.quantity <= item.min_quantity %}table-warning{% endif %}">
+                             <td>
+                                 <div class="d-flex align-items-center">
+                                     <img src="{{ item.product_inventory.image_url if item.product_inventory and item.product_inventory.image_url else url_for('static', filename='images/default_product.png') }}"
+                                          alt="..." width="35" height="35" class="rounded me-2" style="object-fit: cover;">
+                                     <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}" class="text-dark">
+                                         {{ item.product_inventory.name if item.product_inventory else "Lỗi SP ID %s"|format(item.product_id) }}
+                                     </a>
+                                 </div>
+                             </td>
+                            <td>{{ item.product_inventory.category.name if item.product_inventory and item.product_inventory.category else 'N/A' }}</td>
+                             <td class="text-end fw-medium">{{ item.quantity }} {{ item.unit or '' }}</td>
+                             <td class="text-end">{{ item.min_quantity }} {{ item.unit or '' }}</td>
+                             <td class="text-center">
+                                 {% if item.quantity <= 0 %}
+                                    <span class="badge bg-danger">Hết hàng</span>
+                                {% elif item.quantity <= item.min_quantity %}
+                                    <span class="badge bg-warning text-dark">Sắp hết</span>
+                                {% else %}
+                                    <span class="badge bg-success">Đủ hàng</span>
+                                 {% endif %}
+                             </td>
+                            <td>{{ item.last_updated.strftime('%d/%m/%y %H:%M') if item.last_updated else 'N/A' }}</td>
+                         </tr>
+                         {% endfor %}
+                     </tbody>
+                 </table>
+             </div>
+            {% else %}
+                <div class="alert alert-secondary text-center border-0">
+                     {% if search_inventory %}
+                         <i class="fas fa-search me-1"></i> Không tìm thấy sản phẩm nào với tên '{{ search_inventory }}' trong kho.
+                     {% else %}
+                          <i class="fas fa-info-circle me-1"></i> Kho hàng trống hoặc không có dữ liệu để hiển thị.
+                    {% endif %}
+                </div>
+            {% endif %}
+         </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# Không cần script JS đặc biệt cho báo cáo này #}
+{% endblock %}

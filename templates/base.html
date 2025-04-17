@@ -1,185 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dragon Coffee Shop{% endblock %}</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐉</text></svg>">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Animate.css (Nếu dùng hiệu ứng animateOnScroll) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Custom CSS Chung -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}"> <!-- Keep cart CSS if styles exist -->
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {% block extra_css %}
+        <style>
+            /* Thêm style cho ảnh đại diện navbar */
+            .navbar-avatar {
+              width: 32px; /* Kích thước ảnh (có thể chỉnh) */
+              height: 32px;
+              object-fit: cover; /* Đảm bảo ảnh không bị méo */
+              border: 1px solid rgba(255, 255, 255, 0.2); /* Viền nhẹ */
+            }
+        </style>
+    {% endblock %}
+
+     {% block styles %}{% endblock %}
+
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+<body style="padding-top: 70px;">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm" style="background-color: var(--dark-color, #212529) !important;">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                <i class="fas fa-dragon me-2"></i> Dragon Coffee
+                 <i class="fas fa-dragon me-2"></i> Dragon Coffee
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Home</a>
+             <div class="collapse navbar-collapse" id="navbarNav">
+                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.menu' %}active{% endif %}" href="{{ url_for('main.menu') }}">Thực đơn</a></li>
+                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}" href="{{ url_for('main.about') }}">Giới thiệu</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'ai.recommendations' %}active{% endif %}" href="{{ url_for('ai.recommendations') }}">Gợi ý <i class="fas fa-star text-warning small ms-1"></i></a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.locations' %}active{% endif %}" href="{{ url_for('main.locations') }}">Địa điểm</a></li>
+                    <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Liên hệ</a></li>
+                 </ul>
+                 <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-2">
+                         <a class="nav-link cart-icon position-relative {% if request.endpoint == 'order.cart' %}active{% endif %}" href="{{ url_for('order.cart') }}" title="Giỏ hàng">
+                             <i class="fas fa-shopping-cart fs-5"></i>
+                             <span class="cart-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: {% if session.get('cart') and session['cart'] %}inline-block{% else %}none{% endif %}; font-size: 0.65em; padding: 0.3em 0.5em;">
+                                {{ session.get('cart')|length if session.get('cart') else '0' }}
+                                <span class="visually-hidden">items in cart</span>
+                             </span>
+                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.menu' %}active{% endif %}" href="{{ url_for('main.menu') }}">Menu</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}" href="{{ url_for('main.about') }}">About Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.locations' %}active{% endif %}" href="{{ url_for('main.locations') }}">Locations</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Contact</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link cart-icon {% if request.endpoint == 'order.cart' %}active{% endif %}" href="{{ url_for('order.cart') }}">
-                            <i class="fas fa-shopping-cart"></i>
-                            {% if session.get('cart') %}
-                            <span class="cart-badge">{{ session.get('cart')|length }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
+
+                    {# === KHỐI ĐĂNG NHẬP/ĐĂNG XUẤT (ĐÃ SỬA) === #}
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
+                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                             {# -- Ảnh đại diện thay cho icon -- #}
+                             <img src="{{ url_for('static', filename=current_user.avatar_url) if current_user.avatar_url else url_for('static', filename='images/default_avatar.png') }}"
+                                  alt="Avatar"
+                                  class="navbar-avatar rounded-circle me-2">
+                             {# -- Tên người dùng -- #}
+                             {{ current_user.username }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
                             {% if current_user.is_admin or current_user.is_staff %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt fa-fw me-2 text-muted"></i>Bảng quản trị</a></li>
                             <li><hr class="dropdown-divider"></li>
                             {% endif %}
-                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">My Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('order.my_orders') }}">My Orders</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user-edit fa-fw me-2 text-muted"></i>Hồ sơ của tôi</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('order.my_orders') }}"><i class="fas fa-receipt fa-fw me-2 text-muted"></i>Đơn hàng của tôi</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt fa-fw me-2 text-muted"></i>Đăng xuất</a></li>
                         </ul>
                     </li>
                     {% else %}
+                     <li class="nav-item ms-2">
+                         <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Đăng nhập</a>
+                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
-                    </li>
+                        <a class="btn btn-outline-light btn-sm ms-2 {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Đăng ký</a>
+                     </li>
                     {% endif %}
+                    {# === KẾT THÚC KHỐI ĐĂNG NHẬP/ĐĂNG XUẤT === #}
+
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="container mt-3">
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+     {% with messages = get_flashed_messages(with_categories=true) %}
+     {% if messages %}
+     <div id="flash-message-container" class="container" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1150; width: auto; max-width: 90%;">
+         {% for category, message in messages %}
+         {% set alert_category = category if category in ['success', 'danger', 'info', 'warning', 'primary', 'secondary', 'light', 'dark'] else 'info' %}
+          <div class="alert alert-{{ alert_category }} alert-dismissible fade show shadow-sm mb-2" role="alert" style="opacity: 0.95;">
+             {{ message }}
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+         </div>
+         {% endfor %}
+     </div>
+     <script>
+        setTimeout(function() {
+            let flashContainer = document.getElementById('flash-message-container');
+            if (flashContainer) {
+                let alerts = flashContainer.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    try { let bsAlert = bootstrap.Alert.getOrCreateInstance(alert); if (bsAlert) { bsAlert.close(); } else { alert.remove(); } } catch (e) { console.error('Error closing flash alert:', e); alert.remove();}
+                }); }
+        }, 5500);
+    </script>
+     {% endif %}
+     {% endwith %}
 
-    <!-- Main Content -->
-    {% block content %}{% endblock %}
+     <main role="main" class="mt-4 mb-5">
+         {% block content %}{% endblock %}
+     </main>
 
-    <!-- Footer -->
-    <footer class="footer mt-5">
-        <div class="container">
+    <footer class="footer mt-auto py-5">
+         <div class="container">
             <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <h2 class="footer-logo">
-                        <i class="fas fa-dragon me-2"></i> Dragon Coffee
-                    </h2>
-                    <p class="footer-text">Experience the mystical taste of our dragon-inspired coffee blends, crafted with passion and served with fire.</p>
-                    <div class="social-icons">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-4 mb-4">
-                    <h5 class="footer-title">Quick Links</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                        <li><a href="{{ url_for('main.menu') }}">Menu</a></li>
-                        <li><a href="{{ url_for('main.about') }}">About Us</a></li>
-                        <li><a href="{{ url_for('main.locations') }}">Locations</a></li>
-                        <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-4 mb-4">
-                    <h5 class="footer-title">Help & Info</h5>
-                    <ul class="footer-links">
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Shipping Policy</a></li>
-                        <li><a href="#">Careers</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-4 mb-4">
-                    <h5 class="footer-title">Contact Us</h5>
-                    <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt me-2"></i> 123 Dragon Street, City</li>
-                        <li><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
-                        <li><i class="fas fa-envelope me-2"></i> info@dragoncoffee.com</li>
-                        <li><i class="fas fa-clock me-2"></i> Mon-Fri: 7am-8pm</li>
-                        <li><i class="fas fa-clock me-2"></i> Sat-Sun: 8am-9pm</li>
-                    </ul>
-                </div>
+                 <div class="col-lg-4 col-md-6 mb-4 mb-lg-0"> <h4 class="footer-logo mb-3"> <i class="fas fa-dragon me-2"></i> Dragon Coffee </h4> <p class="footer-text text-white-50">Trải nghiệm hương vị huyền bí...</p> <div class="social-icons mt-4"> <a href="https://www.facebook.com/share/1A4nj82yxd/" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a> <a href="https://www.tiktok.com/@tran_buu_phuoc?_t=ZS-8vOmbtFsDTu&_r=1" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Tiktok"><i class="fab fa-tiktok"></i></a> </div> </div>
+                 <div class="col-lg-2 col-md-6 mb-4 mb-lg-0"> <h5 class="footer-title">Liên kết</h5> <ul class="footer-links"> <li><a href="{{ url_for('main.index') }}">Trang chủ</a></li> <li><a href="{{ url_for('main.menu') }}">Thực đơn</a></li> <li><a href="{{ url_for('main.about') }}">Giới thiệu</a></li> <li><a href="{{ url_for('ai.recommendations') }}">Gợi ý</a></li> <li><a href="{{ url_for('main.locations') }}">Địa điểm</a></li> <li><a href="{{ url_for('main.contact') }}">Liên hệ</a></li> </ul> </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-lg-0"> <h5 class="footer-title">Hỗ trợ</h5> <ul class="footer-links"> <li><a href="#">Câu hỏi thường gặp</a></li> <li><a href="#">Điều khoản dịch vụ</a></li> <li><a href="#">Chính sách bảo mật</a></li> <li><a href="#">Vận chuyển & Đổi trả</a></li> </ul> </div>
+                 <div class="col-lg-3 col-md-6 mb-4 mb-lg-0"> <h5 class="footer-title">Liên hệ</h5> <ul class="footer-links contact-info-list"> <li><i class="fas fa-map-marker-alt fa-fw me-2"></i>123 Đường ABC, Q.XYZ, TP.HCM</li> <li><i class="fas fa-phone fa-fw me-2"></i>(028) 123 4567</li> <li><i class="fas fa-envelope fa-fw me-2"></i>info@dragoncoffee.com</li> <li><i class="fas fa-clock fa-fw me-2"></i> T2-T6: 7h-22h | T7-CN: 8h-23h</li> </ul> </div>
             </div>
-            <div class="footer-bottom text-center">
-                <p>&copy; 2025 Dragon Coffee Shop. All rights reserved.</p>
-            </div>
+            <div class="footer-bottom text-center pt-4 mt-4"> <p class="mb-0">© <span id="currentYear"></span> Dragon Coffee Shop. All Rights Reserved.</p> </div>
         </div>
     </footer>
-    
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-success text-white">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong class="me-auto">Success</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Item added to your cart successfully!
-            </div>
-        </div>
-    </div>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"> <div id="cartToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"> <div class="d-flex"> <div class="toast-body"><i class="fas fa-check-circle me-2"></i> <span id="toastMessage">Sản phẩm đã thêm!</span></div> <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> </div> </div> <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000"> <div class="d-flex"> <div class="toast-body"><i class="fas fa-exclamation-triangle me-2"></i> <span id="errorToastMessage">Đã có lỗi!</span></div> <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> </div> </div> </div>
+
+    <div id="chatbot-container" class="chatbot-container collapsed"> <div class="chatbot-header"> <button id="chatbot-minimize-btn" class="chatbot-minimize-btn" aria-label="Đóng Chat"><i class="fas fa-times"></i></button> <span class="chatbot-title">Dragon Chatbot</span> </div> <div id="chat-messages" class="chat-messages"> <div class="message bot-message"><p>Xin chào! Dragon Coffee xin nghe, tôi có thể giúp gì cho bạn?</p></div> </div> <div class="chat-input-container"> <form id="chatForm" class="chat-form" action="javascript:void(0);"> <button type="button" id="chat-upload-btn" class="btn btn-light btn-sm me-2 flex-shrink-0" title="Tìm bằng hình ảnh" aria-label="Tải ảnh lên"> <i class="fas fa-image"></i> </button> <input type="file" id="chat-image-input" accept="image/*" style="display: none;"> <input type="text" id="chat-input" class="form-control form-control-sm flex-grow-1" placeholder="Nhập tin nhắn..." autocomplete="off" required > <button type="submit" class="btn btn-primary btn-sm ms-2 flex-shrink-0" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button> </form> </div> </div>
+
+    <div class="floating-action-buttons-container"> <a href="https://www.facebook.com/share/1A4nj82yxd/" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-facebook" aria-label="Facebook của Dragon Coffee" data-bs-toggle="tooltip" title="Facebook"> <i class="fab fa-facebook-f"></i> </a> <a href="https://www.tiktok.com/@tran_buu_phuoc?_t=ZS-8vOmbtFsDTu&_r=1" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-tiktok" aria-label="TikTok của Dragon Coffee" data-bs-toggle="tooltip" title="TikTok"> <i class="fab fa-tiktok"></i> </a> <button id="chatbot-toggle-btn" class="floating-action-button chatbot-toggle-btn" aria-label="Mở Chatbot" data-bs-toggle="tooltip" title="Chat với chúng tôi"> <i class="fas fa-comment-dots"></i> </button> </div>
+
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true"> <div class="modal-dialog modal-lg modal-dialog-centered"> <div class="modal-content"> <div class="modal-header border-0"> <h5 class="modal-title" id="quickViewModalLabel">[Tên sản phẩm]</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <div id="quickViewLoading" class="text-center py-5"> <div class="spinner-border text-primary" role="status"> <span class="visually-hidden">Đang tải...</span> </div> </div> <div id="quickViewContent" class="d-none"> <div class="row"> <div class="col-md-5 mb-3 mb-md-0"> <img src="#" alt="Ảnh sản phẩm" id="quickViewImage" class="img-fluid rounded mb-2" style="max-height: 400px; width: 100%; object-fit: cover;"> </div> <div class="col-md-7"> <span class="badge bg-secondary mb-2" id="quickViewCategory">[Danh mục]</span> <p id="quickViewDescription" class="mb-3">[Mô tả sản phẩm]</p> <h3 class="mb-3 text-secondary" id="quickViewPrice">[Giá]</h3> <form id="quickViewAddToCartForm"> <input type="hidden" id="quickViewProductId" name="product_id"> <div class="row gx-2 mb-3"> <div class="col-auto"> <label for="quickViewQuantity" class="visually-hidden">Số lượng</label> <div class="input-group input-group-sm"> <button type="button" class="btn btn-outline-secondary quick-qty-btn" data-action="dec">-</button> <input type="number" class="form-control text-center" id="quickViewQuantity" name="quantity" value="1" min="1" max="20" style="max-width: 60px;" aria-label="Số lượng"> <button type="button" class="btn btn-outline-secondary quick-qty-btn" data-action="inc">+</button> </div> </div> <div class="col"> <label for="quickViewNotes" class="visually-hidden">Ghi chú</label> <input type="text" class="form-control form-control-sm" id="quickViewNotes" name="notes" placeholder="Ghi chú (ít đường,...)"> </div> </div> <button type="submit" class="btn btn-primary w-100"> <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ </button> </form> <a href="#" id="quickViewFullDetailLink" class="btn btn-outline-secondary w-100 mt-2 btn-sm"> Xem chi tiết đầy đủ </a> </div> </div> </div> </div> </div> </div> </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
     {% block extra_js %}{% endblock %}
+    <script>
+         document.getElementById('currentYear').textContent = new Date().getFullYear();
+         document.addEventListener('DOMContentLoaded', function() {
+             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                 if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+                     return new bootstrap.Tooltip(tooltipTriggerEl);
+                 }
+                 return bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+             });
+         });
+    </script>
 </body>
 </html>

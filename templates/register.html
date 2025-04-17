@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="content-container">
-                <h1 class="section-title">Create an Account</h1>
+                <h1 class="section-title">Tạo một tài khoản</h1>
                 
                 <form method="POST" action="{{ url_for('auth.register') }}">
                     {{ form.hidden_tag() }}
@@ -15,7 +15,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.first_name.label(class="form-label") }}
-                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="Enter your first name") }}
+                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="Nhập tên của bạn") }}
                             {% if form.first_name.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.first_name.errors %}
@@ -27,7 +27,7 @@
                         
                         <div class="col-md-6 mb-3">
                             {{ form.last_name.label(class="form-label") }}
-                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="Enter your last name") }}
+                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="Nhập họ của bạn") }}
                             {% if form.last_name.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.last_name.errors %}
@@ -40,7 +40,7 @@
                     
                     <div class="mb-3">
                         {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Choose a username") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Chọn tên người dùng") }}
                         {% if form.username.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.username.errors %}
@@ -52,7 +52,7 @@
                     
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email address") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Nhập địa chỉ email của bạn") }}
                         {% if form.email.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.email.errors %}
@@ -64,7 +64,7 @@
                     
                     <div class="mb-3">
                         {{ form.phone.label(class="form-label") }}
-                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="Enter your phone number") }}
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="Nhập số điện thoại của bạn") }}
                         {% if form.phone.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.phone.errors %}
@@ -77,7 +77,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Create a password") }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Tạo mật khẩu") }}
                             {% if form.password.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.password.errors %}
@@ -85,12 +85,12 @@
                                 {% endfor %}
                             </div>
                             {% endif %}
-                            <div class="form-text">Password must be at least 6 characters long.</div>
+                            <div class="form-text">Mật khẩu phải dài ít nhất 6 ký tự.</div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             {{ form.password2.label(class="form-label") }}
-                            {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), placeholder="Confirm your password") }}
+                            {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), placeholder="Xác nhận mật khẩu của bạn") }}
                             {% if form.password2.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.password2.errors %}
@@ -103,7 +103,7 @@
                     
                     <div class="mb-3 form-check">
                         <input type="checkbox" class="form-check-input" id="termsCheck" required>
-                        <label class="form-check-label" for="termsCheck">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                        <label class="form-check-label" for="termsCheck">I agree to the <a href="#">Điều khoản dịch vụ</a> and <a href="#">Chính sách bảo mật</a></label>
                     </div>
                     
                     <div class="d-grid mb-3">
@@ -113,7 +113,7 @@
                     <hr>
                     
                     <div class="text-center">
-                        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                        <p>Bạn đã có tài khoản? <a href="{{ url_for('auth.login') }}">Đăng nhập tại đây</a></p>
                     </div>
                 </form>
             </div>

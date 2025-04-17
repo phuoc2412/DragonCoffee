@@ -1,0 +1,88 @@
+{# templates/admin/_inventory_modals.html #}
+
+<!-- Universal Update Stock Modal -->
+<div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="updateStockModalLabel">Cập nhật tồn kho</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+               <form id="updateStockForm" method="POST"> {# Action sẽ được set bởi JS #}
+                   {# Thêm CSRF Token nếu form update dùng AJAX và bạn cần bảo vệ endpoint #}
+                   {# <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> #}
+                   <p><strong>Sản phẩm:</strong> <span id="updateProductName">[Tên sản phẩm]</span></p>
+                   <div class="mb-3">
+                       <label for="updateQuantity" class="form-label">Số lượng mới<span class="text-danger">*</span></label>
+                       <input type="number" class="form-control" name="quantity" id="updateQuantity" min="0" required>
+                   </div>
+                    <div class="mb-3">
+                        <label for="updateMinQuantity" class="form-label">Tồn kho tối thiểu mới (Tùy chọn)</label>
+                        <input type="number" class="form-control" name="min_quantity" id="updateMinQuantity" min="0" placeholder="Để trống để giữ nguyên">
+                        <div class="form-text">Để trống nếu không muốn thay đổi mức cảnh báo.</div>
+                   </div>
+                   <div class="d-flex justify-content-end">
+                       <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
+                       <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                   </div>
+               </form>
+           </div>
+       </div>
+   </div>
+</div>
+
+<!-- Universal Stock History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> {# modal-lg để rộng hơn #}
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="historyModalLabel">Lịch sử tồn kho</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+               <p><strong>Sản phẩm:</strong> <span id="historyProductName" class="fw-bold">[Tên sản phẩm]</span></p>
+               <hr>
+               <div id="historyContent" class="text-center">
+                    {# Spinner loading sẽ hiện ở đây #}
+                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div>
+               </div>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+           </div>
+       </div>
+   </div>
+</div>
+
+<!-- Batch Update Modal -->
+<div class="modal fade" id="batchUpdateModal" tabindex="-1" aria-labelledby="batchUpdateModalLabel" aria-hidden="true">
+     <div class="modal-dialog modal-lg">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="batchUpdateModalLabel">Cập Nhật Hàng Loạt Bằng CSV</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+               <form id="batchUpdateForm" action="{{ url_for('admin.batch_update_inventory') }}" method="POST" enctype="multipart/form-data">
+                    {{ csrf_token() if csrf_token }}
+                   <div class="mb-3">
+                       <label for="batchFile" class="form-label">Chọn file CSV</label>
+                       <input class="form-control" type="file" name="batch_file" id="batchFile" accept=".csv" required>
+                       <div class="form-text">
+                            File CSV cần có 2 cột header bắt buộc: <code>product_name</code> và <code>quantity</code>.
+                            <a href="{{ url_for('admin.download_inventory_template') }}" download>Tải file mẫu tại đây</a>.
+                       </div>
+                   </div>
+                   <div class="alert alert-warning small p-2">
+                        <strong>Quan trọng:</strong> Thao tác này sẽ <strong>ghi đè</strong> số lượng tồn kho hiện tại của các sản phẩm có trong file bằng số lượng mới từ file CSV. Hãy chắc chắn dữ liệu trong file là chính xác.
+                   </div>
+                   <div class="d-flex justify-content-end mt-3">
+                       <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
+                       <button type="submit" class="btn btn-primary">Thực hiện Cập Nhật</button>
+                   </div>
+               </form>
+           </div>
+       </div>
+   </div>
+</div>

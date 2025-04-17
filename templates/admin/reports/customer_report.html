@@ -1,0 +1,172 @@
+{# templates/admin/reports/customer_report.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}Báo cáo Khách hàng - Quản trị viên{% endblock %}
+{% block page_header %}Báo cáo Thống kê Khách hàng{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.reports') }}">Báo cáo</a></li>
+    <li class="breadcrumb-item active">Khách hàng</li>
+{% endblock %}
+
+{% block content %}
+{# --- Card Bộ lọc và Chọn Loại Báo Cáo (Giống các report khác) --- #}
+<div class="card card-report card-outline card-primary mb-4 shadow-sm">
+     <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter me-1"></i> Bộ lọc & Tùy chọn Báo cáo</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Thu gọn/Mở rộng"><i class="fas fa-minus"></i></button>
+            <button type="button" class="btn btn-tool text-secondary" onclick="window.print();" title="In trang này"><i class="fas fa-print"></i></button>
+       </div>
+    </div>
+    <div class="card-body">
+        {# Nhóm nút chọn loại báo cáo #}
+         <div class="mb-3">
+            <label class="form-label form-label-sm d-block mb-1 fw-bold">Chọn Loại Báo Cáo:</label>
+             <div class="btn-group btn-group-sm w-100 flex-wrap" role="group">
+                <a href="{{ url_for('admin.reports', type='sales', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-outline-secondary"><i class="fas fa-dollar-sign me-1"></i> Doanh thu</a>
+                <a href="{{ url_for('admin.reports', type='products', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-outline-secondary"><i class="fas fa-coffee me-1"></i> Sản phẩm</a>
+                <a href="{{ url_for('admin.reports', type='customers', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-primary active"><i class="fas fa-users me-1"></i> Khách hàng</a>
+                <a href="{{ url_for('admin.reports', type='inventory') }}" class="btn btn-outline-secondary"><i class="fas fa-boxes me-1"></i> Tồn kho</a>
+                 <a href="{{ url_for('ai.inventory_predictions') }}" class="btn btn-outline-secondary" title="Dự đoán Tồn kho (AI)"><i class="fas fa-robot me-1"></i> Dự đoán AI</a>
+            </div>
+        </div>
+        <hr class="my-3">
+        {# Form lọc ngày tháng #}
+        <form method="GET" action="{{ url_for('admin.reports') }}">
+            <input type="hidden" name="type" value="customers">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label form-label-sm">Từ ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label form-label-sm">Đến ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                 <div class="col-md-3">
+                    <label class="form-label form-label-sm"> </label>
+                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-filter me-1"></i> Lọc Theo Ngày</button>
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label form-label-sm d-block mb-1">Hoặc Chọn Nhanh:</label>
+                     <div class="btn-group d-block w-100" role="group">
+                          {% set no_specific_date = not request.args.get('start_date') and not request.args.get('end_date') %}
+                          <a href="{{ url_for('admin.reports', type='customers', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' and no_specific_date %}active{% endif %}">Ngày</a>
+                          <a href="{{ url_for('admin.reports', type='customers', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' and no_specific_date %}active{% endif %}">Tuần</a>
+                          <a href="{{ url_for('admin.reports', type='customers', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' and no_specific_date %}active{% endif %}">Tháng</a>
+                          <a href="{{ url_for('admin.reports', type='customers', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' and no_specific_date %}active{% endif %}">Năm</a>
+                    </div>
+                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# --- Card Kết quả Báo cáo Khách hàng --- #}
+<div class="card card-report shadow-sm">
+    <div class="card-header bg-light">
+        <h3 class="card-title fw-bold">Kết quả báo cáo Khách hàng <small class="text-muted">(Từ {{ start_date }} đến {{ end_date }})</small></h3>
+    </div>
+    <div class="card-body">
+        {# Thẻ thống kê tổng quan (dùng design mới) #}
+        <div class="row inventory-stats mb-4">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="stat-card stat-card-primary h-100 shadow-sm">
+                     <div class="stat-card-body">
+                         <div class="stat-card-icon"><i class="fas fa-users"></i></div>
+                         <div class="stat-card-content">
+                             <div class="stat-card-text">Số KH Có Đơn hàng</div>
+                             <div class="stat-card-number">{{ customer_stats | length if customer_stats is defined else '0' }}</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.users') }}" class="stat-card-footer stretched-link">
+                        Quản lý Khách hàng <i class="fas fa-arrow-circle-right"></i>
+                     </a>
+                 </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                 <div class="stat-card stat-card-info h-100 shadow-sm">
+                     <div class="stat-card-body">
+                        <div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
+                        <div class="stat-card-content">
+                             <div class="stat-card-text">Tổng Đơn hàng</div>
+                             <div class="stat-card-number">{{ customer_stats | sum(attribute='order_count') if customer_stats is defined else '0' }}</div>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-4">
+                <div class="stat-card stat-card-success h-100 shadow-sm">
+                    <div class="stat-card-body">
+                        <div class="stat-card-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="stat-card-content">
+                            <div class="stat-card-text">Tổng Chi Tiêu</div>
+                            <div class="stat-card-number">{{ (customer_stats | sum(attribute='total_spent') if customer_stats is defined) | format_price }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Tùy chọn: Thêm Biểu đồ Phân bố Chi tiêu Khách hàng (Nếu có dữ liệu `customer_chart_data`) #}
+        {# <div class="chart-container mb-4"> ... Biểu đồ ... </div> #}
+
+
+        {# Bảng chi tiết khách hàng (giữ nguyên cấu trúc) #}
+        <div class="mt-4">
+            <h5 class="mb-3">Danh sách Khách hàng Hoạt động <small class="text-muted">(Sắp xếp theo Tổng chi tiêu)</small></h5>
+            {% if customer_stats %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:5%">#</th>
+                            <th>Tên Khách hàng</th>
+                            <th>Email</th>
+                             <th>Điện thoại</th>
+                            <th class="text-center" title="Tổng số đơn trong kỳ báo cáo">Số đơn</th>
+                            <th class="text-end">Tổng chi tiêu</th>
+                             <th title="Ngày KH này đăng ký tài khoản">Ngày Đăng ký</th>
+                            <th class="text-center">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customer_stats %}
+                        <tr>
+                            <td class="text-center small">{{ loop.index }}</td>
+                            <td>
+                                {# Link tới trang chi tiết KH nếu có #}
+                                <a href="{{ url_for('admin.user_detail', user_id=customer.id) }}" title="Xem chi tiết KH {{ customer.id }}">
+                                    {{ customer.first_name or '' }} {{ customer.last_name or '' }}
+                                     <small class="text-muted">({{ customer.username }})</small>
+                                </a>
+                            </td>
+                             <td class="small">{{ customer.email }}</td>
+                             <td class="small">{{ customer.phone or '-' }}</td>
+                             <td class="text-center">{{ customer.order_count }}</td>
+                            <td class="text-end fw-medium">{{ customer.total_spent | format_price }}</td>
+                            <td class="small">{{ customer.registered_date.strftime('%d/%m/%Y') if customer.registered_date else 'N/A' }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin.user_detail', user_id=customer.id) }}" class="btn btn-xs btn-outline-primary py-0 px-1" title="Xem chi tiết khách hàng"><i class="fas fa-eye fa-xs"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                 <div class="alert alert-secondary text-center border-0">
+                     <i class="fas fa-info-circle me-1"></i> Không có dữ liệu mua hàng của khách hàng nào trong kỳ báo cáo này.
+                 </div>
+             {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# Script cho chart khách hàng nếu bạn thêm vào #}
+{% endblock %}

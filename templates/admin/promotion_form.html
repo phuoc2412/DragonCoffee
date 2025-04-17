@@ -1,0 +1,122 @@
+{# /templates/admin/promotion_form.html #}
+{% extends "admin/base.html" %}
+{# Nếu dùng macro WTForms (khuyến khích)
+{% from "macros/_form_helpers.html" import render_field %}
+#}
+
+{% block title %}{{ title }} - Quản lý Khuyến mãi{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.promotions') }}">Khuyến mãi</a></li>
+<li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-primary card-outline shadow-sm">
+             {# Hiển thị legend nếu có (ví dụ khi sửa) #}
+             {% if legend %}
+                 <div class="card-header">
+                     <h3 class="card-title">{{ legend }}</h3>
+                 </div>
+             {% endif %}
+            <form method="POST" action="{{ request.url }}">
+                {{ form.hidden_tag() }} {# CSRF token #}
+                <div class="card-body">
+
+                    {# --- Render thủ công các trường hoặc dùng macro --- #}
+
+                    {# Tên Khuyến mãi #}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }} <span class="text-danger">*</span>
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Ví dụ: Giảm giá Cuối tuần, Mua 1 Tặng 1...") }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    {# Mô tả #}
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3, placeholder="Mô tả ngắn gọn về chương trình (tùy chọn)...") }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback">{% for error in form.description.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    {# Mã Code #}
+                    <div class="mb-3">
+                         {{ form.code.label(class="form-label") }}
+                         {{ form.code(class="form-control" + (" is-invalid" if form.code.errors else ""), placeholder="Ví dụ: HELLO20, DRAGONNEW (để trống nếu áp dụng tự động)", **{'style': 'text-transform:uppercase'}) }}
+                         {% if form.code.errors %}
+                         <div class="invalid-feedback">{% for error in form.code.errors %}{{ error }}{% endfor %}</div>
+                         {% endif %}
+                        <div class="form-text">Mã nên ngắn gọn, dễ nhớ. Sẽ tự động chuyển thành chữ hoa.</div>
+                     </div>
+
+                    {# Giảm giá theo % hoặc số tiền #}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.discount_percent.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.discount_percent(class="form-control" + (" is-invalid" if form.discount_percent.errors else ""), type="number", step="0.01", min="0", max="100", placeholder="0") }}
+                                <span class="input-group-text">%</span>
+                                {% if form.discount_percent.errors %}
+                                <div class="invalid-feedback">{% for error in form.discount_percent.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                             <div class="form-text">Nhập số phần trăm giảm (ví dụ: 15 cho 15%).</div>
+                        </div>
+                         <div class="col-md-6 mb-3">
+                            {{ form.discount_amount.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">₫</span>
+                                {{ form.discount_amount(class="form-control" + (" is-invalid" if form.discount_amount.errors else ""), type="number", step="any", min="0", placeholder="0") }}
+                                 {% if form.discount_amount.errors %}
+                                <div class="invalid-feedback">{% for error in form.discount_amount.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-text">Nhập số tiền giảm cố định (ví dụ: 20000). Chỉ nhập 1 trong 2 loại giảm giá.</div>
+                         </div>
+                    </div>
+
+                    {# Ngày bắt đầu và kết thúc #}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                             {{ form.start_date.label(class="form-label") }} <span class="text-danger">*</span>
+                             {# Đảm bảo type="date" để có date picker #}
+                             {{ form.start_date(class="form-control" + (" is-invalid" if form.start_date.errors else ""), type="date") }}
+                              {% if form.start_date.errors %}
+                             <div class="invalid-feedback">{% for error in form.start_date.errors %}{{ error }}{% endfor %}</div>
+                              {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                             {{ form.end_date.label(class="form-label") }} <span class="text-danger">*</span>
+                             {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else ""), type="date") }}
+                             {% if form.end_date.errors %}
+                             <div class="invalid-feedback">{% for error in form.end_date.errors %}{{ error }}{% endfor %}</div>
+                              {% endif %}
+                        </div>
+                     </div>
+
+                    {# Trạng thái Active #}
+                    <div class="mb-3 form-check form-switch">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label") }}
+                        <small class="form-text text-muted d-block">Bật để áp dụng khuyến mãi này.</small>
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                     {# Nút Quay lại và Lưu #}
+                     <a href="{{ url_for('admin.promotions') }}" class="btn btn-secondary">Hủy</a>
+                     {{ form.submit(class="btn btn-primary float-end") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

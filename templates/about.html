@@ -1,78 +1,303 @@
 {% extends "base.html" %}
 
-{% block title %}Dragon Coffee Shop - About Us{% endblock %}
+{% block title %}Dragon Coffee Shop - Giới thiệu về chúng tôi{% endblock %}
+
+{# Block CSS để thêm style #}
+{% block extra_css %}
+{{ super() }} {# Giữ lại style từ base nếu có #}
+<style>
+    /* Style cho phần giới thiệu chung từ AI */
+    .ai-intro-alert {
+        background-color: #fff8e1;
+        border-left: 4px solid #ffa000;
+        border-radius: 0.25rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+    .ai-intro-alert p {
+        font-size: 1.1rem; font-style: italic; color: #5d4037;
+        line-height: 1.6; margin-bottom: 0;
+    }
+    .ai-intro-alert .ai-icon {
+        color: #ffa000; margin-right: 0.75rem; vertical-align: text-bottom;
+    }
+
+    /* Style cho Nav Tabs */
+    .nav-tabs {
+        border-bottom: 2px solid #8B4513; margin-bottom: 2.5rem;
+    }
+    .nav-tabs .nav-link {
+        color: #8B4513; border: none; border-bottom: 2px solid transparent;
+        padding: 0.8rem 1.5rem; font-weight: 600; font-family: 'Cinzel', serif;
+        text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s ease-in-out;
+    }
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #d2b48c; color: #602f0a;
+    }
+    .nav-tabs .nav-link.active {
+        color: #602f0a; background-color: transparent; border-bottom: 2px solid #8B4513;
+    }
+
+    /* Style cho nội dung tab */
+    .tab-content {
+        padding-top: 1.5rem;
+    }
+    /* Tiêu đề chính trong mỗi phần story row */
+    .story-section-row h2 {
+        color: #8B4513;
+        font-family: 'Cinzel', serif;
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+    }
+    /* Style chung cho đoạn văn bản trong các row */
+    .about-text, .story-content-text p {
+        color: #444;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        font-size: 1rem; /* Đồng nhất kích thước font */
+    }
+    /* Style cho ảnh trong các row */
+     .story-image-col img, .about-img {
+        max-height: 450px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 0.375rem; /* Bo góc */
+    }
+    .story-image-placeholder {
+         display: flex; align-items: center; justify-content: center;
+         height: 350px; /* Chiều cao cố định cho placeholder */
+         background-color: #e9ecef;
+         border-radius: 0.375rem;
+    }
+
+    /* Style cho chỉ báo AI */
+    .ai-generated-indicator {
+        display: block; /* Hiện trên dòng riêng */
+        text-align: right;
+        font-size: 0.8rem;
+        color: #6c757d; /* Màu xám */
+        font-style: italic;
+        margin-top: 1rem; /* Khoảng cách với nội dung trên */
+    }
+    .ai-generated-indicator i {
+        margin-right: 0.3rem;
+        color: #17a2b8; /* Màu xanh info */
+    }
+
+    /* Style cho thông báo không có câu chuyện */
+    .no-stories-message {
+        text-align: center; padding: 3rem 1rem; background-color: #f8f9fa;
+        border-radius: 5px; color: #6c757d; margin-top: 2rem;
+    }
+    .no-stories-message i {
+        font-size: 3rem; margin-bottom: 1rem; display: block;
+    }
+</style>
+{% endblock %}
+
 
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Our Story</h1>
-        
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1559417004-3f15daa4fd37" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
+        <h1 class="section-title text-center mb-5">Khám phá Dragon Coffee</h1>
+
+        {# Phần giới thiệu chung từ AI (nếu có) #}
+        {% if ai_about_intro %}
+        <div class="ai-intro-alert shadow-sm animate-on-scroll" data-animation="animate__fadeInUp">
+            <p><i class="fas fa-wand-magic-sparkles ai-icon"></i> {{ ai_about_intro | safe }}</p>
+        </div>
+        {% endif %}
+
+        {# --- Phần Tabs điều hướng --- #}
+        <ul class="nav nav-tabs justify-content-center" id="aboutTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="our-story-tab" data-bs-toggle="tab" data-bs-target="#our-story-pane" type="button" role="tab" aria-controls="our-story-pane" aria-selected="true">
+                    Câu Chuyện Của Chúng Tôi
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="interesting-stories-tab" data-bs-toggle="tab" data-bs-target="#interesting-stories-pane" type="button" role="tab" aria-controls="interesting-stories-pane" aria-selected="false">
+                    Chuyện Bên Tách Cà Phê
+                </button>
+            </li>
+        </ul>
+        {# --- Kết thúc Tabs điều hướng --- #}
+
+        {# --- Phần Nội dung Tabs --- #}
+        <div class="tab-content" id="aboutTabContent">
+
+            {# == TAB 1: CÂU CHUYỆN CỦA CHÚNG TÔI (NỘI DUNG TĨNH) == #}
+            <div class="tab-pane fade show active" id="our-story-pane" role="tabpanel" aria-labelledby="our-story-tab" tabindex="0">
+
+                {# Sử dụng row với class story-section-row để style chung #}
+                <div class="row align-items-center my-5 py-4 story-section-row">
+                    <div class="col-lg-6 mb-4 mb-lg-0 order-lg-1 animate-on-scroll" data-animation="animate__fadeInLeft">
+                        <img src="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" alt="Nội thất Dragon Coffee" class="img-fluid rounded shadow about-img">
+                    </div>
+                    <div class="col-lg-6 order-lg-2 animate-on-scroll" data-animation="animate__fadeInRight">
+                        <h2 class="mb-3">Sự ra đời của Dragon Coffee</h2>
+                        <div class="story-content-text"> {# Bọc nội dung văn bản vào div riêng #}
+                            <p>Được thành lập vào năm 2015, Dragon Coffee Shop khởi đầu là một ki-ốt nhỏ trong một khu chợ nhộn nhịp. Những người sáng lập của chúng tôi, Phước và Đào, chia sẻ niềm đam mê với cà phê chất lượng và sự say mê với thần thoại rồng từ các nền văn hóa trên khắp thế giới.</p>
+                            <p>Lấy cảm hứng từ biểu tượng sức mạnh, trí tuệ và may mắn của rồng, họ đã tạo ra một quán cà phê thể hiện những phẩm chất này trong mỗi tách cà phê được phục vụ. Bắt đầu từ một gian hàng khiêm tốn, giờ đây đã phát triển thành nhiều địa điểm, mỗi địa điểm đều mang trong mình tinh thần rực lửa của tầm nhìn ban đầu của chúng tôi.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row align-items-center my-5 py-4 bg-light rounded story-section-row">
+                    <div class="col-lg-6 mb-4 mb-lg-0 order-lg-2 animate-on-scroll" data-animation="animate__fadeInRight">
+                        <img src="{{ url_for('static', filename='images/coffee_beans.jpg') }}" alt="Hạt cà phê Dragon Coffee" class="img-fluid rounded shadow about-img">
+                    </div>
+                    <div class="col-lg-6 order-lg-1 animate-on-scroll" data-animation="animate__fadeInLeft">
+                         <h2 class="mb-3">Triết lý cà phê của chúng tôi</h2>
+                        <div class="story-content-text">
+                            <p>Tại Dragon Coffee, chúng tôi tin rằng cà phê hảo hạng vừa là nghệ thuật vừa là khoa học. Chúng tôi lấy hạt cà phê trực tiếp từ các trang trại bền vững trên khắp thế giới, lựa chọn cẩn thận các giống cà phê mang lại hương vị và đặc điểm riêng biệt.</p>
+                            <p>Những người rang xay bậc thầy của chúng tôi làm nổi bật hương vị độc đáo của từng hạt cà phê, tạo ra những hỗn hợp đặc trưng từ đậm đà và mãnh liệt đến êm dịu và tinh tế - mỗi hỗn hợp được đặt theo tên của những con rồng huyền thoại trong các thần thoại khác nhau.</p>
+                            <p>Mỗi tách cà phê đều được chế tác một cách tỉ mỉ, dù là một tách espresso đơn giản hay tách latte "Dragon's Breath" nổi tiếng của chúng tôi với hương vị cay nồng đặc trưng.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Thêm các phần tĩnh khác (Không gian, Đội ngũ, Bền vững) tương tự như trên #}
+                <div class="row align-items-center my-5 py-4 story-section-row">
+                     <div class="col-lg-6 mb-4 mb-lg-0 order-lg-1 animate-on-scroll" data-animation="animate__fadeInLeft">
+                        <img src="{{ url_for('static', filename='images/cafe_ambiance.jpg') }}" alt="Không gian Dragon Coffee" class="img-fluid rounded shadow about-img">
+                    </div>
+                    <div class="col-lg-6 order-lg-2 animate-on-scroll" data-animation="animate__fadeInRight">
+                        <h2 class="mb-3">Không gian của chúng tôi</h2>
+                         <div class="story-content-text">
+                            <p>Mỗi địa điểm Dragon Coffee đều được thiết kế để tạo ra bầu không khí ấm áp, hấp dẫn, nơi khách hàng có thể cảm thấy tràn đầy năng lượng và thư giãn. Tông màu đỏ và vàng đặc trưng của chúng tôi, cùng với họa tiết rồng tinh tế, tạo nên bầu không khí độc đáo giúp chúng tôi trở nên khác biệt.</p>
+                            <p>Từ khu vực thư giãn thoải mái đến không gian làm việc hiệu quả, chúng tôi đã tạo ra môi trường phục vụ cho cộng đồng những người yêu thích cà phê đa dạng, cho dù họ đang gặp gỡ bạn bè, họp kinh doanh hay tìm kiếm một nơi yên tĩnh để đọc sách và suy ngẫm.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row align-items-center my-5 py-4 bg-light rounded story-section-row">
+                    <div class="col-lg-6 mb-4 mb-lg-0 order-lg-2 animate-on-scroll" data-animation="animate__fadeInRight">
+                        <img src="{{ url_for('static', filename='images/staff_team.jpg') }}" alt="Đội ngũ Dragon Coffee" class="img-fluid rounded shadow about-img">
+                    </div>
+                     <div class="col-lg-6 order-lg-1 animate-on-scroll" data-animation="animate__fadeInLeft">
+                         <h2 class="mb-3">Đội ngũ của chúng tôi</h2>
+                         <div class="story-content-text">
+                            <p>Trái tim của Dragon Coffee là đội ngũ nhân viên pha chế, thợ làm bánh và nhân viên phục vụ nhiệt huyết, đa dạng. Mỗi thành viên trong nhóm đều trải qua quá trình đào tạo chuyên sâu về pha chế cà phê, dịch vụ khách hàng và kiến thức sâu rộng về chủ đề rồng của chúng tôi.</p>
+                            <p>Chúng tôi tin vào chế độ trả lương công bằng, giáo dục liên tục và tạo ra con đường sự nghiệp trong công ty của chúng tôi. Nhiều người quản lý địa điểm của chúng tôi bắt đầu là nhân viên pha chế, mang lại kinh nghiệm quý báu cho vai trò lãnh đạo của họ.</p>
+                            <p>Khi đến Dragon Coffee, bạn sẽ được phục vụ bởi những người đam mê cà phê, những người luôn tự hào mang đến trải nghiệm đặc biệt trong mọi tương tác.</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="row align-items-center my-5 py-4 story-section-row">
+                     <div class="col-lg-6 mb-4 mb-lg-0 order-lg-1 animate-on-scroll" data-animation="animate__fadeInLeft">
+                        <img src="{{ url_for('static', filename='images/sustainable_coffee.jpg') }}" alt="Cà phê bền vững" class="img-fluid rounded shadow about-img">
+                    </div>
+                     <div class="col-lg-6 order-lg-2 animate-on-scroll" data-animation="animate__fadeInRight">
+                         <h2 class="mb-3">Phát triển bền vững & Cộng đồng</h2>
+                         <div class="story-content-text">
+                            <p>Tại Dragon Coffee, chúng tôi cam kết thực hiện các hoạt động kinh doanh có trách nhiệm. Điều này bao gồm việc tìm nguồn cung ứng cà phê được sản xuất có đạo đức, sử dụng bao bì thân thiện với môi trường và giảm thiểu chất thải trong hoạt động của chúng tôi.</p>
+                            <p>Chúng tôi tích cực tham gia với cộng đồng địa phương thông qua các sự kiện, hoạt động gây quỹ và quan hệ đối tác với các tổ chức khu phố. Một phần tiền thu được của chúng tôi sẽ dành cho các nỗ lực bảo tồn các loài bò sát đang có nguy cơ tuyệt chủng—cách chúng tôi bảo vệ "rồng" ngoài đời thực.</p>
+                            <p>Khi lựa chọn Dragon Coffee, bạn không chỉ thưởng thức một loại đồ uống cao cấp mà còn ủng hộ một doanh nghiệp quan tâm đến tác động của mình lên con người và hành tinh.</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
-                <h2>The Birth of Dragon Coffee</h2>
-                <p class="about-text">Founded in 2015, Dragon Coffee Shop began as a small kiosk in a bustling market. Our founders, Lin and Marco, shared a passion for quality coffee and a fascination with dragon mythology from cultures around the world.</p>
-                <p class="about-text">Inspired by the dragon's symbolism of power, wisdom, and good fortune, they created a coffee shop that embodies these qualities in every cup served. What started as a humble stand has now grown into multiple locations, each carrying the fiery spirit of our original vision.</p>
+            {# == KẾT THÚC TAB 1 == #}
+
+
+            {# == TAB 2: CÂU CHUYỆN THÚ VỊ (NỘI DUNG ĐỘNG) == #}
+            <div class="tab-pane fade" id="interesting-stories-pane" role="tabpanel" aria-labelledby="interesting-stories-tab" tabindex="0">
+                {% if published_stories %}
+                    {% for story in published_stories %}
+                        {# Sử dụng loop.cycle để xen kẽ layout: ảnh trái/phải #}
+                        <div class="row align-items-center my-5 py-4 story-section-row {% if loop.index is odd %}bg-light rounded{% endif %}"> {# Thêm nền cho hàng lẻ #}
+                            {# Cột Ảnh #}
+                            <div class="col-lg-6 mb-4 mb-lg-0 animate-on-scroll story-image-col {% if loop.index is odd %}order-lg-1{% else %}order-lg-2{% endif %}" data-animation="{% if loop.index is odd %}animate__fadeInLeft{% else %}animate__fadeInRight{% endif %}" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                                {% if story.image_url %}
+                                    <img src="{{ story.image_url }}" alt="{{ story.title }}" class="img-fluid rounded shadow">
+                                {% else %}
+                                    <div class="story-image-placeholder shadow-sm">
+                                        <i class="fas fa-dragon fa-4x text-muted opacity-50"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {# Cột Nội dung #}
+                             <div class="col-lg-6 animate-on-scroll {% if loop.index is odd %}order-lg-2{% else %}order-lg-1{% endif %}" data-animation="{% if loop.index is odd %}animate__fadeInRight{% else %}animate__fadeInLeft{% endif %}" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                                <h2 class="mb-3">{{ story.title }}</h2>
+                                <div class="story-content-text">
+                                    {# Hiển thị nội dung. Có thể cần xử lý xuống dòng nếu nội dung AI không có thẻ <p> #}
+                                    {{ story.content | safe }}
+                                </div>
+                                {# Chỉ báo AI Generated #}
+                                {% if story.generated_by_ai %}
+                                <p class="ai-generated-indicator">
+                                    <i class="fas fa-robot"></i> Câu chuyện được tạo bởi AI
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {# Thêm đường kẻ giữa các câu chuyện nếu muốn #}
+                        {% if not loop.last %}
+                            <hr class="my-5">
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {# Thông báo khi không có câu chuyện nào #}
+                    <div class="no-stories-message mt-4">
+                         <i class="fas fa-book-open"></i>
+                        <p class="lead">Hiện tại chưa có câu chuyện thú vị nào được chia sẻ.</p>
+                        <p>Hãy chờ đón những câu chuyện độc đáo sắp tới nhé!</p>
+                    </div>
+                {% endif %}
+            </div>
+             {# == KẾT THÚC TAB 2 == #}
+
+        </div>
+        {# --- Kết thúc Nội dung Tabs --- #}
+
+
+        {# Phần Call to Action ở cuối #}
+        <div class="text-center mt-5 mb-4 pt-4 border-top animate-on-scroll" data-animation="animate__fadeIn"> {# Thêm pt-4 và border-top #}
+            <h2 class="section-title">Tham gia Gia đình Rồng</h2>
+            <p class="lead mb-4">Chúng tôi mời bạn tự mình trải nghiệm sự kỳ diệu của Dragon Coffee. Ghé thăm một trong những địa điểm của chúng tôi, thử đặt hàng trực tuyến hoặc cân nhắc tham gia nhóm của chúng tôi.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{{ url_for('main.locations') }}" class="btn btn-primary px-4 py-2">Tìm một vị trí</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary px-4 py-2">Khám phá thực đơn</a>
             </div>
         </div>
-        
-        <div class="row align-items-center mb-5 flex-lg-row-reverse">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1692299116305-762729f2e9d5" alt="Coffee Beans" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInRight">
-            </div>
-            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInLeft">
-                <h2>Our Coffee Philosophy</h2>
-                <p class="about-text">At Dragon Coffee, we believe that exceptional coffee is both an art and a science. We source our beans directly from sustainable farms around the world, carefully selecting varieties that offer distinctive flavors and characteristics.</p>
-                <p class="about-text">Our master roasters bring out the unique profile of each bean, creating signature blends that range from bold and intense to smooth and subtle—each named after legendary dragons from different mythologies.</p>
-                <p class="about-text">Every cup is crafted with precision, whether it's a simple espresso or our famous "Dragon's Breath" latte with its signature spicy finish.</p>
-            </div>
-        </div>
-        
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1522126039546-182129aa0b93" alt="Coffee Shop Ambiance" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
-            </div>
-            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
-                <h2>Our Spaces</h2>
-                <p class="about-text">Each Dragon Coffee location is designed to create a warm, inviting atmosphere where customers can feel both energized and relaxed. Our distinctive red and gold color scheme, along with subtle dragon motifs, creates a unique ambiance that sets us apart.</p>
-                <p class="about-text">From comfortable lounging areas to productive workspaces, we've created environments that serve our diverse community of coffee lovers, whether they're catching up with friends, holding business meetings, or seeking a quiet spot to read and reflect.</p>
-            </div>
-        </div>
-        
-        <div class="row align-items-center mb-5 flex-lg-row-reverse">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1599579134411-bd068f77d4d9" alt="Staff Team" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInRight">
-            </div>
-            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInLeft">
-                <h2>Our Team</h2>
-                <p class="about-text">The heart of Dragon Coffee is our diverse team of passionate baristas, bakers, and service staff. Each team member undergoes extensive training in coffee preparation, customer service, and the rich lore behind our dragon theme.</p>
-                <p class="about-text">We believe in fair compensation, ongoing education, and creating career paths within our company. Many of our location managers started as baristas, bringing valuable experience to their leadership roles.</p>
-                <p class="about-text">When you visit Dragon Coffee, you're being served by coffee enthusiasts who take pride in delivering an exceptional experience with every interaction.</p>
-            </div>
-        </div>
-        
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1513614825922-8fdb7f6ee617" alt="Sustainable Coffee" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft">
-            </div>
-            <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight">
-                <h2>Sustainability & Community</h2>
-                <p class="about-text">At Dragon Coffee, we're committed to responsible business practices. This includes sourcing ethically produced coffee, using eco-friendly packaging, and minimizing waste in our operations.</p>
-                <p class="about-text">We actively engage with our local communities through events, fundraisers, and partnerships with neighborhood organizations. A percentage of our proceeds goes to conservation efforts for endangered reptile species—our way of protecting real-world "dragons."</p>
-                <p class="about-text">By choosing Dragon Coffee, you're not just enjoying a premium beverage—you're supporting a business that cares about its impact on people and the planet.</p>
-            </div>
-        </div>
-        
-        <div class="text-center mt-5 animate-on-scroll" data-animation="animate__fadeIn">
-            <h2>Join the Dragon Family</h2>
-            <p class="lead mb-4">We invite you to experience the magic of Dragon Coffee for yourself. Visit one of our locations, try our online ordering, or consider joining our team.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{{ url_for('main.locations') }}" class="btn btn-primary">Find a Location</a>
-                <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Explore Our Menu</a>
-            </div>
-        </div>
-    </div>
-</div>
+
+    </div> {# End content-container #}
+</div> {# End container #}
+{% endblock %}
+
+
+{# Block scripts giữ nguyên script animate #}
+{% block extra_js %}
+{{ super() }} {# Giữ lại script từ base #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    // --- Logic Animation IntersectionObserver giữ nguyên ---
+    if (typeof IntersectionObserver !== 'undefined' && animatedElements.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.visibility = 'visible'; // Hiển thị trước khi thêm class
+                    entry.target.classList.add('animate__animated'); // Cần Animate.css
+                    const animation = entry.target.dataset.animation || 'animate__fadeInUp';
+                    const delay = entry.target.dataset.animationDelay || entry.target.style.animationDelay || '0s';
+                    entry.target.style.animationDelay = delay;
+                    entry.target.classList.add(animation);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        animatedElements.forEach(element => {
+            element.style.visibility = 'hidden'; // Ẩn ban đầu
+            observer.observe(element);
+        });
+    } else {
+        animatedElements.forEach(el => el.style.visibility = 'visible');
+    }
+});
+</script>
 {% endblock %}

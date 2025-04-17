@@ -1,0 +1,217 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} - Quản lý Câu chuyện{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.interesting_stories') }}">Câu chuyện thú vị</a></li>
+    <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="admin-form-card card shadow-sm">
+            <div class="card-body">
+                <div id="dynamic-flash-messages"></div>
+
+                <form class="admin-form" method="POST" action="{{ request.url }}" id="storyForm" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    {% if story %}
+                    <div class="mb-3 row">
+                         <label class="col-sm-2 col-form-label text-sm-end fw-bold">ID:</label>
+                         <div class="col-sm-10"><p class="form-control-plaintext">#{{ story.id }}</p></div>
+                    </div>
+                     <div class="mb-3 row">
+                         <label class="col-sm-2 col-form-label text-sm-end fw-bold">Trạng thái:</label>
+                         <div class="col-sm-10">
+                            <p class="form-control-plaintext">
+                                <span class="badge
+                                    {% if story.status == 'published' %} bg-success
+                                    {% elif story.status == 'draft' %} bg-warning text-dark
+                                    {% else %} bg-secondary {% endif %}">
+                                    {{ story.status|capitalize }}
+                                </span>
+                                {% if story.generated_by_ai %}
+                                <span class="ms-2 badge bg-info bg-opacity-75">AI Generated</span>
+                                {% endif %}
+                             </p>
+                         </div>
+                    </div>
+                    <hr class="my-4">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback">{% for error in form.title.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(id="content", class="form-control" + (" is-invalid" if form.content.errors else ""), rows=10) }}
+                        {% if form.content.errors %}
+                        <div class="invalid-feedback">{% for error in form.content.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                        <div class="mt-2 d-flex justify-content-between align-items-center">
+                            <span class="form-text">Admin có thể chỉnh sửa lại nội dung do AI tạo ra.</span>
+                            {% if story %}
+                            <button type="button" class="btn btn-outline-info btn-sm" id="rewrite-story-btn" data-story-id="{{ story.id }}">
+                                <i class="fas fa-magic me-1"></i> Viết lại bằng AI
+                                <span class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.image_file.label(class="form-label") }}
+                        {{ form.image_file(id="image_file_input", class="form-control" + (" is-invalid" if form.image_file.errors else "")) }}
+                        {% if form.image_file.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.image_file.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="image-preview-container" class="mt-3" style="max-height: 200px; text-align: center; background-color: #f8f9fa; border: 1px dashed #ccc; border-radius: 5px; padding: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; position: relative;">
+                             <img src="{{ current_image_url or '#' }}" alt="Xem trước ảnh" id="image-preview"
+                                  style="max-height: 180px; max-width: 100%; border-radius: 4px; display: {{ 'block' if current_image_url else 'none' }};">
+                            <span id="image-preview-placeholder" class="text-muted small" style="display: {{ 'none' if current_image_url else 'block' }};">
+                                {% if current_image_url %} Ảnh hiện tại {% else %} Ảnh mới chọn sẽ hiển thị ở đây {% endif %}
+                             </span>
+                             {% if current_image_url %}
+                              <button type="button" id="remove-current-image-btn" class="btn btn-sm btn-danger" style="position: absolute; top: 5px; right: 5px; display:none;" title="Xóa ảnh hiện tại (sẽ lưu khi nhấn Lưu thay đổi)">X</button>
+                              <input type="hidden" name="remove_image" id="remove-image-input" value="0">
+                              <script>
+                                  if (document.getElementById('remove-current-image-btn')) {
+                                     document.getElementById('remove-current-image-btn').style.display = 'inline-block';
+                                     document.getElementById('remove-current-image-btn').addEventListener('click', function(){
+                                          if(confirm('Bạn muốn xóa ảnh hiện tại? Thay đổi sẽ có hiệu lực sau khi Lưu.')){
+                                              document.getElementById('image-preview').style.display='none';
+                                              document.getElementById('image-preview-placeholder').style.display='block';
+                                              document.getElementById('image-preview-placeholder').textContent = 'Ảnh sẽ bị xóa khi Lưu.';
+                                              var fileInput = document.getElementById('image_file_input'); if(fileInput) { fileInput.value = null; }
+                                              var removeInput = document.getElementById('remove-image-input'); if (removeInput) { removeInput.value = '1';}
+                                              this.style.display = 'none';
+                                         }
+                                     });
+                                 }
+                              </script>
+                             {% endif %}
+                         </div>
+                        <div class="form-text">Tải lên ảnh minh họa mới. Ảnh sẽ thay thế ảnh cũ (nếu có) khi bạn lưu thay đổi.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('admin.interesting_stories') }}" class="btn btn-secondary">Hủy</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const storyForm = document.getElementById('storyForm');
+        const rewriteBtn = document.getElementById('rewrite-story-btn');
+        const contentTextarea = document.getElementById('content');
+        const imageFileInput = document.getElementById('image_file_input');
+        const imagePreview = document.getElementById('image-preview');
+        const imagePreviewPlaceholder = document.getElementById('image-preview-placeholder');
+        const csrfTokenInput = storyForm ? storyForm.querySelector('input[name="csrf_token"]') : null;
+        const dynamicFlashContainer = document.getElementById('dynamic-flash-messages');
+        const removeCurrentImageBtn = document.getElementById('remove-current-image-btn');
+        const removeImageInput = document.getElementById('remove-image-input');
+
+        let isRewriting = false;
+
+        function showDynamicFlash(message, category = 'info', duration = 7000) {
+            if (!dynamicFlashContainer) { console.warn("Flash container #dynamic-flash-messages not found."); return; }
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${category} alert-dismissible fade show mb-3`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+            dynamicFlashContainer.appendChild(alertDiv);
+            try { setTimeout(() => { var alertInstance = bootstrap.Alert.getInstance(alertDiv); if (alertInstance) alertInstance.close(); }, duration); }
+            catch (e) { setTimeout(() => { alertDiv.remove(); }, duration); }
+        }
+
+        if (rewriteBtn && contentTextarea) {
+            rewriteBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                if (isRewriting) { console.warn("Rewrite already in progress."); return; }
+
+                const storyId = this.dataset.storyId;
+                const spinner = this.querySelector('.spinner-border');
+                if (!storyId) { showDynamicFlash('Vui lòng lưu truyện trước khi viết lại.', 'warning'); return; }
+
+                isRewriting = true;
+                this.disabled = true; if (spinner) spinner.classList.remove('d-none');
+                const headers = {'Accept': 'application/json'};
+                if (csrfTokenInput && csrfTokenInput.value) headers['X-CSRFToken'] = csrfTokenInput.value;
+
+                fetch(`/admin/interesting-stories/rewrite/${storyId}`, {method: 'POST', headers: headers})
+                .then(response => response.json().then(data => ({ ok: response.ok, status: response.status, data })))
+                .then(result => {
+                    if (!result.ok) throw new Error(result.data.message || `Lỗi server (${result.status})`);
+                    if (result.data.success && result.data.new_content) {
+                       contentTextarea.value = result.data.new_content;
+                       showDynamicFlash('Đã viết lại nội dung bằng AI.', 'success');
+                    } else { throw new Error(result.data.message || 'Không nhận được nội dung mới.'); }
+                })
+                .catch(error => { console.error('Rewrite Error:', error); showDynamicFlash('Lỗi khi yêu cầu viết lại: ' + error.message, 'danger'); })
+                .finally(() => { isRewriting = false; this.disabled = false; if (spinner) spinner.classList.add('d-none'); });
+            });
+        }
+
+        if (imageFileInput && imagePreview && imagePreviewPlaceholder) {
+            const defaultPlaceholderText = 'Ảnh mới chọn sẽ hiển thị ở đây';
+            imageFileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                        imagePreviewPlaceholder.style.display = 'none';
+                        if(removeImageInput) removeImageInput.value = '0';
+                        if(removeCurrentImageBtn) removeCurrentImageBtn.style.display = 'inline-block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    const originalImageUrl = imagePreview.dataset.originalUrl || "{{ current_image_url or '' }}";
+                    if (originalImageUrl && originalImageUrl !== '#'){
+                        imagePreview.src = originalImageUrl;
+                        imagePreview.style.display = 'block';
+                        imagePreviewPlaceholder.style.display = 'none';
+                    } else {
+                        imagePreview.src = '#';
+                        imagePreview.style.display = 'none';
+                        imagePreviewPlaceholder.textContent = defaultPlaceholderText;
+                        imagePreviewPlaceholder.style.display = 'block';
+                    }
+                    if(removeImageInput) removeImageInput.value = '0';
+                    if(removeCurrentImageBtn && originalImageUrl && originalImageUrl !== '#') {
+                        removeCurrentImageBtn.style.display = 'inline-block';
+                    } else if (removeCurrentImageBtn) {
+                        removeCurrentImageBtn.style.display = 'none';
+                    }
+                }
+            });
+            // Lưu URL gốc vào data-attribute để dễ dàng reset
+            imagePreview.dataset.originalUrl = imagePreview.src;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,262 +1,205 @@
+{# templates/admin/inventory.html #}
 {% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
 
-{% block title %}Dragon Coffee Shop - Inventory Management{% endblock %}
+{% block title %}Quản lý Tồn kho - Trang quản trị{% endblock %}
+{% block page_title %}Quản lý Tồn kho{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Tồn kho</li>
+{% endblock %}
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Quản Lý Tồn Kho (Inventory Management)</h1>
-    <div class="d-flex align-items-center">
-        <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#batchUpdateModal">
-            <i class="fas fa-upload me-1"></i> Cập Nhật Hàng Loạt
-        </button>
-        <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Xuất
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Xuất Tồn Kho (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Xuất Hàng Sắp Hết (CSV)</a></li>
-            </ul>
+{# --- Khu vực thẻ thống kê --- #}
+<div class="row inventory-stats mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card stat-card-info h-100 shadow-sm">
+            <div class="stat-card-body">
+                <div class="stat-card-icon">
+                    <i class="fas fa-boxes fa-fw"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-text">Tổng Mặt Hàng</div>
+                    <div class="stat-card-number" id="stat-total-items">{{ total_all_items_count | default('0') }}</div>
+                </div>
+            </div>
+             <a href="{{ url_for('admin.inventory') }}" class="stat-card-footer stretched-link">
+                Xem tất cả <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card stat-card-success h-100 shadow-sm">
+             <div class="stat-card-body">
+                <div class="stat-card-icon">
+                    <i class="fas fa-check-circle fa-fw"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-text">Đủ Tồn Kho</div>
+                    <div class="stat-card-number" id="stat-adequate-stock">{{ adequate_stock_count | default('0') }}</div>
+                </div>
+             </div>
+             {# Link đến bộ lọc Đủ hàng #}
+             <a href="{{ url_for('admin.inventory', status_filter='adequate') }}" class="stat-card-footer stretched-link">
+                 Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+             </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card stat-card-warning h-100 shadow-sm">
+             <div class="stat-card-body">
+                <div class="stat-card-icon">
+                     <i class="fas fa-exclamation-triangle fa-fw"></i>
+                </div>
+                 <div class="stat-card-content">
+                    <div class="stat-card-text">Sắp Hết Hàng</div>
+                     <div class="stat-card-number" id="stat-low-stock">{{ low_stock_count | default('0') }}</div>
+                </div>
+             </div>
+             {# Link đến bộ lọc Sắp hết #}
+            <a href="{{ url_for('admin.inventory', status_filter='low') }}" class="stat-card-footer stretched-link">
+                 Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stat-card stat-card-danger h-100 shadow-sm">
+             <div class="stat-card-body">
+                 <div class="stat-card-icon">
+                    <i class="fas fa-ban fa-fw"></i>
+                </div>
+                 <div class="stat-card-content">
+                    <div class="stat-card-text">Hết Hàng</div>
+                    <div class="stat-card-number" id="stat-out-of-stock">{{ out_of_stock_count | default('0') }}</div>
+                 </div>
+             </div>
+              {# Link đến bộ lọc Hết hàng #}
+             <a href="{{ url_for('admin.inventory', status_filter='out') }}" class="stat-card-footer stretched-link">
+                Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+            </a>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon products">
-                <i class="fas fa-boxes"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Tổng Sản Phẩm</h5>
-                <h3>{{ inventory_items|length }}</h3>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon sales">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Hàng Sắp Hết</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'lt', 'min_quantity')|list|length }}</h3>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon orders">
-                <i class="fas fa-ban"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Hết Hàng</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'equalto', 0)|list|length }}</h3>
+{# --- Card chính chứa Bảng và Bộ lọc (giữ nguyên cấu trúc như lần trước) --- #}
+<div class="card card-outline card-success shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="card-title mb-0"><i class="fas fa-warehouse me-2"></i>Danh sách Tồn kho</h3>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                 {# Các nút action #}
+                 <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#batchUpdateModal" title="Cập nhật số lượng hàng loạt bằng file CSV">
+                        <i class="fas fa-upload"></i> Cập nhật loạt
+                    </button>
+                     <div class="dropdown">
+                         <button class="btn btn-outline-success dropdown-toggle" type="button" id="exportInventoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-export"></i> Xuất File
+                         </button>
+                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportInventoryDropdown">
+                             <li><a id="exportCurrentCsvLink" class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status=status_filter, search=search_term) }}">Xuất Hiện tại (CSV)</a></li>
+                             <li><hr class="dropdown-divider"></li>
+                             <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='all') }}">Xuất Tất cả (CSV)</a></li>
+                             <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='low') }}">Xuất Sắp hết (CSV)</a></li>
+                             <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory', format='csv', status='out') }}">Xuất Hết hàng (CSV)</a></li>
+                         </ul>
+                     </div>
+                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon customers">
-                <i class="fas fa-check-circle"></i>
+    <div class="card-body p-0">
+        <div id="inventoryTableContainer" class="table-responsive position-relative"> {# Thêm position-relative #}
+            {# Spinner Loading AJAX #}
+            <div id="loadingSpinnerInv" class="text-center py-5" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.8); z-index: 10; align-items: center; justify-content: center; flex-direction:column;">
+                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                 <p class="mt-2 text-muted mb-0">Đang tải dữ liệu tồn kho...</p>
             </div>
-            <div class="stats-info">
-                <h5>Đủ Tồn Kho</h5>
-                <h3>{{ inventory_items|selectattr('quantity', 'ge', 'min_quantity')|list|length }}</h3>
+            {# Bảng Tồn kho #}
+            <table class="table table-hover table-striped table-sm align-middle mb-0 admin-table" id="inventoryTable">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th style="width: 45%;">Sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th class="text-center">Tồn kho</th>
+                        <th class="text-center">Tối thiểu</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th>Cập nhật cuối</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    {% include 'admin/_inventory_table_rows.html' %}
+                </tbody>
+            </table>
+            {# Thông báo khi không có kết quả #}
+            <div id="noInventoryMessage" class="text-center p-5 text-muted" style="display: {% if not inventory_items %}block{% else %}none{% endif %};">
+                <i class="fas fa-boxes fa-3x mb-3"></i><br>
+                <span id="noInventoryText">
+                    {% if search_term or status_filter not in ['all', '', None] %}
+                        Không tìm thấy mặt hàng nào khớp với bộ lọc.
+                    {% else %}
+                        Chưa có dữ liệu tồn kho.
+                    {% endif %}
+                </span>
             </div>
         </div>
     </div>
-</div>
 
-<div class="admin-card mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Trạng Thái Tồn Kho</h4>
-        <div class="d-flex">
-            <div class="input-group me-2">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="inventorySearch" placeholder="Tìm kiếm sản phẩm...">
-            </div>
-            <select class="form-select" id="inventoryFilter" style="width: auto;">
-                <option value="all">Tất Cả</option>
-                <option value="low">Sắp Hết</option>
-                <option value="out">Hết Hàng</option>
-                <option value="adequate">Đủ Tồn Kho</option>
-            </select>
-        </div>
-    </div>
-    
-    {% if inventory_items %}
-    <div class="table-responsive">
-        <table class="admin-table inventory-table" id="inventoryTable">
-            <thead>
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th>Danh mục</th>
-                    <th>Tồn kho</th>
-                    <th>Tồn kho tối thiểu</th>
-                    <th>Trạng thái</th>
-                    <th>Cập nhật gần đây</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in inventory_items %}
-                <tr data-status="{% if item.quantity == 0 %}out{% elif item.quantity < item.min_quantity %}low{% else %}adequate{% endif %}">
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <img src="{{ item.product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ item.product.name }}" width="40" height="40" class="rounded me-2" style="object-fit: cover;">
-                            {{ item.product.name }}
-                        </div>
-                    </td>
-                    <td>{{ item.product.category.name }}</td>
-                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
-                    <td>{{ item.min_quantity }} {{ item.unit or 'units' }}</td>
-                    <td>
-                        {% if item.quantity == 0 %}
-                        <span class="status-badge cancelled">Hết hàng</span>
-                        {% elif item.quantity < item.min_quantity %}
-                        <span class="status-badge pending">Sắp hết</span>
-                        {% else %}
-                        <span class="status-badge completed">Còn hàng</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if item.last_restocked %}
-                        {{ item.last_restocked.strftime('%Y-%m-%d') }}
-                        {% else %}
-                        Never
-                        {% endif %}
-                    </td>
-                    <td>
-                        <button type="button" class="table-action edit me-1" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ item.id }}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="table-action view" data-bs-toggle="modal" data-bs-target="#historyModal{{ item.id }}">
-                            <i class="fas fa-history"></i>
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Update Stock Modal -->
-                <div class="modal fade" id="updateStockModal{{ item.id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ item.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="updateStockModalLabel{{ item.id }}">Cập nhật tồn kho - {{ item.product.name }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="{{ url_for('admin.update_inventory', inventory_id=item.id) }}" method="POST" class="inventory-update-form" data-inventory-id="{{ item.id }}">
-                                    <div class="mb-3">
-                                        <label for="quantity{{ item.id }}" class="form-label">Số lượng hiện tại</label>
-                                        <input type="number" class="form-control" name="quantity" id="quantity{{ item.id }}" value="{{ item.quantity }}" min="0">
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                        <button type="submit" class="btn btn-primary">Cập nhật</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Stock History Modal -->
-                <div class="modal fade" id="historyModal{{ item.id }}" tabindex="-1" aria-labelledby="historyModalLabel{{ item.id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="historyModalLabel{{ item.id }}">Lịch sử tồn kho - {{ item.product.name }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Dữ liệu lịch sử không có sẵn tại thời điểm này.</p>
-                                <div id="stockChart{{ item.id }}" style="height: 300px;"></div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
-        <h4>Không tìm thấy sản phẩm nào trong kho</h4>
-        <p class="text-muted">Bắt đầu bằng cách thêm sản phẩm vào menu.</p>
-        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary mt-2">Thêm sản phẩm</a>
+    {# Phân trang #}
+    {% if pagination and pagination.pages > 1 %}
+    <div id="paginationContainerInv" class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.inventory',
+                             search=search_term, status_filter=status_filter, align='end') }}
     </div>
     {% endif %}
 </div>
 
-<!-- Batch Update Modal -->
-<div class="modal fade" id="batchUpdateModal" tabindex="-1" aria-labelledby="batchUpdateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="batchUpdateModalLabel">Cập Nhật Hàng Loạt</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="batchUpdateForm" action="/admin/inventory/batch-update" method="POST">
-                    <div class="mb-3">
-                        <label for="batchFile" class="form-label">Tải lên file CSV</label>
-                        <input class="form-control" type="file" id="batchFile" accept=".csv">
-                        <div class="form-text">Tải lên file CSV với cột: product_id, quantity</div>
-                    </div>
-                    
-                    <h5 class="mt-4">Hoặc Nhập Thủ Công</h5>
-                    <div class="table-responsive">
-                        <table class="table" id="batchUpdateTable">
-                            <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Tồn kho hiện tại</th>
-                                    <th>Số lượng mới</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in inventory_items[:5] %}
-                                <tr>
-                                    <td>{{ item.product.name }}</td>
-                                    <td>{{ item.quantity }} {{ item.unit or 'units' }}</td>
-                                    <td>
-                                        <input type="number" class="form-control" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="0">
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                                {% if inventory_items|length > 5 %}
-                                <tr>
-                                    <td colspan="3" class="text-center">
-                                        <button type="button" class="btn btn-link">Xem thêm sản phẩm</button>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Cập nhật tồn kho</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+{# --- Include các Modals --- #}
+{% include 'admin/_inventory_modals.html' %}
+
 {% endblock %}
 
+{# Block JS không thay đổi so với lần trước, chỉ cần copy nội dung JS cũ vào #}
 {% block extra_js %}
-<!-- Chart.js for stock history charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-<!-- Custom inventory management JS -->
-<script src="{{ url_for('static', filename='js/admin/inventory.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+{# Script khởi tạo tooltip chung #}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+     function initializeTooltips(container = document) {
+         var tooltipTriggerList = [].slice.call(container.querySelectorAll('[data-bs-toggle="tooltip"]'));
+         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+             var oldTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+             if (oldTooltip) { oldTooltip.dispose(); }
+             return new bootstrap.Tooltip(tooltipTriggerEl);
+         });
+     }
+     initializeTooltips(); // Khởi tạo ban đầu
+
+     // Thêm một MutationObserver để tự động khởi tạo lại tooltip khi tbody thay đổi
+     const tableBodyObserver = document.getElementById('inventoryTableBody');
+     if (tableBodyObserver) {
+         const observer = new MutationObserver(function(mutationsList, observer) {
+             // Chỉ chạy nếu có nodes được thêm vào
+             let addedNodes = false;
+             for(const mutation of mutationsList) {
+                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                     addedNodes = true;
+                     break;
+                 }
+             }
+             if (addedNodes) {
+                 // console.log('Inventory table body changed, re-initializing tooltips.');
+                 initializeTooltips(tableBodyObserver); // Chỉ khởi tạo trong tbody
+             }
+         });
+         observer.observe(tableBodyObserver, { childList: true, subtree: true });
+         // Đảm bảo disconnect observer khi không cần thiết (ví dụ khi rời trang) nếu trang là SPA
+     }
+  });
+</script>
 {% endblock %}

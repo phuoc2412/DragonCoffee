@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dragon Coffee Shop - Checkout{% endblock %}
+{% block title %}Dragon Coffee Shop - Thanh toán{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
@@ -9,86 +9,118 @@
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Checkout</h1>
-        
+        <h1 class="section-title">Thanh toán</h1>
+
         <div id="checkout-error" class="alert alert-danger d-none" role="alert"></div>
-        
+
         <div class="row">
             <div class="col-lg-8 mb-4 mb-lg-0">
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 shop-section-card">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Order Details</h3>
-                        
+                        <h3 class="shop-section-title">Chi tiết đơn hàng</h3>
+
                         <form id="checkout-form" method="POST" action="{{ url_for('order.checkout') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            {# Giữ các input này nếu backend bạn *chỉ* dùng chúng như giá trị ban đầu
+                               Nhưng logic tính tổng cuối cùng phải thực hiện lại ở backend dựa trên KM session #}
                             <input type="hidden" id="subtotal-input" name="subtotal" value="{{ total }}">
-                            <input type="hidden" id="tax-input" name="tax" value="{{ total * 0.1 }}">
-                            <input type="hidden" id="total-input" name="total" value="{{ total * 1.1 }}">
-                            
+                            <input type="hidden" id="tax-input" name="tax" value="{{ (total * 0.1) | round(2) }}">
+                            <input type="hidden" id="total-input" name="total" value="{{ (total * 1.1) | round(2) }}">
+
+
                             <div class="mb-4">
-                                <h5>Order Type</h5>
+                                <h5>Loại đơn hàng</h5>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeTakeaway" value="takeaway" checked>
-                                    <label class="form-check-label" for="orderTypeTakeaway">Takeaway</label>
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeTakeaway" value="takeaway" {% if not request.form.get('order_type') or request.form.get('order_type') == 'takeaway' %}checked{% endif %}>
+                                    <label class="form-check-label" for="orderTypeTakeaway">Mua mang về</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDelivery" value="delivery">
-                                    <label class="form-check-label" for="orderTypeDelivery">Delivery</label>
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDelivery" value="delivery" {% if request.form.get('order_type') == 'delivery' %}checked{% endif %}>
+                                    <label class="form-check-label" for="orderTypeDelivery">Vận chuyển</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDineIn" value="dine-in">
-                                    <label class="form-check-label" for="orderTypeDineIn">Dine-In</label>
+                                    <input class="form-check-input" type="radio" name="order_type" id="orderTypeDineIn" value="dine-in" {% if request.form.get('order_type') == 'dine-in' %}checked{% endif %}>
+                                    <label class="form-check-label" for="orderTypeDineIn">Ăn tại quán</label>
                                 </div>
                             </div>
-                            
-                            <div id="delivery-address-container" class="mb-4 d-none">
-                                <h5>Delivery Address</h5>
+
+                            <div id="delivery-address-container" class="mb-4 {% if request.form.get('order_type') != 'delivery' %}d-none{% endif %}">
+                                <h5>Địa chỉ giao hàng</h5>
                                 <div class="mb-3">
-                                    <label for="address" class="form-label">Full Address</label>
-                                    <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your delivery address"></textarea>
+                                    <label for="address" class="form-label">Địa chỉ đầy đủ <span class="text-danger">*</span></label>
+                                    <textarea class="form-control {% if form_data and 'address' not in form_data and request.form.get('order_type') == 'delivery' %}is-invalid{% endif %}" id="address" name="address" rows="3" placeholder="Nhập địa chỉ giao hàng của bạn">{{ form_data.get('address', '') if form_data else '' }}</textarea>
+                                    {# Hiển thị lỗi nếu có #}
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <h5>Contact Information</h5>
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" required value="{{ current_user.first_name ~ ' ' ~ current_user.last_name if current_user.is_authenticated else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone" required value="{{ current_user.phone if current_user.is_authenticated and current_user.phone else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email" required value="{{ current_user.email if current_user.is_authenticated else '' }}">
-                                </div>
+                                <h5>Thông tin liên lạc</h5>
+                                <fieldset>
+                                    {# Hiển thị giá trị từ user hoặc từ form data nếu có lỗi trước đó #}
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" required value="{{ form_data.get('name') if form_data else (current_user.first_name ~ ' ' ~ current_user.last_name if current_user.is_authenticated else '') }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" required value="{{ form_data.get('phone') if form_data else (current_user.phone if current_user.is_authenticated and current_user.phone else '') }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Địa chỉ Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" required value="{{ form_data.get('email') if form_data else (current_user.email if current_user.is_authenticated else '') }}">
+                                    </div>
+                                </fieldset>
                             </div>
-                            
+
+                            <div class="mb-4 shop-section-card">
+                                <h3 class="shop-section-title">Mã giảm giá</h3>
+
+                                <div id="applied-promo-info" style="display: none;" class="alert alert-success d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <i class="fas fa-check-circle me-2"></i> Đã áp dụng mã: <strong id="applied-promo-code"></strong>
+                                        <span class="small text-muted ms-1" id="applied-promo-name"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="remove-promo-btn">
+                                        <i class="fas fa-times"></i> Gỡ
+                                    </button>
+                                </div>
+
+                                <div id="promo-code-form" class="input-group mb-3">
+                                    <input type="text" class="form-control" placeholder="Nhập mã giảm giá của bạn..." id="promo-code-input" aria-label="Mã giảm giá" style="text-transform: uppercase;">
+                                    <button class="btn btn-primary" type="button" id="apply-promo-btn">Áp dụng</button>
+                                </div>
+                                <div id="promo-error-message" class="text-danger small mt-1"></div>
+                                <div id="promo-success-message" class="text-success small mt-1"></div>
+                           </div>
+
+
                             <div class="mb-4">
-                                <h5>Payment Method</h5>
+                                <h5>Phương thức thanh toán</h5>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" checked>
-                                    <label class="form-check-label" for="paymentCash">Cash on Pickup/Delivery</label>
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCash" value="cash" {% if not form_data or form_data.get('payment_method') == 'cash' %}checked{% endif %}>
+                                    <label class="form-check-label" for="paymentCash">Tiền mặt khi nhận hàng/Giao hàng</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCard" value="card">
-                                    <label class="form-check-label" for="paymentCard">Credit/Debit Card</label>
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paymentCard" value="card" {% if form_data and form_data.get('payment_method') == 'card' %}checked{% endif %}>
+                                    <label class="form-check-label" for="paymentCard">Thẻ tín dụng/Ghi nợ (Chưa hỗ trợ)</label>
                                 </div>
                             </div>
-                            
-                            <div id="card-details-container" class="mb-4 d-none">
-                                <h5>Card Details</h5>
+
+                            <div id="card-details-container" class="mb-4 {% if not form_data or form_data.get('payment_method') != 'card' %}d-none{% endif %}">
+                                <h5>Chi tiết thẻ (Demo - Chưa xử lý)</h5>
+                                <div class="alert alert-warning small">Chức năng thanh toán thẻ hiện chưa được tích hợp.</div>
                                 <div class="mb-3">
-                                    <label for="card_number" class="form-label">Card Number</label>
+                                    <label for="card_number" class="form-label">Số thẻ</label>
                                     <input type="text" class="form-control" id="card_number" name="card_number" placeholder="•••• •••• •••• ••••">
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="card_name" class="form-label">Cardholder Name</label>
+                                        <label for="card_name" class="form-label">Tên chủ thẻ</label>
                                         <input type="text" class="form-control" id="card_name" name="card_name">
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <label for="card_expiry" class="form-label">Expiry Date</label>
+                                        <label for="card_expiry" class="form-label">Hết hạn (MM/YY)</label>
                                         <input type="text" class="form-control" id="card_expiry" name="card_expiry" placeholder="MM/YY">
                                     </div>
                                     <div class="col-md-3 mb-3">
@@ -97,84 +129,284 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <h5>Additional Notes</h5>
-                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any special instructions for your order?"></textarea>
+                                <h5>Ghi chú bổ sung</h5>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Yêu cầu đặc biệt cho đơn hàng? (Ví dụ: giao hàng nhanh, không chuông...)">{{ form_data.get('notes', '') if form_data else '' }}</textarea>
                             </div>
-                            
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg btn-checkout">
+                                    <i class="fas fa-shopping-cart me-2"></i>Đặt hàng
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Order Summary</h3>
-                        
-                        {% for item in cart_items %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <span class="fw-bold">{{ item.quantity }}x</span> {{ item.name }}
-                                {% if item.notes %}
-                                <br><small class="text-muted">{{ item.notes }}</small>
-                                {% endif %}
+                 <div class="cart-summary-container"> {# Wrapper để sticky #}
+                    <div class="card border-0 shadow-sm mb-4 cart-summary"> {# Cart Summary Card #}
+                        <div class="card-body p-4">
+                            <h3 class="shop-section-title">Tóm tắt đơn hàng</h3>
+
+                             {# Phần lặp qua các sản phẩm trong giỏ #}
+                            {% for item in cart_items %}
+                             <div class="summary-item">
+                                <span>
+                                    {{ item.quantity }}x {{ item.name }}
+                                     {% if item.notes %}
+                                        <small class="d-block text-muted fst-italic">- {{ item.notes }}</small>
+                                    {% endif %}
+                                 </span>
+                                <span>${{ "%.2f"|format(item.subtotal) }}</span>
                             </div>
-                            <div>${{ "%.2f"|format(item.subtotal) }}</div>
+                            {% endfor %}
+
+                            <hr class="summary-divider">
+
+                             {# Tổng tiền hàng gốc #}
+                            <div class="summary-item">
+                                <span>Tiền hàng</span>
+                                <span class="cart-subtotal-value">${{ "%.2f"|format(total) }}</span>
+                            </div>
+
+                            {# Hiển thị giảm giá nếu có #}
+                            <div class="summary-item discount-display" style="display: none;">
+                                <span class="text-danger"><i class="fas fa-tag me-1"></i> Giảm giá (<code id="display-promo-code"></code>)</span>
+                                <span class="text-danger fw-medium" id="discount-amount-display">-0₫</span>
+                            </div>
+
+                            {# Thuế - tính lại dựa trên giá sau giảm #}
+                            <div class="summary-item">
+                                 <span>Thuế (10%)</span>
+                                <span class="cart-tax-value">${{ "%.2f"|format(total * 0.1) }}</span>
+                            </div>
+
+                             {# Có thể thêm Phí vận chuyển ở đây nếu cần #}
+                             <div class="summary-item shipping-display" style="display: none;">
+                                 <span>Phí vận chuyển</span>
+                                 <span id="shipping-fee-display">0₫</span>
+                             </div>
+
+                            <hr class="summary-divider">
+
+                            {# Tổng cộng cuối cùng #}
+                            <div class="summary-item total">
+                                <span>Tổng cộng</span>
+                                <span class="summary-total cart-total-value" id="cart-final-total">${{ "%.2f"|format(total * 1.1) }}</span>
+                            </div>
                         </div>
-                        {% if not loop.last %}<hr class="my-2">{% endif %}
-                        {% endfor %}
-                        
-                        <hr class="my-3">
-                        
-                        <div class="summary-item">
-                            <span>Subtotal</span>
-                            <span>${{ "%.2f"|format(total) }}</span>
-                        </div>
-                        
-                        <div class="summary-item">
-                            <span>Tax (10%)</span>
-                            <span>${{ "%.2f"|format(total * 0.1) }}</span>
-                        </div>
-                        
-                        <hr>
-                        
-                        <div class="summary-item">
-                            <span class="fw-bold">Total</span>
-                            <span class="summary-total">${{ "%.2f"|format(total * 1.1) }}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card border-0 shadow-sm">
+                    </div> {# End Cart Summary Card #}
+                 </div> {# End Cart Summary Container #}
+
+                <div class="card border-0 shadow-sm shop-section-card"> {# Another Card #}
                     <div class="card-body p-4">
-                        <h5 class="mb-3">We Accept</h5>
-                        <div class="d-flex gap-2">
-                            <div class="payment-icon"><i class="fab fa-cc-visa fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-mastercard fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-amex fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-paypal fa-2x"></i></div>
+                        <h5 class="mb-3">Chúng tôi chấp nhận</h5>
+                        <div class="d-flex gap-3 justify-content-center mb-3">
+                            <i class="fab fa-cc-visa fa-3x text-muted"></i>
+                            <i class="fab fa-cc-mastercard fa-3x text-muted"></i>
+                            <i class="fab fa-cc-jcb fa-3x text-muted"></i>
+                            <i class="fas fa-money-bill-wave fa-3x text-muted"></i>
                         </div>
-                        
-                        <hr class="my-3">
-                        
-                        <h5 class="mb-3">Need Help?</h5>
-                        <p class="mb-0">
-                            <i class="fas fa-phone me-2"></i> Call us at: (123) 456-7890<br>
-                            <i class="fas fa-envelope me-2"></i> Email: support@dragoncoffee.com
-                        </p>
+                         <p class="text-center small text-muted">... và nhiều ví điện tử khác.</p>
+                        <hr class="my-4">
+                        <h5 class="mb-3">Cần trợ giúp?</h5>
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i> Gọi: <strong>000 2412 2003</strong></p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i> Email: <strong>phuoclongthan@gmail.com</strong></p>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                </div> {# End Another Card #}
+
+            </div> {# End Right Column #}
+        </div> {# End Row #}
+    </div> {# End Content Container #}
+</div> {# End Container #}
+
+{% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
-{% endblock %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
+    const deliveryAddressContainer = document.getElementById('delivery-address-container');
+    const addressTextarea = document.getElementById('address');
+    const shippingDisplayDiv = document.querySelector('.shipping-display');
+    const shippingFeeSpan = document.getElementById('shipping-fee-display');
+
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const cardDetailsContainer = document.getElementById('card-details-container');
+
+    const promoCodeInput = document.getElementById('promo-code-input');
+    const applyPromoBtn = document.getElementById('apply-promo-btn');
+    const removePromoBtn = document.getElementById('remove-promo-btn');
+    const promoErrorMsg = document.getElementById('promo-error-message');
+    const promoSuccessMsg = document.getElementById('promo-success-message');
+    const appliedPromoInfoDiv = document.getElementById('applied-promo-info');
+    const appliedPromoCodeSpan = document.getElementById('applied-promo-code');
+    const appliedPromoNameSpan = document.getElementById('applied-promo-name');
+    const discountDisplayDiv = document.querySelector('.discount-display');
+    const discountAmountSpan = document.getElementById('discount-amount-display');
+    const subtotalSpan = document.querySelector('.cart-subtotal-value');
+    const taxSpan = document.querySelector('.cart-tax-value');
+    const finalTotalSpan = document.getElementById('cart-final-total');
+    const promoCodeForm = document.getElementById('promo-code-form');
+
+    let currentShippingFee = 0; // Biến lưu phí ship hiện tại
+
+    function formatCurrencyVN(amount) {
+         if (amount === null || amount === undefined) return '0₫';
+         return Math.round(amount).toLocaleString('vi-VN') + '₫';
+    }
+
+    function updateSummaryUI(data) {
+        if (discountDisplayDiv && discountAmountSpan) {
+            if (data.discount_amount > 0) {
+                 discountAmountSpan.textContent = '-' + formatCurrencyVN(data.discount_amount);
+                 const displayCodeSpan = document.getElementById('display-promo-code');
+                 if(displayCodeSpan && data.promo_code) { displayCodeSpan.textContent = data.promo_code; }
+                 discountDisplayDiv.style.display = 'flex';
+            } else { discountAmountSpan.textContent = '-0₫'; discountDisplayDiv.style.display = 'none'; }
+        }
+        if(subtotalSpan && data.cart_subtotal !== undefined) { subtotalSpan.textContent = formatCurrencyVN(data.cart_subtotal); }
+        if(taxSpan && data.cart_tax !== undefined) { taxSpan.textContent = formatCurrencyVN(data.cart_tax); }
+
+        // Cập nhật phí ship và hiển thị
+        if(shippingFeeSpan && shippingDisplayDiv && data.shipping_fee !== undefined) {
+            currentShippingFee = data.shipping_fee; // Lưu lại phí ship
+            shippingFeeSpan.textContent = formatCurrencyVN(currentShippingFee);
+            shippingDisplayDiv.style.display = currentShippingFee > 0 ? 'flex' : 'none';
+        } else if (data.shipping_fee === undefined && shippingFeeSpan) { // Giữ nguyên phí ship nếu API ko trả về
+            shippingFeeSpan.textContent = formatCurrencyVN(currentShippingFee);
+            shippingDisplayDiv.style.display = currentShippingFee > 0 ? 'flex' : 'none';
+        }
+
+        if (finalTotalSpan && data.cart_total !== undefined) {
+             finalTotalSpan.textContent = formatCurrencyVN(data.cart_total);
+        } else if (finalTotalSpan) {
+             // Tự tính lại tổng nếu API không trả cart_total nhưng trả các thành phần khác
+             const subtotalVal = parseFloat(subtotalSpan?.textContent.replace(/[.₫]/g, '') || 0);
+             const taxVal = parseFloat(taxSpan?.textContent.replace(/[.₫]/g, '') || 0);
+             const discountVal = parseFloat(discountAmountSpan?.textContent.replace(/[.\-₫]/g,'') || 0);
+             const shippingVal = currentShippingFee; // Dùng phí ship đã lưu
+             finalTotalSpan.textContent = formatCurrencyVN(subtotalVal - discountVal + taxVal + shippingVal);
+        }
+    }
+
+    function applyPromoCode() {
+        const code = promoCodeInput.value.trim().toUpperCase(); // Chuyển thành chữ hoa trước khi gửi
+        if (!code) { promoErrorMsg.textContent = 'Vui lòng nhập mã giảm giá.'; promoSuccessMsg.textContent = ''; return; }
+        promoErrorMsg.textContent = ''; promoSuccessMsg.textContent = '';
+        applyPromoBtn.disabled = true; applyPromoBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        fetch('/order/apply-promo', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...(csrfToken && { 'X-CSRFToken': csrfToken }) },
+             body: JSON.stringify({ promo_code: code })
+         })
+        .then(response => response.json().then(data => ({ ok: response.ok, status: response.status, data })))
+        .then(result => {
+             if (result.ok && result.data.success) {
+                 promoSuccessMsg.textContent = result.data.message || 'Áp dụng thành công!';
+                 promoCodeInput.value = '';
+                 if(appliedPromoCodeSpan) appliedPromoCodeSpan.textContent = result.data.promo_code;
+                 if(appliedPromoNameSpan && result.data.promo_name) appliedPromoNameSpan.textContent = `(${result.data.promo_name})`;
+                 appliedPromoInfoDiv.style.display = 'flex';
+                 promoCodeForm.style.display = 'none';
+                 updateSummaryUI({
+                     discount_amount: result.data.discount_amount, cart_total: result.data.new_total,
+                     cart_tax: result.data.new_tax, promo_code: result.data.promo_code,
+                     shipping_fee: currentShippingFee // Giữ nguyên phí ship khi chỉ apply/remove promo
+                 });
+             } else { throw new Error(result.data.message || `Lỗi ${result.status}`); }
+         })
+         .catch(error => { promoErrorMsg.textContent = error.message || 'Có lỗi xảy ra.'; updateSummaryUI({ discount_amount: 0, shipping_fee: currentShippingFee }); promoCodeInput.focus(); })
+         .finally(() => { applyPromoBtn.disabled = false; applyPromoBtn.innerHTML = 'Áp dụng'; });
+    }
+
+    function removePromoCode() {
+        removePromoBtn.disabled = true; removePromoBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        fetch('/order/remove-promo', { method: 'POST', headers: { 'Accept': 'application/json', ...(csrfToken && { 'X-CSRFToken': csrfToken }) } })
+        .then(response => response.json().then(data => ({ ok: response.ok, status: response.status, data })))
+        .then(result => {
+            if (result.ok && result.data.success) {
+                 appliedPromoInfoDiv.style.display = 'none'; promoCodeForm.style.display = 'flex';
+                 promoErrorMsg.textContent = ''; promoSuccessMsg.textContent = '';
+                 updateSummaryUI({ discount_amount: 0, cart_total: result.data.new_total, cart_tax: result.data.new_tax, shipping_fee: currentShippingFee });
+             } else { throw new Error(result.data.message || `Lỗi ${result.status}`); }
+         })
+        .catch(error => { alert(`Lỗi gỡ mã giảm giá: ${error.message}`); })
+        .finally(() => { removePromoBtn.disabled = false; removePromoBtn.innerHTML = '<i class="fas fa-times"></i> Gỡ'; });
+    }
+
+    function toggleDeliveryAddress() {
+        const selectedType = document.querySelector('input[name="order_type"]:checked');
+        const isDelivery = selectedType && selectedType.value === 'delivery';
+
+        if (deliveryAddressContainer) deliveryAddressContainer.classList.toggle('d-none', !isDelivery);
+        if (addressTextarea) addressTextarea.required = isDelivery;
+        if (!isDelivery && addressTextarea) addressTextarea.value = '';
+
+        // Cập nhật phí ship trong UI và tính lại tổng
+        const newShippingFee = isDelivery ? 20000 : 0; // Phí ship ví dụ
+        if(newShippingFee !== currentShippingFee) { // Chỉ update nếu phí ship thay đổi
+            updateSummaryUI({ shipping_fee: newShippingFee }); // Update UI sẽ tự tính lại tổng
+        }
+    }
+
+    function toggleCardDetails() {
+        const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+        const isCard = selectedPayment && selectedPayment.value === 'card';
+        if(cardDetailsContainer) cardDetailsContainer.classList.toggle('d-none', !isCard);
+        if(cardDetailsContainer) cardDetailsContainer.querySelectorAll('input').forEach(input => input.required = isCard);
+        if(!isCard && cardDetailsContainer) cardDetailsContainer.querySelectorAll('input').forEach(input => input.value = ''); // Clear card details if not selected
+    }
+
+    if(orderTypeRadios.length > 0) { orderTypeRadios.forEach(radio => radio.addEventListener('change', toggleDeliveryAddress)); toggleDeliveryAddress(); }
+    if(paymentMethodRadios.length > 0) { paymentMethodRadios.forEach(radio => radio.addEventListener('change', toggleCardDetails)); toggleCardDetails(); }
+    if(applyPromoBtn) applyPromoBtn.addEventListener('click', applyPromoCode);
+    if(removePromoBtn) removePromoBtn.addEventListener('click', removePromoCode);
+    if(promoCodeInput) promoCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); applyPromoCode(); } });
+
+    // Kiểm tra và hiển thị promo đã áp dụng ban đầu
+    const initialPromoDataElement = document.getElementById('initial-promo-data');
+    if (initialPromoDataElement) {
+        try {
+             const initialPromoData = JSON.parse(initialPromoDataElement.textContent);
+             if (initialPromoData && initialPromoData.code) {
+                if(appliedPromoCodeSpan) appliedPromoCodeSpan.textContent = initialPromoData.code;
+                 if(appliedPromoNameSpan) appliedPromoNameSpan.textContent = initialPromoData.name ? `(${initialPromoData.name})` : '';
+                 appliedPromoInfoDiv.style.display = 'flex';
+                 promoCodeForm.style.display = 'none';
+                 // Lấy các giá trị cần thiết từ data truyền vào để update summary
+                 const initialSubtotal = parseFloat(subtotalSpan?.textContent.replace(/[.₫]/g, '') || 0); // Lấy subtotal gốc
+                 const initialDiscount = initialPromoData.discount_amount || 0;
+                 const initialTax = (initialSubtotal - initialDiscount) * 0.1; // Thuế tính trên giá sau giảm
+                 const isInitialDelivery = document.querySelector('input[name="order_type"]:checked')?.value === 'delivery';
+                 const initialShipping = isInitialDelivery ? 20000 : 0; // Lấy phí ship ban đầu
+                 const initialTotal = initialSubtotal - initialDiscount + initialTax + initialShipping;
+
+                 updateSummaryUI({
+                     discount_amount: initialDiscount,
+                     cart_total: initialTotal, // Truyền tổng ĐÃ TÍNH LẠI
+                     cart_tax: initialTax,   // Truyền thuế ĐÃ TÍNH LẠI
+                     promo_code: initialPromoData.code,
+                     shipping_fee: initialShipping // Truyền phí ship ban đầu
+                 });
+            }
+        } catch (e) { console.error("Error parsing initial promo data:", e); }
+     }
+});
+</script>
+
+{# Nhúng dữ liệu KM ban đầu nếu có vào template để JS đọc #}
+{% if promo_applied %}
+<script id="initial-promo-data" type="application/json">
+    {{ promo_applied | tojson }}
+</script>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,83 @@
+<!-- START CONTENT FOR templates/admin/_inventory_history_content.html -->
+{# /templates/admin/_inventory_history_content.html #}
+
+<h5>Lịch sử Tồn kho: {{ product_name }}</h5>
+<p class="text-muted small mb-3">(Hiển thị tối đa {{ limit }} giao dịch gần nhất mỗi loại)</p>
+<hr class="my-2">
+
+{# ---- Phần Lịch Sử Nhập Kho ---- #}
+<h6 class="mt-3 text-success"><i class="fas fa-arrow-up me-1"></i> Nhập kho (Biên lai gần nhất)</h6>
+{% if receipt_history %}
+    <div class="table-responsive mb-3" style="max-height: 200px; overflow-y: auto;">
+        <table class="table table-sm table-striped table-bordered mb-0">
+            <thead class="table-light sticky-top" style="font-size: 0.8rem;">
+                <tr>
+                    <th>Ngày Nhận</th>
+                    <th>SL Nhập</th>
+                    <th>Nhà CC</th>
+                    <th class="text-end">Giá Nhập</th>
+                    <th>Người Nhập</th>
+                    {# <th>Ghi chú</th> #}
+                </tr>
+            </thead>
+            <tbody style="font-size: 0.85rem;">
+                {% for receipt in receipt_history %}
+                <tr>
+                    <td>{{ receipt.received_at.strftime('%d/%m %H:%M') if receipt.received_at else '-' }}</td>
+                    <td class="text-center fw-bold text-success">+{{ receipt.quantity_added }}</td>
+                    <td><small>{{ receipt.supplier or '-' }}</small></td>
+                    <td class="text-end">{{ "%.0f₫"|format(receipt.unit_cost) if receipt.unit_cost is not none else '-' }}</td>
+                    <td><small>{{ receipt.received_by.username if receipt.received_by else '-'}}</small></td>
+                    {# <td><small>{{ receipt.notes | truncate(30) if receipt.notes else '-'}}</small></td> #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="text-muted small fst-italic">Chưa có lịch sử nhập kho.</p>
+{% endif %}
+{# ---- Kết thúc phần nhập kho ---- #}
+
+<hr class="my-2">
+
+{# ---- Phần Lịch Sử Bán Hàng (Xuất kho) ---- #}
+<h6 class="text-danger"><i class="fas fa-arrow-down me-1"></i> Xuất kho (Đơn hàng đã bán)</h6>
+{% if sales_history %}
+    <div class="table-responsive mb-3" style="max-height: 200px; overflow-y: auto;">
+        <table class="table table-sm table-striped table-bordered mb-0">
+            <thead class="table-light sticky-top" style="font-size: 0.8rem;">
+                <tr>
+                    <th>Ngày Đặt</th>
+                    <th>Mã ĐH</th>
+                    <th class="text-center">SL Bán</th>
+                    <th class="text-end">Đơn giá Bán</th>
+                </tr>
+            </thead>
+            <tbody style="font-size: 0.85rem;">
+                {% for sale in sales_history %}
+                <tr>
+                    <td>{{ sale.created_at.strftime('%d/%m %H:%M') if sale.created_at else '-'}}</td>
+                    {# Sử dụng order_id lấy được từ query để tạo link #}
+                    <td><a href="{{ url_for('admin.order_details', order_id=sale.order_id) if sale.order_id else '#' }}" class="small">{{ sale.order_number }}</a></td>
+                    <td class="text-center fw-bold text-danger">-{{ sale.quantity }}</td>
+                    <td class="text-end">{{ "%.0f₫"|format(sale.unit_price) if sale.unit_price is not none else '-'}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="text-muted small fst-italic">Chưa có lịch sử bán hàng.</p>
+{% endif %}
+{# ---- Kết thúc phần bán hàng ---- #}
+
+
+{# ---- Thông tin tồn kho hiện tại ---- #}
+<hr class="my-2">
+<div class="row small g-2 pt-1"> {# Dùng g-2 và pt-1 #}
+    <div class="col"><strong>Hiện tại:</strong> {{ item.quantity }} {{ item.unit or '' }}</div>
+    <div class="col"><strong>Tối thiểu:</strong> {{ item.min_quantity }}</div>
+    <div class="col text-end"><strong>Cập nhật cuối:</strong> {{ item.last_updated.strftime('%d/%m/%y %H:%M') if item.last_updated else 'N/A' }}</div>
+</div>
+<!-- END CONTENT FOR templates/admin/_inventory_history_content.html -->

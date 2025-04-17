@@ -1,0 +1,156 @@
+{# templates/admin/reports/inventory_report.html #}
+{% extends "admin/base.html" %}
+{# Import macro nếu cần (ví dụ: status_badge) #}
+{# {% from "macros/_ui_helpers.html" import status_badge %} #}
+
+{% block title %}Báo cáo Tồn kho & Dự đoán - Quản trị viên{% endblock %}
+
+{% block page_header %}Báo cáo Tồn kho & Dự đoán AI{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb float-sm-right">
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.reports') }}">Báo cáo</a></li>
+    <li class="breadcrumb-item active">Tồn kho & Dự đoán</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+{# Giữ lại bộ lọc thời gian dù có thể không ảnh hưởng trực tiếp đến dự đoán AI #}
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Bộ lọc báo cáo</h3>
+        {# Nút bấm để chuyển qua các loại báo cáo khác #}
+        <div class="card-tools">
+            <div class="btn-group btn-group-sm">
+                 <a href="{{ url_for('admin.reports', type='sales', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-outline-secondary">Doanh thu</a>
+                 <a href="{{ url_for('admin.reports', type='products', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-outline-secondary">Sản phẩm</a>
+                 <a href="{{ url_for('admin.reports', type='inventory') }}" class="btn btn-primary active">Tồn kho (AI)</a> {# Đặt active cho tab này #}
+             </div>
+         </div>
+    </div>
+    <div class="card-body">
+        {# Hiển thị form lọc ngày tháng (tùy chọn giữ lại) #}
+        <form method="GET" action="{{ url_for('admin.reports') }}">
+            <input type="hidden" name="type" value="inventory">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date">Từ ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date">Đến ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-sm btn-secondary d-block w-100"><i class="fas fa-filter mr-1"></i> Lọc (Ngày không ảnh hưởng AI)</button>
+                </div>
+                 <div class="col-md-3">
+                    <div class="btn-group d-block" role="group">
+                         <a href="{{ url_for('admin.reports', type='inventory', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' %}active{% endif %}">Hôm nay</a>
+                         <a href="{{ url_for('admin.reports', type='inventory', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' %}active{% endif %}">7 ngày</a>
+                         <a href="{{ url_for('admin.reports', type='inventory', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' %}active{% endif %}">Tháng</a>
+                         <a href="{{ url_for('admin.reports', type='inventory', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' %}active{% endif %}">Năm</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+         <p class="text-muted small mt-2">*Bộ lọc ngày tháng hiện không ảnh hưởng trực tiếp đến kết quả dự đoán AI (hiện đang dự đoán cho {{ days_predicted }} ngày tới).</p>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+         <h3 class="card-title">Gợi ý Nhập hàng (Dự đoán AI cho {{ days_predicted }} ngày tới)</h3>
+          {# Có thể thêm nút Xuất file gợi ý nếu cần #}
+          {# <div class="card-tools">
+            <a href="{{ url_for('admin.export_inventory_recommendations') }}" class="btn btn-sm btn-success">
+                 <i class="fas fa-file-excel mr-1"></i> Xuất gợi ý
+             </a>
+          </div> #}
+    </div>
+    <div class="card-body">
+        {# Hiển thị thông báo lỗi nếu có #}
+        {% if error_message %}
+            <div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i> {{ error_message }}
+            </div>
+        {% elif recommendations %} {# Chỉ hiển thị bảng nếu có dữ liệu và không có lỗi #}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped table-sm"> {# Thêm table-sm #}
+                    <thead>
+                        <tr class="text-center">
+                            <th>Sản phẩm</th>
+                            <th>Tồn kho Hiện tại</th>
+                            <th>Dự đoán ({{ days_predicted }} ngày)</th>
+                            <th>Ngưỡng Tối thiểu</th>
+                            <th class="bg-warning">SL Cần nhập (Gợi ý)</th>
+                            <th>Mức độ Ưu tiên</th>
+                            {# Có thể thêm cột xem chi tiết dự đoán nếu muốn #}
+                            {# <th>Chi tiết Dự đoán</th> #}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recommendations %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}">{{ item.product_name }}</a>
+                            </td>
+                            <td class="text-center">{{ item.current_stock }}</td>
+                            <td class="text-center">{{ item.predicted_demand }}</td>
+                            <td class="text-center">{{ item.minimum_threshold }}</td>
+                            <td class="text-center fw-bold bg-warning bg-opacity-25">{{ item.restock_amount }}</td>
+                            <td class="text-center">
+                                {% if item.urgency == 'high' %}
+                                    <span class="badge bg-danger">Cao</span>
+                                {% elif item.urgency == 'medium' %}
+                                    <span class="badge bg-warning text-dark">Trung bình</span>
+                                {% else %}
+                                    <span class="badge bg-info">Thấp</span>
+                                {% endif %}
+                            </td>
+                            {# Ví dụ cột chi tiết dự đoán (bạn có thể format nó trong popover/modal)
+                            <td>
+                                <button type="button" class="btn btn-xs btn-outline-secondary"
+                                        data-bs-toggle="popover" data-bs-html="true"
+                                        title="Dự đoán chi tiết" data-bs-content="
+                                            <ul>
+                                            {% for p in item.prediction_details %}
+                                                <li>{{ p.date }}: {{ p.predicted_quantity }}</li>
+                                            {% endfor %}
+                                            </ul>">
+                                    <i class="fas fa-chart-line"></i>
+                                </button>
+                            </td>
+                             #}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+             {# Thông báo khi không có gợi ý nào (ví dụ: tất cả đều đủ hàng) #}
+             <div class="alert alert-success text-center">
+                 <i class="fas fa-check-circle mr-2"></i> Tuyệt vời! Dựa trên dự đoán, hiện tại chưa có sản phẩm nào cần nhập hàng gấp.
+             </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Giữ lại scripts từ base #}
+{# Script để kích hoạt popover nếu bạn dùng cột chi tiết dự đoán #}
+{#
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+    return new bootstrap.Popover(popoverTriggerEl)
+  })
+})
+</script>
+#}
+{% endblock %}

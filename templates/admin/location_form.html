@@ -1,0 +1,121 @@
+{# templates/admin/location_form.html #}
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} - Quản lý Địa điểm{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.locations') }}">Địa điểm</a></li>
+    <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-primary card-outline shadow-sm">
+            {% if legend %}
+            <div class="card-header">
+                <h3 class="card-title">{{ legend }}</h3>
+            </div>
+            {% endif %}
+            <form method="POST" action="{{ request.url }}">
+                {{ form.hidden_tag() }} {# CSRF token #}
+                <div class="card-body">
+
+                    {# Tên chi nhánh #}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }} <span class="text-danger">*</span>
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Ví dụ: Dragon Coffee Quận 1") }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    {# Địa chỉ #}
+                    <div class="mb-3">
+                        {{ form.address.label(class="form-label") }} <span class="text-danger">*</span>
+                        {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), rows=3, placeholder="Nhập địa chỉ đầy đủ, bao gồm phường/xã, quận/huyện, tỉnh/thành phố") }}
+                        {% if form.address.errors %}
+                        <div class="invalid-feedback">{% for error in form.address.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        {# Điện thoại #}
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone.label(class="form-label") }}
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="Số điện thoại chi nhánh (nếu có)") }}
+                            {% if form.phone.errors %}
+                            <div class="invalid-feedback">{% for error in form.phone.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                         {# Giờ mở cửa #}
+                         <div class="col-md-6 mb-3">
+                            {{ form.hours.label(class="form-label") }}
+                            {{ form.hours(class="form-control" + (" is-invalid" if form.hours.errors else ""), rows=2, placeholder="Ví dụ: T2-T6: 7h-22h\nT7-CN: 8h-23h") }}
+                            {% if form.hours.errors %}
+                            <div class="invalid-feedback">{% for error in form.hours.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+                     <h5>Thông tin Bản đồ (Tùy chọn)</h5>
+
+                    <div class="row">
+                        {# Latitude #}
+                        <div class="col-md-6 mb-3">
+                            {{ form.latitude.label(class="form-label") }}
+                            {{ form.latitude(class="form-control" + (" is-invalid" if form.latitude.errors else ""), type="number", step="any", placeholder="-90.0 đến 90.0") }}
+                            {% if form.latitude.errors %}
+                            <div class="invalid-feedback">{% for error in form.latitude.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                        {# Longitude #}
+                        <div class="col-md-6 mb-3">
+                            {{ form.longitude.label(class="form-label") }}
+                            {{ form.longitude(class="form-control" + (" is-invalid" if form.longitude.errors else ""), type="number", step="any", placeholder="-180.0 đến 180.0") }}
+                            {% if form.longitude.errors %}
+                            <div class="invalid-feedback">{% for error in form.longitude.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                     <div class="form-text mb-2">Nhập vĩ độ và kinh độ để định vị chính xác trên bản đồ (nếu bạn dùng API JS).</div>
+
+                     {# URL Nhúng Bản đồ #}
+                    <div class="mb-3">
+                        {{ form.map_embed_url.label(class="form-label") }}
+                        {{ form.map_embed_url(class="form-control" + (" is-invalid" if form.map_embed_url.errors else ""), rows=3, placeholder="Dán phần URL trong thuộc tính src của iframe Google Maps...") }}
+                        {% if form.map_embed_url.errors %}
+                        <div class="invalid-feedback">{% for error in form.map_embed_url.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                        <div class="form-text">Cách lấy URL: Vào Google Maps, tìm địa điểm, nhấn Chia sẻ -> Nhúng bản đồ, copy URL bên trong thẻ <code>src="..."</code>. URL này sẽ dùng để hiển thị bản đồ trên trang Liên hệ.</div>
+                    </div>
+
+
+                    <hr class="my-3">
+
+                     {# Trạng thái Active #}
+                    <div class="mb-3 form-check form-switch">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label") }}
+                        <small class="form-text text-muted d-block">Bỏ chọn nếu chi nhánh tạm đóng cửa.</small>
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                     {# Nút Quay lại và Lưu #}
+                     <a href="{{ url_for('admin.locations') }}" class="btn btn-secondary">Hủy</a>
+                     {{ form.submit(class="btn btn-primary float-end") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+{# Thêm JS nếu cần, ví dụ kiểm tra nhập lat/lng hoặc embed url #}
+{% endblock %}

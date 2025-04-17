@@ -1,0 +1,161 @@
+```html
+{# templates/admin/users.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}{{ title }} - Quản trị viên{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Khách hàng</li>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h3 class="card-title mb-2 mb-md-0">Danh sách Khách hàng (Không bao gồm NV/Admin)</h3>
+            {# Form Tìm kiếm & Lọc #}
+            <form method="GET" action="{{ url_for('admin.users') }}">
+                <div class="input-group input-group-sm" style="width: 450px;">
+                    <input type="text" name="q" class="form-control" placeholder="Tìm tên, username, email, SĐT..." value="{{ search_term or '' }}">
+                    <select name="banned" class="form-select form-select-sm" style="max-width: 150px;" title="Lọc theo trạng thái cấm">
+                        <option value="" {% if ban_filter is none %}selected{% endif %}>Tất cả</option>
+                        <option value="1" {% if ban_filter == 1 %}selected{% endif %}>Bị cấm BL</option>
+                        <option value="0" {% if ban_filter == 0 %}selected{% endif %}>Được phép BL</option>
+                    </select>
+                    <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                    {% if search_term or ban_filter is not none %}
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">ID</th>
+                        <th>Khách hàng</th>
+                        <th>Email / Username</th>
+                        <th>Điện thoại</th>
+                        <th>Ngày tham gia</th>
+                        <th class="text-center">Trạng thái Bình luận</th>
+                        <th class="text-center" style="width: 15%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="{{ 'table-warning' if user.is_comment_banned else '' }}">
+                        <td class="text-center">{{ user.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}">
+                                {{ user.full_name or '[Chưa có tên]' }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ user.email }}<br>
+                            <small class="text-muted">({{ user.username }})</small>
+                        </td>
+                        <td>{{ user.phone or '-' }}</td>
+                        <td>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-{{ 'danger' if user.is_comment_banned else 'success' }}">
+                                {{ 'Bị cấm' if user.is_comment_banned else 'Cho phép' }}
+                            </span>
+                            {% if user.review_warning_count > 0 %}
+                            <span class="badge bg-warning text-dark ms-1" title="Số lần bị cảnh báo ngôn từ">
+                                <i class="fas fa-exclamation-triangle"></i> {{ user.review_warning_count }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-outline-primary" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-{{ 'success' if user.is_comment_banned else 'warning' }}" data-bs-toggle="modal" data-bs-target="#toggleBanModal{{ user.id }}" title="{{ 'Bỏ cấm' if user.is_comment_banned else 'Cấm' }} bình luận">
+                                    <i class="fas {{ 'fa-user-check' if user.is_comment_banned else 'fa-user-slash' }}"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#sendResetModal{{ user.id }}" title="Gửi link Reset MK" {% if not user.email %}disabled{% endif %}>
+                                    <i class="fas fa-key"></i>
+                                </button>
+                            </div>
+
+                            {# --- Modal Cấm/Bỏ cấm User --- #}
+                            <div class="modal fade" id="toggleBanModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h5 class="modal-title">Xác nhận {{ 'Bỏ cấm' if user.is_comment_banned else 'Cấm' }} Bình luận</h5>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-start">
+                                      Bạn chắc chắn muốn <strong>{{ 'BỎ CẤM' if user.is_comment_banned else 'CẤM' }}</strong> quyền bình luận của khách hàng <strong>{{ user.username }}</strong>?
+                                       {% if user.is_comment_banned %}<p class="small mt-2 text-muted">Hành động này có thể sẽ reset số lần cảnh báo về 0.</p>{% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                      {# ====> SỬA url_for Ở ĐÂY <==== #}
+                                      <form action="{{ url_for('admin.toggle_user_comment_ban', user_id=user.id) }}" method="POST" class="d-inline">
+                                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                          <button type="submit" class="btn {{ 'btn-success' if user.is_comment_banned else 'btn-warning' }} btn-sm">
+                                              {{ 'Bỏ cấm' if user.is_comment_banned else 'Xác nhận Cấm' }}
+                                          </button>
+                                      </form>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            {# --- Kết thúc Modal Cấm --- #}
+
+                            {# --- Modal Gửi Link Reset MK --- #}
+                            <div class="modal fade" id="sendResetModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                              <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Xác nhận Gửi Link Reset</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                  </div>
+                                  <div class="modal-body text-start">
+                                    Gửi email đặt lại mật khẩu đến địa chỉ <strong>{{ user.email }}</strong> cho khách hàng <strong>{{ user.username }}</strong>?
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="{{ url_for('admin.send_user_reset_link', user_id=user.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-info btn-sm">Gửi Link</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {# --- Kết thúc Modal Reset --- #}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+             <div class="alert alert-light text-center m-3 border-0">
+                 {% if search_term %}
+                     Không tìm thấy khách hàng nào khớp với '{{ search_term }}'.
+                 {% else %}
+                    Chưa có tài khoản khách hàng nào.
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.users', q=search_term, banned=ban_filter, align='end') }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+```

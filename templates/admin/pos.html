@@ -4,120 +4,126 @@
 
 {% block content %}
 <div class="admin-header">
-    <h1 class="admin-title">POS System</h1>
+    <h1 class="admin-title">Hệ thống POS</h1>
     <div class="d-flex align-items-center">
         <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-primary">
-            <i class="fas fa-list me-1"></i> View Orders
+            <i class="fas fa-list me-1"></i> Xem đơn hàng
         </a>
     </div>
 </div>
 
 <div class="pos-container">
-    <!-- Products Section -->
     <div class="pos-menu">
-        <!-- Search -->
         <div class="pos-search">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="pos-search" placeholder="Search products...">
+                <input type="text" class="form-control" id="pos-search" placeholder="Tìm kiếm sản phẩm...">
             </div>
         </div>
-        
-        <!-- Categories -->
+
         <div class="pos-category-nav">
-            <button class="pos-category-btn active" data-category-id="">All Categories</button>
+            <button class="pos-category-btn active" data-category-id="">Tất cả các danh mục</button>
             {% for category in categories %}
             <button class="pos-category-btn" data-category-id="{{ category.id }}">{{ category.name }}</button>
             {% endfor %}
         </div>
-        
-        <!-- Products Grid -->
+
         <div class="pos-product-grid">
-            <!-- Products will be loaded dynamically via JavaScript -->
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Loading products...</p>
+                <p class="mt-2">Đang tải sản phẩm...</p>
             </div>
         </div>
     </div>
-    
-    <!-- Cart Section -->
+
     <div class="pos-cart">
-        <h4 class="mb-3">Current Order</h4>
-        
-        <div class="pos-cart-items">
-            <!-- Cart items will be added dynamically via JavaScript -->
-            <div class="text-center py-4">
-                <p>Cart is empty</p>
+        <div class="pos-customer-section mb-4 pb-3 border-bottom">
+            <h5 class="mb-2">Khách hàng</h5>
+            <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="pos-customer-search" placeholder="Tìm kiếm KH (Tên, SĐT, Email)..." autocomplete="off">
             </div>
+            <div id="pos-customer-results" class="list-group list-group-sm" style="max-height: 150px; overflow-y: auto; display: none; position: absolute; background: white; width: calc(100% - 1.5rem); z-index: 100; border: 1px solid #ccc; border-top: none; margin-top: -1px; border-radius: 0 0 var(--admin-border-radius, 6px) var(--admin-border-radius, 6px); box-shadow: 0 3px 5px rgba(0,0,0,0.1);">
+                <span class="list-group-item list-group-item-action disabled text-muted py-1">Đang tìm...</span>
+            </div>
+            <div id="pos-selected-customer-info" class="mt-2" style="display: none;">
+                <div class="alert alert-info alert-dismissible fade show p-2 ps-3" role="alert" style="font-size: 0.9rem;">
+                    <i class="fas fa-user-check me-2"></i> <strong id="pos-selected-customer-name"></strong> <small id="pos-selected-customer-details" class="text-muted ms-1"></small>
+                    <button type="button" class="btn-close p-2" aria-label="Close" id="pos-clear-customer-btn"></button>
+                </div>
+                 <input type="hidden" id="pos-selected-customer-id" value="">
+            </div>
+            <div id="pos-guest-input-group" class="mt-2">
+                 <label for="pos-guest-phone" class="form-label form-label-sm mb-1">SĐT Khách vãng lai (nếu có):</label>
+                <input type="tel" class="form-control form-control-sm" id="pos-guest-phone" placeholder="Nhập SĐT...">
+             </div>
         </div>
-        
-        <div class="pos-cart-summary">
+
+        <h5 class="mb-2">Đơn hàng hiện tại</h5>
+        <div class="pos-cart-items">
+            <div class="text-center py-4 text-muted">Giỏ hàng trống</div>
+        </div>
+        <div class="pos-cart-summary mt-auto">
             <div class="pos-cart-total">
-                <span class="pos-cart-total-label">Total</span>
-                <span class="pos-cart-total-amount">$0.00</span>
+                <span class="pos-cart-total-label">Tổng cộng</span>
+                <span class="pos-cart-total-amount">0₫</span>
             </div>
-            
             <div class="mb-3">
-                <label for="pos-order-notes" class="form-label">Order Notes</label>
-                <textarea class="form-control" id="pos-order-notes" rows="2" placeholder="Add notes for this order..."></textarea>
-            </div>
-            
-            <h5 class="mb-2">Order Type</h5>
+                 <label for="pos-order-notes" class="form-label form-label-sm">Ghi chú đơn hàng</label>
+                 <textarea class="form-control form-control-sm" id="pos-order-notes" rows="2" placeholder="Thêm ghi chú (VD: ít đường...)"></textarea>
+             </div>
+            <h6 class="mb-2">Loại đơn hàng</h6>
             <div class="pos-order-type mb-3">
                 <div class="pos-order-type-option active" data-type="dine-in">
-                    <i class="fas fa-utensils me-1"></i> Dine-in
+                    <i class="fas fa-utensils me-1"></i> Tại chỗ
                 </div>
                 <div class="pos-order-type-option" data-type="takeaway">
-                    <i class="fas fa-shopping-bag me-1"></i> Takeaway
+                    <i class="fas fa-shopping-bag me-1"></i> Mang về
                 </div>
                 <div class="pos-order-type-option" data-type="delivery">
-                    <i class="fas fa-motorcycle me-1"></i> Delivery
+                    <i class="fas fa-motorcycle me-1"></i> Giao đi
                 </div>
             </div>
-            
-            <h5 class="mb-2">Payment Method</h5>
+            <h6 class="mb-2">Thanh toán</h6>
             <div class="pos-payment-methods mb-3">
                 <div class="pos-payment-method active" data-method="cash">
-                    <i class="fas fa-money-bill-wave me-1"></i> Cash
+                    <i class="fas fa-money-bill-wave me-1"></i> Tiền mặt
                 </div>
                 <div class="pos-payment-method" data-method="card">
-                    <i class="fas fa-credit-card me-1"></i> Card
+                    <i class="fas fa-credit-card me-1"></i> Thẻ
                 </div>
                 <div class="pos-payment-method" data-method="mobile">
-                    <i class="fas fa-mobile-alt me-1"></i> Mobile
+                    <i class="fas fa-mobile-alt me-1"></i> Ví/QR
                 </div>
             </div>
-            
             <div class="pos-cart-actions">
-                <button class="btn btn-lg btn-outline-danger pos-clear-btn">
-                    <i class="fas fa-trash me-1"></i> Clear
+                <button class="btn btn-lg btn-outline-danger pos-clear-btn" disabled>
+                    <i class="fas fa-trash me-1"></i> Dọn sạch
                 </button>
-                <button class="btn btn-lg btn-primary pos-checkout-btn">
-                    <i class="fas fa-check me-1"></i> Complete
+                <button class="btn btn-lg btn-primary pos-checkout-btn" disabled>
+                    <i class="fas fa-check me-1"></i> Hoàn thành
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Order Success Modal -->
 <div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="orderSuccessModalLabel">Order Completed</h5>
+                <h5 class="modal-title" id="orderSuccessModalLabel">Đơn hàng đã hoàn thành</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                <h4>Order #<span id="successOrderNumber"></span></h4>
-                <p class="lead">The order has been successfully processed!</p>
+                <h4>Đặt hàng #<span id="successOrderNumber"></span></h4>
+                <p class="lead">Đơn hàng đã được xử lý thành công!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-primary" id="printReceiptBtn">
-                    <i class="fas fa-print me-1"></i> Print Receipt
+                    <i class="fas fa-print me-1"></i> In Biên lai
                 </button>
             </div>
         </div>
@@ -126,9 +132,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        setupPOS();
-    });
-</script>
+    {{ super() if super }}
+    <script src="{{ url_for('static', filename='js/pos.js') }}"></script>
 {% endblock %}

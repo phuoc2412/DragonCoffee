@@ -1,199 +1,213 @@
+{# /templates/admin/orders.html #}
 {% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
 
-{% block title %}Dragon Coffee Shop - Order Management{% endblock %}
+{% block title %}Quản lý Đơn hàng - Trang quản trị{% endblock %}
+
+{% block page_title %}Quản lý Đơn hàng{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Đơn hàng</li>
+{% endblock %}
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Order Management</h1>
-    <div class="d-flex align-items-center">
-        <a href="{{ url_for('admin.pos') }}" class="btn btn-primary me-2">
-            <i class="fas fa-cash-register me-1"></i> POS System
-        </a>
-        <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Export All Orders (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Export Filtered Orders (CSV)</a></li>
-            </ul>
+<div class="card card-outline card-primary shadow-sm mb-4"> {# Thêm card-outline và màu primary #}
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2"> {# Dùng flex và gap #}
+            <h3 class="card-title mb-0">Bộ lọc Đơn hàng</h3>
+            <div class="d-flex align-items-center flex-wrap gap-2"> {# Nhóm các controls #}
+                {# === FORM LỌC / TÌM KIẾM ĐỘNG === #}
+                <div class="input-group input-group-sm" style="width: 280px;">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    {# Input tìm kiếm - THÊM ID #}
+                    <input type="search" id="orderSearchInput" class="form-control" placeholder="Tìm ID, Tên, SĐT, Email..." aria-label="Tìm kiếm đơn hàng" value="{{ q or '' }}">
+                </div>
+                {# Dropdown lọc trạng thái - THÊM ID #}
+                <select id="orderStatusFilter" class="form-select form-select-sm" style="width: 170px;" aria-label="Lọc theo trạng thái">
+                    <option value="" {% if not status %}selected{% endif %}>Tất cả trạng thái</option>
+                    {# Thêm giá trị cụ thể và lấy trạng thái hiện tại 'status' #}
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>⏳ Chờ xử lý</option>
+                    <option value="processing" {% if status == 'processing' %}selected{% endif %}>⚙️ Đang xử lý</option>
+                    <option value="ready_for_pickup" {% if status == 'ready_for_pickup' %}selected{% endif %}>🎁 Sẵn sàng lấy</option>
+                    <option value="out_for_delivery" {% if status == 'out_for_delivery' %}selected{% endif %}>🚚 Đang giao</option>
+                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>✅ Hoàn thành</option>
+                    <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>🏁 Đã giao</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>❌ Đã hủy</option>
+                    <option value="failed" {% if status == 'failed' %}selected{% endif %}>⚠️ Thất bại</option>
+                </select>
+                {# ---- NÚT EXPORT CSV ---- #}
+                <a id="exportCsvLink" href="{{ url_for('admin.export_orders_csv', q=request.args.get('q',''), status=request.args.get('status','')) }}"
+                   class="btn btn-sm btn-outline-success" title="Xuất kết quả hiện tại ra CSV" target="_blank">
+                   <i class="fas fa-file-csv"></i> Xuất
+                </a>
+                {# -------------------------- #}
+            </div>
         </div>
     </div>
-</div>
+    <div class="card-body p-0"> {# Padding 0 để table chiếm full #}
+        {# Khu vực hiển thị kết quả table (sẽ được cập nhật bằng JS) #}
+        <div id="ordersTableContainer" class="table-responsive">
+            {# Thêm spinner khi loading AJAX #}
+            <div id="loadingSpinner" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2">Đang tải đơn hàng...</p>
+            </div>
+            {# Phần table gốc (sẽ load nội dung table vào đây ban đầu và khi AJAX) #}
+            <table class="table table-striped table-hover align-middle mb-0 admin-table" id="ordersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 8%;" class="text-center">ID</th>
+                        <th style="width: 27%;">Khách hàng</th>
+                        <th style="width: 15%;">Ngày đặt</th>
+                        <th style="width: 12%;" class="text-end">Tổng tiền</th>
+                        <th style="width: 12%;" class="text-center">Thanh toán</th>
+                        <th style="width: 12%;" class="text-center">Trạng thái ĐH</th>
+                        <th style="width: 14%;" class="text-center">Hành động</th> {# Giảm độ rộng Action #}
+                    </tr>
+                </thead>
+                <tbody> {# Sẽ được thay thế bằng JS #}
+                    {% include 'admin/_order_table_rows.html' %} {# Include template partial cho các dòng ban đầu #}
+                </tbody>
+            </table>
+            {# Thông báo khi không có kết quả #}
+            <div id="noOrdersMessage" class="text-center p-5 text-muted" style="display: {% if not pagination or not pagination.items %}block{% else %}none{% endif %};">
+                 <i class="fas fa-folder-open fa-3x mb-3"></i><br>
+                 {% if q or status %}
+                    Không tìm thấy đơn hàng nào khớp với bộ lọc.
+                 {% else %}
+                     Chưa có đơn hàng nào.
+                 {% endif %}
+             </div>
+        </div>
+    </div>
 
-<div class="admin-card mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center me-3 mb-3 mb-md-0">
-            <span class="me-2">Filter by status:</span>
-            <div class="btn-group" role="group">
-                <a href="{{ url_for('admin.orders', status='all') }}" class="btn btn-outline-secondary {{ 'active' if current_filter == 'all' or not current_filter }}">All</a>
-                <a href="{{ url_for('admin.orders', status='pending') }}" class="btn btn-outline-warning {{ 'active' if current_filter == 'pending' }}">Pending</a>
-                <a href="{{ url_for('admin.orders', status='processing') }}" class="btn btn-outline-info {{ 'active' if current_filter == 'processing' }}">Processing</a>
-                <a href="{{ url_for('admin.orders', status='completed') }}" class="btn btn-outline-success {{ 'active' if current_filter == 'completed' }}">Completed</a>
-                <a href="{{ url_for('admin.orders', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if current_filter == 'cancelled' }}">Cancelled</a>
-            </div>
-        </div>
-        
-        <div class="d-flex align-items-center mb-3 mb-md-0">
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search orders..." id="orderSearch">
-                <button class="btn btn-outline-secondary" type="button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    {% if orders %}
-    <div class="table-responsive">
-        <table class="admin-table" id="ordersTable">
-            <thead>
-                <tr>
-                    <th>Order #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Order Type</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.order_number }}</td>
-                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td>
-                        {% if order.customer %}
-                        {{ order.customer.first_name }} {{ order.customer.last_name }}
-                        {% else %}
-                        Guest
-                        {% endif %}
-                    </td>
-                    <td>{{ order.order_type|capitalize }}</td>
-                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
-                    <td>
-                        <span class="status-badge {{ order.status }}">{{ order.status|capitalize }}</span>
-                    </td>
-                    <td>
-                        <span class="status-badge {{ order.payment_status }}">{{ order.payment_status|capitalize }}</span>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="table-action view" data-bs-toggle="tooltip" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        {% if order.status != 'completed' and order.status != 'cancelled' %}
-                        <a href="#" class="table-action edit" data-bs-toggle="tooltip" title="Process Order">
-                            <i class="fas fa-tasks"></i>
-                        </a>
-                        {% endif %}
-                        <a href="#" class="table-action" data-bs-toggle="tooltip" title="Print Invoice">
-                            <i class="fas fa-print"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Pagination -->
-    <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-                <a class="page-link" href="#">Next</a>
-            </li>
-        </ul>
-    </nav>
-    {% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
-        <h4>No orders found</h4>
-        <p class="text-muted">There are no orders matching your filter criteria.</p>
+    {# Phần phân trang (sẽ ẩn đi khi dùng AJAX tìm kiếm, trừ khi làm AJAX phân trang) #}
+    {% if pagination and pagination.pages > 1 %}
+    <div id="paginationContainer" class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.orders', q=q, status=status, align='end', size='sm') }}
     </div>
     {% endif %}
 </div>
-
-<div class="admin-card">
-    <h4 class="mb-4">Order Statistics</h4>
-    
-    <div class="row">
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Orders</h5>
-                    <h3 class="mb-0">{{ orders|length }}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Revenue</h5>
-                    <h3 class="mb-0">${{ "%.2f"|format(orders|sum(attribute='total_amount')) }}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-4 mb-md-0">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Average Order</h5>
-                    <h3 class="mb-0">
-                        {% if orders|length > 0 %}
-                        ${{ "%.2f"|format(orders|sum(attribute='total_amount') / orders|length) }}
-                        {% else %}
-                        $0.00
-                        {% endif %}
-                    </h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-0 bg-light h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Pending Orders</h5>
-                    <h3 class="mb-0">{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_js %} {# Đổi tên block script #}
+{{ super() if super }} {# Giữ lại script từ base nếu có #}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Order search functionality
-        const orderSearch = document.getElementById('orderSearch');
-        const ordersTable = document.getElementById('ordersTable');
-        
-        if (orderSearch && ordersTable) {
-            orderSearch.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const rows = ordersTable.querySelectorAll('tbody tr');
-                
-                rows.forEach(row => {
-                    const orderNumber = row.querySelector('td:first-child').textContent.toLowerCase();
-                    const customer = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                    
-                    if (orderNumber.includes(searchTerm) || customer.includes(searchTerm)) {
-                        row.style.display = '';
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('orderSearchInput');
+    const statusFilter = document.getElementById('orderStatusFilter');
+    const tableBody = document.querySelector('#ordersTable tbody');
+    const tableContainer = document.getElementById('ordersTableContainer'); // Div bao ngoài table
+    const noOrdersMessage = document.getElementById('noOrdersMessage');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const paginationContainer = document.getElementById('paginationContainer');
+    const exportCsvLink = document.getElementById('exportCsvLink'); // Link xuất CSV
+
+    let debounceTimeout;
+
+    function performSearch() {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            const query = searchInput.value.trim();
+            const status = statusFilter.value;
+            fetchOrders(query, status);
+
+            // Cập nhật URL export CSV
+            if (exportCsvLink) {
+                const exportUrl = new URL(exportCsvLink.href);
+                exportUrl.searchParams.set('q', query);
+                exportUrl.searchParams.set('status', status);
+                exportCsvLink.href = exportUrl.toString();
+            }
+
+            // Cập nhật URL trình duyệt (tùy chọn)
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('q', query);
+            currentUrl.searchParams.set('status', status);
+            // Bỏ tham số 'page' khi tìm kiếm động (vì load hết KQ hoặc về trang 1)
+            currentUrl.searchParams.delete('page');
+            history.pushState({}, '', currentUrl);
+
+        }, 500); // Chờ 500ms sau khi ngừng gõ/chọn
+    }
+
+    function fetchOrders(query = '', status = '') {
+        // Hiện loading, ẩn bảng và thông báo "không có KQ"
+        if (loadingSpinner) loadingSpinner.style.display = 'block';
+        if (tableBody) tableBody.innerHTML = ''; // Xóa kq cũ ngay lập tức
+        if (noOrdersMessage) noOrdersMessage.style.display = 'none';
+        if (paginationContainer) paginationContainer.style.display = 'none'; // Ẩn phân trang khi tìm AJAX
+
+        const apiUrl = `/admin/api/search-orders?q=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}`;
+
+        console.log("Fetching orders from:", apiUrl); // Debug
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok (${response.status})`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("API Response:", data); // Debug
+                if (loadingSpinner) loadingSpinner.style.display = 'none'; // Ẩn loading
+
+                if (data.success && data.html) {
+                    if (tableBody) {
+                        tableBody.innerHTML = data.html;
+                        // Khởi tạo lại tooltip sau khi thêm nội dung mới
+                        var tooltipTriggerList = [].slice.call(tableBody.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            // Xóa instance cũ nếu có để tránh lỗi
+                            var oldTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                            if (oldTooltip) { oldTooltip.dispose(); }
+                            return new bootstrap.Tooltip(tooltipTriggerEl)
+                        })
                     } else {
-                        row.style.display = 'none';
+                         console.error("Table body not found!");
                     }
-                });
+                    if (data.count === 0) { // Kiểm tra xem có kết quả không
+                        if (noOrdersMessage) noOrdersMessage.style.display = 'block';
+                        if (tableBody) tableBody.innerHTML = ''; // Đảm bảo body trống
+                    } else {
+                        if (noOrdersMessage) noOrdersMessage.style.display = 'none';
+                    }
+                } else {
+                     if (noOrdersMessage) {
+                         noOrdersMessage.textContent = data.message || "Lỗi khi tải dữ liệu.";
+                         noOrdersMessage.style.display = 'block';
+                     }
+                     if (tableBody) tableBody.innerHTML = ''; // Đảm bảo body trống khi lỗi
+                     console.error("API Error:", data.message || "Unknown error");
+                 }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                if (noOrdersMessage) {
+                     noOrdersMessage.textContent = "Lỗi kết nối hoặc xử lý. Vui lòng thử lại.";
+                     noOrdersMessage.style.display = 'block';
+                }
+                if (tableBody) tableBody.innerHTML = '';
             });
-        }
-    });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', performSearch);
+    }
+
+    // --- KHỞI TẠO TOOLTIP CHO CÁC NÚT BAN ĐẦU ---
+     var initialTooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+     var initialTooltipList = initialTooltipTriggerList.map(function (tooltipTriggerEl) {
+         return new bootstrap.Tooltip(tooltipTriggerEl)
+     });
+});
 </script>
 {% endblock %}

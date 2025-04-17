@@ -1,67 +1,373 @@
 {% extends "base.html" %}
 
-{% block title %}Dragon Coffee Shop - Menu{% endblock %}
+{% block title %}Dragon Coffee Shop - Thực đơn{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+    /* ---- SEARCH SUGGESTIONS STYLES (Existing) --- */
+    .search-wrapper { position: relative; }
+    .search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background-color: white; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 .25rem .25rem; box-shadow: 0 2px 5px rgba(0,0,0,.1); z-index: 1000; display: none; max-height: 300px; overflow-y: auto; }
+    .search-suggestions .list-group-item { cursor: pointer; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 10px; } /* Adjusted padding & gap */
+    .search-suggestions .list-group-item:hover { background-color: #f8f9fa; }
+    .suggestion-img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; flex-shrink: 0; } /* Image styles */
+    .suggestion-name { flex-grow: 1; font-size: 0.95rem; } /* Name style */
+    .suggestion-no-img { width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; background-color: #eee; border-radius: 4px; flex-shrink: 0; color: #aaa; font-size: 1rem; }
+
+    /* ---- LOADING SPINNER ---- */
+    #product-grid-loading {
+        position: absolute; /* Cover the product grid */
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 5; /* Above grid, below nav */
+        transition: opacity 0.3s ease-in-out;
+        opacity: 0;
+        pointer-events: none; /* Don't block clicks when hidden */
+    }
+     #product-grid-loading.active {
+         opacity: 1;
+         pointer-events: auto;
+     }
+    /* Style the actual spinner */
+     #product-grid-loading .spinner-border {
+         width: 3rem;
+         height: 3rem;
+         color: var(--primary-color); /* Use theme color */
+     }
+
+    /* Styling for active category/sort */
+     .category-nav .nav-link.active, .sort-options .dropdown-item.active {
+        font-weight: 700; /* Make active items bolder */
+         /* Bootstrap handles the background */
+    }
+     /* Adjust category nav */
+    .category-nav .nav-link {
+       cursor: pointer; /* Indicate clickable for JS */
+    }
+
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Our Menu</h1>
-        
-        <!-- Category Navigation -->
-        <div class="category-nav mb-4">
-            <ul class="nav nav-pills justify-content-center flex-nowrap">
-                <li class="nav-item">
-                    <a class="nav-link {% if not current_category %}active{% endif %}" href="{{ url_for('main.menu') }}">All</a>
-                </li>
-                {% for category in categories %}
-                <li class="nav-item">
-                    <a class="nav-link {% if current_category and current_category.id == category.id %}active{% endif %}" 
-                       href="{{ url_for('main.menu', category=category.id) }}">{{ category.name }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        
-        <!-- Category Description if a category is selected -->
-        {% if current_category %}
-        <div class="alert alert-light text-center mb-4">
-            <h3 class="mb-2">{{ current_category.name }}</h3>
-            <p class="mb-0">{{ current_category.description }}</p>
-        </div>
-        {% endif %}
-        
-        <!-- Products Grid -->
-        <div class="row">
-            {% if products %}
-                {% for product in products %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
-                        {% if product.is_featured %}
-                        <div class="featured-badge">Featured</div>
-                        {% endif %}
-                        <img src="{{ product.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" class="card-img-top" alt="{{ product.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">{{ product.description|truncate(100) }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="card-price">${{ "%.2f"|format(product.price) }}</div>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
-                                    <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.id }})">
-                                        <i class="fas fa-cart-plus"></i> Add
-                                    </button>
-                                </div>
-                            </div>
+        <h1 class="section-title">Thực đơn của chúng tôi</h1>
+
+        <div class="row mb-4 align-items-center">
+             {# --- Search Form --- #}
+             <div class="col-md-6 mb-3 mb-md-0">
+                 <form class="d-flex" method="GET" action="{{ url_for('main.menu') }}" id="menu-search-form">
+                    <div class="search-wrapper w-100">
+                        <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm hoặc danh mục..." aria-label="Search" name="q" id="menu-search-input" autocomplete="off" value="{{ initial_search_term }}">
+                         <div id="menu-search-suggestions-container" class="search-suggestions">
+                             <ul class="list-group list-group-flush" id="menu-search-suggestions-list"></ul>
                         </div>
-                    </div>
+                     </div>
+                     {# Nút Tìm submit form (non-JS fallback), có thể ẩn đi khi JS hoạt động #}
+                     <button class="btn btn-outline-primary ms-2" type="submit">Tìm</button>
+                 </form>
+            </div>
+
+             {# --- Sorting Dropdown --- #}
+            <div class="col-md-3 offset-md-3 text-md-end">
+                 <div class="dropdown sort-options">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Sắp xếp: <span id="current-sort-label">Tên A-Z</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdownButton" id="sort-select">
+                        {# Giá trị data-sort khớp với value trong Python backend #}
+                        <li><a class="dropdown-item {% if initial_sort_by == 'name' %}active{% endif %}" href="#" data-sort="name">Tên A-Z</a></li>
+                        <li><a class="dropdown-item {% if initial_sort_by == 'price_asc' %}active{% endif %}" href="#" data-sort="price_asc">Giá tăng dần</a></li>
+                        <li><a class="dropdown-item {% if initial_sort_by == 'price_desc' %}active{% endif %}" href="#" data-sort="price_desc">Giá giảm dần</a></li>
+                        {# Thêm option theo Rating nếu muốn
+                         <li><a class="dropdown-item {% if initial_sort_by == 'rating' %}active{% endif %}" href="#" data-sort="rating">Đánh giá cao</a></li>
+                        #}
+                    </ul>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-12 text-center py-5">
-                    <p class="lead">No products available in this category yet.</p>
-                </div>
-            {% endif %}
+             </div>
         </div>
-    </div>
-</div>
+
+
+        {# --- Category Navigation (SỬA LẠI ĐỂ DÙNG BUTTON VỚI DATA-ATTRIBUTE) --- #}
+        <div class="category-nav mb-4">
+            {# Lưu ý: Loại bỏ justify-content-center để nó scroll tốt hơn khi nhiều item #}
+            <nav class="nav nav-pills flex-nowrap">
+                <button class="nav-link category-filter-btn {% if initial_category_id is none %}active{% endif %}" data-category-id="">Tất cả</button>
+                {% for category in categories %}
+                <button class="nav-link category-filter-btn {% if initial_category_id == category.id %}active{% endif %}"
+                        data-category-id="{{ category.id }}">{{ category.name }}</button>
+                {% endfor %}
+            </nav>
+        </div>
+
+        {# Category Description (Vẫn giữ để hiển thị khi có current_category từ page load) #}
+        <div id="category-description-container" class="alert alert-light text-center mb-4 {% if not current_category %}d-none{% endif %}">
+             {% if current_category %}
+                 <h3 class="mb-2">{{ current_category.name }}</h3>
+                 <p class="mb-0">{{ current_category.description }}</p>
+             {% endif %}
+         </div>
+
+        {# --- Product Grid Container (Chứa kết quả AJAX) --- #}
+        <div id="product-grid-container" class="position-relative"> {# Cần position-relative cho spinner #}
+            {# --- Loading Spinner (Ẩn ban đầu) --- #}
+             <div id="product-grid-loading" class="py-5">
+                <div class="spinner-border" role="status">
+                     <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2 text-muted">Đang tải sản phẩm...</p>
+             </div>
+             {# --- Nơi chứa kết quả --- #}
+             <div id="product-grid" class="row">
+                 {# Nội dung sẽ được load bởi AJAX, HOẶC include partial ban đầu #}
+                 {# Ví dụ include ban đầu (nếu route menu có query ban đầu):
+                 {% include '_product_grid.html' %}
+                  #}
+            </div>
+        </div>
+    </div> {# End content-container #}
+</div> {# End container #}
+
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+{# --- SCRIPT CHO TÌM KIẾM NÂNG CAO VÀ LỌC AJAX --- #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryNav = document.querySelector('.category-nav .nav');
+        const productGrid = document.getElementById('product-grid');
+        const loadingSpinner = document.getElementById('product-grid-loading');
+        const categoryDescriptionContainer = document.getElementById('category-description-container');
+        const searchForm = document.getElementById('menu-search-form');
+        const searchInput = document.getElementById('menu-search-input');
+        const sortSelectContainer = document.getElementById('sort-select'); // Container <ul> cho dropdown
+        const currentSortLabel = document.getElementById('current-sort-label');
+        const suggestionsContainer = document.getElementById('menu-search-suggestions-container');
+        const suggestionsList = document.getElementById('menu-search-suggestions-list');
+        let suggestionDebounce;
+
+        // ---- STATE HIỆN TẠI ----
+        // Lấy giá trị ban đầu từ HTML data (nếu có) hoặc default
+        let currentCategoryId = document.body.dataset.initialCategoryId || '';
+        let currentSearchTerm = searchInput ? searchInput.value : ''; // Lấy từ input
+        let currentSortBy = document.body.dataset.initialSort || 'name';
+
+
+        // --- Hàm Fetch Products qua AJAX ---
+        function fetchProducts() {
+            console.log(`Fetching products: Cat=${currentCategoryId}, Q=${currentSearchTerm}, Sort=${currentSortBy}`);
+            if (loadingSpinner) loadingSpinner.classList.add('active');
+            if (productGrid) productGrid.innerHTML = ''; // Xóa KQ cũ
+            if (categoryDescriptionContainer) categoryDescriptionContainer.classList.add('d-none'); // Ẩn desc
+
+            const params = new URLSearchParams({
+                 q: currentSearchTerm,
+                 sort: currentSortBy
+             });
+            if (currentCategoryId) { params.set('category_id', currentCategoryId); } // Chỉ thêm nếu có ID
+
+            const apiUrl = `/api/menu-products?${params.toString()}`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) { throw new Error(`Network error (${response.status})`); }
+                    return response.json();
+                })
+                .then(data => {
+                     if (loadingSpinner) loadingSpinner.classList.remove('active');
+                     if (data.success && productGrid) {
+                        productGrid.innerHTML = data.html;
+                        // Quan trọng: Khởi tạo lại các hiệu ứng/listener cho sản phẩm mới
+                        if (typeof animateOnScroll === 'function') {
+                            // Cần đảm bảo animateOnScroll có thể chạy lại cho element mới
+                            // Cách đơn giản là query lại và chạy observer mới
+                            initializeAnimationsForGrid(); // Hàm helper để chạy lại animation
+                        }
+                        // initializeTooltipsIfAny(); // Nếu có tooltip
+                     } else if (!data.success) {
+                         throw new Error(data.message || 'Lỗi tải sản phẩm');
+                     } else if (!productGrid) { console.error("productGrid not found"); }
+                 })
+                .catch(error => {
+                    console.error('Fetch Products Error:', error);
+                    if (loadingSpinner) loadingSpinner.classList.remove('active');
+                    if (productGrid) productGrid.innerHTML = `<div class="col-12 text-center py-5"><p class="text-danger">Lỗi: ${error.message}</p></div>`;
+                    // Show toast?
+                });
+        }
+
+         // --- Hàm cập nhật URL trình duyệt ---
+         function updateBrowserUrl() {
+             const params = new URLSearchParams();
+             if (currentSearchTerm) params.set('q', currentSearchTerm);
+             if (currentCategoryId) params.set('category', currentCategoryId); // Dùng 'category' cho thân thiện
+             if (currentSortBy !== 'name') params.set('sort', currentSortBy); // Chỉ thêm nếu khác default
+
+             const newUrl = `${window.location.pathname}?${params.toString()}`;
+             // console.log("Pushing state:", newUrl);
+             history.pushState({ categoryId: currentCategoryId, q: currentSearchTerm, sort: currentSortBy }, '', newUrl);
+         }
+
+        // --- Sự kiện Click Category ---
+        if (categoryNav) {
+            categoryNav.addEventListener('click', function(event) {
+                 if (event.target.matches('.category-filter-btn')) {
+                    event.preventDefault();
+                    const button = event.target;
+                    const newCategoryId = button.dataset.categoryId;
+
+                     if (newCategoryId !== currentCategoryId) {
+                        // Cập nhật active class
+                        categoryNav.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        // Cập nhật state và fetch
+                        currentCategoryId = newCategoryId;
+                         currentSearchTerm = ''; // Reset search khi đổi category
+                         if(searchInput) searchInput.value = '';
+                         fetchProducts();
+                         updateBrowserUrl();
+                     }
+                 }
+            });
+        }
+
+         // --- Sự kiện Chọn Sắp xếp ---
+         if (sortSelectContainer) {
+            sortSelectContainer.addEventListener('click', function(event){
+                if(event.target.matches('.dropdown-item')) {
+                     event.preventDefault();
+                     const selectedOption = event.target;
+                     const newSortBy = selectedOption.dataset.sort;
+
+                     if (newSortBy !== currentSortBy) {
+                        // Cập nhật label nút dropdown
+                        if(currentSortLabel) currentSortLabel.textContent = selectedOption.textContent;
+                         // Bỏ active class cũ, thêm vào cái mới
+                        sortSelectContainer.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                        selectedOption.classList.add('active');
+                         // Cập nhật state và fetch
+                         currentSortBy = newSortBy;
+                         fetchProducts();
+                         updateBrowserUrl();
+                     }
+                 }
+            });
+             // Cập nhật label ban đầu
+             const initialActiveSort = sortSelectContainer.querySelector('.dropdown-item.active');
+             if (initialActiveSort && currentSortLabel) {
+                 currentSortLabel.textContent = initialActiveSort.textContent;
+             }
+         }
+
+         // --- Sự kiện Submit Form Tìm kiếm ---
+         if (searchForm) {
+            searchForm.addEventListener('submit', function(event) {
+                 event.preventDefault();
+                 const newSearchTerm = searchInput ? searchInput.value.trim() : '';
+                 if (newSearchTerm !== currentSearchTerm) {
+                    currentSearchTerm = newSearchTerm;
+                    // Có thể reset category về 'Tất cả' khi search, hoặc giữ nguyên tùy ý
+                     // currentCategoryId = ''; // Uncomment để reset category
+                     // categoryNav.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+                     // categoryNav.querySelector('[data-category-id=""]').classList.add('active');
+                     fetchProducts();
+                     updateBrowserUrl();
+                 }
+                 // Ẩn gợi ý sau khi search
+                if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+            });
+         }
+
+        // --- TÌM KIẾM GỢI Ý NÂNG CAO (Thêm ảnh) ---
+         if (searchInput && suggestionsContainer && suggestionsList) {
+             searchInput.addEventListener('input', function() {
+                 const term = this.value.trim();
+                 suggestionsList.innerHTML = ''; // Xóa cũ
+                 if (term.length < 1) { // Giảm giới hạn để có gợi ý sớm hơn
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                 }
+
+                 clearTimeout(suggestionDebounce);
+                 suggestionDebounce = setTimeout(() => {
+                     // DÙNG API SUGGESTION CŨ ĐỂ LẤY DATA (chưa có ảnh)
+                      fetch(`/menu/search_suggestions?term=${term}`)
+                        .then(response => response.json())
+                        .then(suggestions => {
+                             if (suggestions.length > 0) {
+                                suggestionsList.innerHTML = ''; // Clear again before adding
+                                suggestions.forEach(suggestion => {
+                                     const li = document.createElement('li');
+                                     li.classList.add('list-group-item');
+
+                                     // Placeholder Ảnh - LẤY ẢNH CẦN API MỚI HOẶC THÊM IMAGE_URL VÀO API HIỆN TẠI
+                                     // Giả sử API /menu/search_suggestions trả về thêm 'image_url'
+                                     // Ví dụ: {'id':1, 'name': 'Cà phê', 'image_url': '/static/img/abc.jpg'}
+                                     let imgHtml = `<div class="suggestion-no-img"><i class="fas fa-image"></i></div>`; // Fallback icon
+                                     if(suggestion.image_url){ // Nếu API trả về URL ảnh
+                                          imgHtml = `<img src="${suggestion.image_url}" alt="${suggestion.name}" class="suggestion-img">`;
+                                     }
+
+                                     li.innerHTML = `
+                                        ${imgHtml}
+                                         <span class="suggestion-name">${suggestion.name}</span>
+                                     `;
+                                     li.addEventListener('click', function() {
+                                         searchInput.value = suggestion.name; // Fill vào input
+                                         suggestionsContainer.style.display = 'none'; // Ẩn gợi ý
+                                         // Kích hoạt submit form để fetch product
+                                          searchForm.dispatchEvent(new Event('submit'));
+                                          // Hoặc nếu muốn đi thẳng đến trang chi tiết:
+                                         // window.location.href = `/product/${suggestion.id}`;
+                                     });
+                                     suggestionsList.appendChild(li);
+                                });
+                                suggestionsContainer.style.display = 'block';
+                            } else {
+                                suggestionsContainer.style.display = 'none';
+                            }
+                         })
+                        .catch(error => {
+                             console.error("Error fetching suggestions:", error);
+                             suggestionsContainer.style.display = 'none';
+                        });
+                 }, 300); // 300ms debounce
+             });
+
+            // Ẩn gợi ý khi click ra ngoài
+            document.addEventListener('click', function(event) {
+                if (searchInput && !searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                     suggestionsContainer.style.display = 'none';
+                }
+            });
+         }
+
+        // --- LOAD DỮ LIỆU BAN ĐẦU KHI VÀO TRANG ---
+        fetchProducts();
+
+         // --- HELPER - Re-initialize scroll animations for dynamically loaded grid items ---
+         function initializeAnimationsForGrid() {
+             const newAnimatedElements = productGrid.querySelectorAll('.animate-on-scroll');
+             // Re-run the observer logic for new elements if your animateOnScroll function can handle it
+             if (typeof animateOnScroll === 'function') {
+                 // Nếu animateOnScroll khởi tạo Observer mới mỗi lần gọi:
+                  animateOnScroll();
+                  // Nếu không, bạn cần một cách khác để thêm elements vào Observer hiện có
+                  // Hoặc đơn giản là bỏ animation AJAX:
+                  // newAnimatedElements.forEach(el => el.style.visibility = 'visible');
+            }
+             // Initialize any other components needed for the cards
+             // initializeTooltipsIfAny();
+         }
+
+
+    });
+</script>
+{# -------------------------------------------- #}
+
 {% endblock %}

@@ -13,6 +13,137 @@ from collections import Counter
 import re
 import joblib
 from datetime import datetime
+import base64
+from werkzeug.utils import secure_filename
+import logging
+from flask import current_app, url_for
+import uuid
+import requests
+
+HF_API_TOKEN = os.environ.get("HUGGINGFACE_API_TOKEN")
+# Lấy model ID từ env hoặc dùng default (chọn model phù hợp, kiểm tra trên Hugging Face)
+DEFAULT_MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0" # Ví dụ, cần test
+# Hoặc model khác nhẹ hơn nếu có "runwayml/stable-diffusion-v1-5"
+IMAGE_MODEL_ID = os.environ.get("HUGGINGFACE_IMAGE_MODEL", DEFAULT_MODEL_ID)
+API_URL = f"https://api-inference.huggingface.co/models/{IMAGE_MODEL_ID}"
+
+def get_logger_img_gen():
+    # Ưu tiên logger của Flask app nếu có context
+    if current_app:
+        return current_app.logger
+    else:
+        # Fallback logging cơ bản nếu không có app context
+        logger = logging.getLogger("ai_image_processing")
+        if not logger.hasHandlers(): # Chỉ cấu hình nếu chưa có handler
+            log_format = '%(asctime)s - %(levelname)s - IMG_PROC - %(message)s'
+            logging.basicConfig(level=logging.INFO, format=log_format)
+            logger.info("Logger for Image Processing initialized outside Flask context.")
+        return logger
+
+def generate_image_from_text_hf(prompt: str):
+    """
+    Generates an image using Hugging Face Inference API.
+    Returns image bytes if successful, None otherwise.
+    """
+    logger = get_logger_img_gen()
+    if not HF_API_TOKEN:
+        logger.error("Hugging Face API Token (HUGGINGFACE_API_TOKEN) not set.")
+        return None
+
+    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+    payload = {"inputs": prompt}
+    logger.info(f"Sending image generation request to HF API ({IMAGE_MODEL_ID}) with prompt: '{prompt[:100]}...'")
+
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=90) # Tăng timeout
+        response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+
+        # HF API trả về image bytes trực tiếp hoặc lỗi JSON
+        content_type = response.headers.get('content-type')
+        if 'image' in content_type.lower():
+             logger.info("Image generation successful, received image bytes.")
+             return response.content # Trả về dạng bytes
+        elif 'json' in content_type.lower():
+            error_data = response.json()
+            error_msg = error_data.get("error", "Unknown JSON error from HF")
+            estimated_time = error_data.get("estimated_time")
+            if estimated_time:
+                 logger.warning(f"HF Model is loading (estimated time: {estimated_time}s). Prompt: '{prompt}'. Try again later.")
+                 # Trả về lỗi đặc biệt để frontend biết model đang load
+                 raise TimeoutError(f"Model đang tải, vui lòng thử lại sau khoảng {int(estimated_time)+5} giây.")
+            else:
+                 logger.error(f"Hugging Face API JSON error: {error_msg}. Prompt: '{prompt}'")
+                 raise ValueError(f"Lỗi từ API tạo ảnh: {error_msg}")
+        else:
+             logger.error(f"Unexpected content type from HF API: {content_type}")
+             raise ValueError("API tạo ảnh trả về định dạng không mong đợi.")
+
+    except requests.exceptions.Timeout:
+         logger.error(f"Timeout error during Hugging Face image generation request for prompt: '{prompt}'")
+         raise TimeoutError("Yêu cầu tạo ảnh quá hạn. Vui lòng thử lại.") # Ném lỗi rõ ràng
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error during Hugging Face image generation request: {e}", exc_info=True)
+        raise ConnectionError(f"Lỗi kết nối đến API tạo ảnh: {e}")
+    except Exception as e:
+        # Bắt các lỗi khác (ValueError, TimeoutError từ trên)
+        logger.error(f"General error in generate_image_from_text_hf: {e}", exc_info=True)
+        raise e # Ném lại lỗi để route xử lý
+
+
+def save_generated_image(image_bytes, subfolder='stories'):
+    """Lưu ảnh vào thư mục uploads và trả về URL web có thể truy cập."""
+    logger = get_logger_img_gen()
+    if not current_app:
+        logger.error("Critical: Cannot save image or generate URL without Flask app context.")
+        return None
+
+    try:
+        upload_folder_config_key = 'UPLOAD_FOLDER'
+        configured_path = current_app.config.get(upload_folder_config_key, 'static/uploads')
+        base_upload_dir_abs = os.path.abspath(os.path.join(current_app.root_path, configured_path))
+        target_folder_abs = os.path.join(base_upload_dir_abs, subfolder)
+        os.makedirs(target_folder_abs, exist_ok=True)
+        logger.debug(f"Absolute save directory: {target_folder_abs}")
+
+        img = Image.open(io.BytesIO(image_bytes))
+        img_format = img.format if img.format else 'JPEG'
+        img_extension = img_format.lower()
+        if img_extension == 'jpeg': img_extension = 'jpg'
+        filename = f"ai_story_{uuid.uuid4().hex[:12]}.{img_extension}" # Thêm tiền tố story
+        save_path_abs = os.path.join(target_folder_abs, filename)
+
+        # === SỬA LẠI: Ghi trực tiếp bytes ===
+        # img.save(save_path_abs, format=img_format.upper(), quality=90) # Không cần thiết nếu đã có bytes
+        with open(save_path_abs, 'wb') as f:
+            f.write(image_bytes)
+        # ====================================
+
+        logger.info(f"Generated image successfully saved to: {save_path_abs}")
+
+        # --- Tạo URL ---
+        static_folder_name = os.path.basename(current_app.static_folder)
+        if configured_path.strip(os.path.sep).startswith(static_folder_name):
+             # Đường dẫn tương đối trong thư mục static
+            path_parts = configured_path.strip(os.path.sep).split(os.path.sep, 1)
+            base_static_path = path_parts[1] if len(path_parts) > 1 else ''
+            static_relative_path = os.path.join(base_static_path, subfolder, filename).replace(os.path.sep, '/')
+            try:
+                # Dùng url_for để tạo URL đúng
+                web_url = url_for('static', filename=static_relative_path, _external=False)
+                logger.info(f"Generated static web URL: {web_url}")
+                return web_url # <-- Phải trả về URL này
+            except Exception as url_error:
+                 logger.error(f"Could not generate static URL using url_for for '{static_relative_path}': {url_error}", exc_info=True)
+                 web_url_fallback = f"/{static_folder_name}/{static_relative_path}"
+                 logger.warning(f"Falling back to manually constructed URL: {web_url_fallback}")
+                 return web_url_fallback
+        else:
+            logger.error(f"UPLOAD_FOLDER ('{configured_path}') not inside static folder ('{static_folder_name}'). Cannot generate static URL.")
+            return None
+
+    except Exception as e:
+        logger.error(f"Error saving generated image or creating URL: {e}", exc_info=True)
+        return None
 
 class ImageProcessor:
     def __init__(self):

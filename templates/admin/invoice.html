@@ -1,0 +1,277 @@
+{% extends "admin/base.html" %} {# Hoặc bỏ extends nếu đây là trang độc lập hoàn toàn #}
+{% block title %}Hóa đơn #{{ order.order_number }} - Dragon Coffee{% endblock %}
+
+{# Bỏ các block của trang admin base nếu bạn muốn trang invoice hoàn toàn trắng #}
+{% block page_title %}{% endblock %}
+{% block breadcrumb %}{% endblock %}
+{% block content_header %}{% endblock %} {# Bỏ luôn phần header này của AdminLTE #}
+
+{% block content %}
+<div class="invoice-a4-container"> {# Div bao ngoài để căn giữa trên màn hình lớn #}
+    <div class="invoice-box"> {# Nội dung hóa đơn thực tế #}
+
+        {# Các nút hành động (chỉ hiển thị khi xem web, không in) #}
+        {% if show_buttons is not defined or show_buttons %} {# Biến show_buttons để ẩn nút khi tạo PDF #}
+        <div class="invoice-actions no-print mb-4 d-flex justify-content-end gap-2">
+            <button onclick="window.print();" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-print me-1"></i> In Trang này
+            </button>
+            <a href="{{ url_for('admin.print_invoice_pdf', order_id=order.id) }}" class="btn btn-sm btn-primary" target="_blank">
+                <i class="fas fa-file-pdf me-1"></i> Xuất PDF
+            </a>
+            <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-sm btn-secondary">
+               <i class="fas fa-arrow-left me-1"></i> Quay lại Chi tiết
+            </a>
+        </div>
+        {% endif %}
+
+        {# ---- HEADER HÓA ĐƠN ---- #}
+        <table cellpadding="0" cellspacing="0" class="invoice-header-table">
+            <tr>
+                <td class="header-logo">
+                    {% if shop_info and shop_info.logo %}
+                    <img src="{{ shop_info.logo }}" alt="{{ shop_info.name or 'Dragon Coffee' }}" style="max-width: 160px; max-height: 80px;">
+                    {% else %}
+                    <i class="fas fa-dragon" style="font-size: 40px; color: var(--invoice-primary-color);"></i>
+                    {% endif %}
+                </td>
+                <td class="header-details text-end">
+                    <h1 class="invoice-title-main">HÓA ĐƠN THANH TOÁN</h1>
+                    Mã HĐ: <strong>{{ order.order_number }}</strong><br>
+                    Ngày lập: {{ order.created_at | format_datetime if order.created_at else 'N/A' }}<br>
+                    {% if order.id %} ID Đơn hàng: {{ order.id }} {% endif %}
+                </td>
+            </tr>
+        </table>
+
+         {# ---- THÔNG TIN SHOP VÀ KHÁCH HÀNG ---- #}
+        <table cellpadding="0" cellspacing="0" class="invoice-info-table">
+            <tr class="information">
+                <td class="info-col">
+                    <h3 class="section-heading">Thông tin cửa hàng</h3>
+                    <address>
+                        <strong>{{ shop_info.name or 'Dragon Coffee Shop' }}</strong><br>
+                        {{ shop_info.address or '123 Đường ABC, Quận XYZ, TP.HCM' }}<br>
+                        ĐT: {{ shop_info.phone or '(+84) 123 456 789' }}<br>
+                        Email: {{ shop_info.email or 'info@dragoncoffee.com' }}
+                    </address>
+                </td>
+                <td class="info-col">
+                    <h3 class="section-heading">Thông tin khách hàng</h3>
+                    <address>
+                        <strong>{{ order.customer.full_name if order.customer else order.contact_phone or 'Khách vãng lai' }}</strong><br>
+                        {% if order.address %} Địa chỉ GH: {{ order.address }}<br> {% endif %}
+                        {% if order.customer and order.customer.phone and order.customer.phone != order.contact_phone %} SĐT KH: {{ order.customer.phone }}<br> {% endif %}
+                        {% if order.contact_phone and (not order.customer or order.customer.phone != order.contact_phone) %} SĐT LH: {{ order.contact_phone }}<br> {% endif %}
+                        {% if order.customer and order.customer.email %} Email: {{ order.customer.email }}<br> {% endif %}
+                        Loại đơn: {{ order.order_type|replace('_', ' ')|title if order.order_type else 'N/A' }}
+                    </address>
+                </td>
+            </tr>
+            {# Thông tin thanh toán và trạng thái #}
+            <tr class="heading">
+                 <td colspan="2">Chi tiết Thanh toán & Trạng thái</td>
+             </tr>
+            <tr class="details">
+                 <td>Phương thức TT: {{ order.payment_method|replace('_', ' ')|title if order.payment_method else 'N/A' }}</td>
+                <td>Trạng thái ĐH: <strong>{{ order.get_status_display() | default('N/A') }}</strong></td>
+            </tr>
+             <tr class="details">
+                 <td>Trạng thái TT: {{ order.payment_status|replace('_', ' ')|title if order.payment_status else 'N/A' }}</td>
+                 <td></td> {# Thêm cột trống để căn đều #}
+             </tr>
+        </table>
+
+         {# ---- CHI TIẾT SẢN PHẨM ---- #}
+        <h3 class="section-heading item-heading">Chi tiết Sản phẩm</h3>
+        <table cellpadding="0" cellspacing="0" class="invoice-items-table">
+            <thead>
+                <tr class="heading">
+                    <td style="width: 50%;">Sản phẩm</td>
+                    <td style="width: 10%; text-align: center;">SL</td>
+                    <td style="width: 20%; text-align: right;">Đơn giá</td>
+                    <td style="width: 20%; text-align: right;">Thành tiền</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in order_details %}
+                <tr class="item {% if loop.last %}last{% endif %}">
+                    <td>
+                        {{ detail.ordered_product.name if detail.ordered_product else 'Sản phẩm đã xóa' }}
+                        {% if detail.notes %}
+                            <br><span class="item-notes">- {{ detail.notes }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">{{ detail.quantity }}</td>
+                     <td style="text-align: right;">{{ detail.unit_price | format_price if detail.unit_price is not none }}</td>
+                    <td style="text-align: right;">{{ detail.subtotal | format_price if detail.subtotal is not none }}</td>
+                </tr>
+                {% else %}
+                <tr class="item"><td colspan="4" class="text-center text-muted">Không có chi tiết sản phẩm.</td></tr>
+                {% endfor %}
+            </tbody>
+            {# --- PHẦN TÍNH TOÁN TỔNG ĐÃ CẬP NHẬT --- #}
+            {% if order_details %}
+             <tfoot>
+                {% set base_total = order.total_amount or 0.0 %}
+                {% set discount = order.discount_applied or 0.0 %}
+                {% set subtotal_after_discount = base_total - discount %}
+                 {# Nếu có field tax, shipping trong model Order thì dùng, nếu không thì ước tính #}
+                 {# Ưu tiên dùng field đã lưu trong DB nếu có #}
+                {% set tax = getattr(order, 'tax_amount', subtotal_after_discount * 0.1) if hasattr(order, 'tax_amount') and order.tax_amount is not none else subtotal_after_discount * 0.1 %}
+                {% set shipping = getattr(order, 'shipping_fee', 0) if hasattr(order, 'shipping_fee') and order.shipping_fee is not None else 0 %}
+                {# Recalculate final amount based on available fields, preferring the stored one #}
+                {% set final_total = order.final_amount if order.final_amount is not none else (subtotal_after_discount + tax + shipping) %}
+
+                <tr class="total">
+                    <td colspan="3" style="text-align: right; border: none;">Tổng tiền hàng:</td>
+                    <td style="text-align: right; border: none;">{{ base_total | format_price }}</td>
+                </tr>
+
+                {% if discount > 0 %}
+                <tr class="total fee">
+                    <td colspan="3" style="text-align: right; border: none;">Giảm giá {% if order.promotion_code_used %}({{ order.promotion_code_used }}){% endif %}:</td>
+                    <td style="text-align: right; border: none; color: #dc3545;">- {{ discount | format_price }}</td>
+                </tr>
+                 {% endif %}
+
+                {% if tax > 0.01 %}
+                <tr class="total fee">
+                    <td colspan="3" style="text-align: right; border: none;">Thuế (VAT):</td>
+                    <td style="text-align: right; border: none;">{{ tax | format_price }}</td>
+                 </tr>
+                 {% endif %}
+
+                {% if shipping > 0.01 %}
+                 <tr class="total fee">
+                    <td colspan="3" style="text-align: right; border: none;">Phí vận chuyển:</td>
+                    <td style="text-align: right; border: none;">{{ shipping | format_price }}</td>
+                 </tr>
+                 {% endif %}
+
+                <tr class="total final-total">
+                    <td colspan="3" style="text-align: right;"><strong>TỔNG CỘNG:</strong></td>
+                    <td style="text-align: right;"><strong>{{ final_total | format_price }}</strong></td>
+                </tr>
+             </tfoot>
+            {% endif %}
+             {# --- KẾT THÚC PHẦN TỔNG --- #}
+        </table>
+
+         {# ---- Ghi chú (nếu có) ---- #}
+        {% if order.notes and not order.notes.strip().startswith('[NV') %} {# Chỉ hiển thị note của khách #}
+            <div class="invoice-notes">
+                 <h3 class="section-heading">Ghi chú của khách hàng:</h3>
+                 <p>{{ order.notes }}</p>
+            </div>
+        {% endif %}
+
+        {# ---- FOOTER HÓA ĐƠN ---- #}
+        <div class="invoice-footer">
+             <p class="thank-you">Xin cảm ơn Quý khách!</p>
+            <p>{{ shop_info.name or 'Dragon Coffee Shop' }}</p>
+             <p><small>Website: yourwebsite.com | Hotline: {{ shop_info.phone or '1900xxxx' }}</small></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    :root {
+        --invoice-primary-color: #8B4513;
+        --invoice-secondary-color: #D2B48C;
+        --invoice-text-color: #333;
+        --invoice-border-color: #eee;
+        --invoice-light-bg: #f9f9f9;
+    }
+    body {
+         font-family: 'Be Vietnam Pro', 'Lato', sans-serif;
+    }
+    .invoice-a4-container {
+        padding: 20px;
+        background-color: #e9ecef;
+        display: flex;
+        justify-content: center;
+    }
+    .invoice-box {
+        max-width: 210mm;
+        min-height: 297mm;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #ddd;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        font-size: 10pt;
+        line-height: 1.5;
+        font-family: inherit;
+        color: var(--invoice-text-color);
+        background-color: #fff;
+    }
+
+    .invoice-box table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; margin-bottom: 15px; }
+    .invoice-box table td, .invoice-box table th { vertical-align: top; padding: 4px 6px; }
+
+    .invoice-header-table { margin-bottom: 25px; border-bottom: 2px solid var(--invoice-primary-color); padding-bottom: 12px; }
+    .invoice-header-table td { padding: 0; }
+    .header-logo { text-align: left; }
+    .header-details { text-align: right; font-size: 0.95em; }
+    .invoice-title-main { font-family: 'Cinzel', serif; margin: 0 0 8px 0; font-size: 1.7em; color: var(--invoice-primary-color); }
+
+    .invoice-info-table { margin-bottom: 25px; }
+    .invoice-info-table .information td { padding-bottom: 15px; }
+    .section-heading { font-size: 0.95em; font-weight: bold; color: var(--invoice-primary-color); margin-bottom: 6px; border-bottom: 1px solid var(--invoice-secondary-color); padding-bottom: 2px; text-transform: uppercase;}
+    .info-col { width: 50%; padding-right: 12px;}
+    .info-col address { font-style: normal; line-height: 1.4; font-size: 0.95em; }
+    .invoice-info-table tr.heading td { font-weight: bold; background: var(--invoice-light-bg); border-bottom: 1px solid #ddd; border-top: 1px solid #ddd; padding: 6px; }
+    .invoice-info-table tr.details td { padding: 6px; border-bottom: 1px dashed #eee; }
+
+    .item-heading { margin-top: 20px; margin-bottom: 8px; }
+    .invoice-items-table thead tr.heading td { background: var(--invoice-light-bg); border-bottom: 1px solid #bbb; font-weight: bold; padding: 6px 8px; }
+    .invoice-items-table tbody tr.item td { border-bottom: 1px solid var(--invoice-border-color); padding: 7px 8px; }
+    .invoice-items-table tbody tr.item.last td { border-bottom: none; }
+    .item-notes { font-size: 0.9em; color: #666; font-style: italic; }
+
+    .invoice-items-table tfoot td { font-weight: 500; border-top: none; padding: 4px 8px; text-align: right;}
+    .invoice-items-table tfoot tr { border-top: 1px solid #eee;}
+    .invoice-items-table tfoot tr.total td { font-size: 1.05em; }
+    .invoice-items-table tfoot tr.fee td { font-size: 0.95em; font-weight: normal; color: #444;}
+    .invoice-items-table tfoot tr.final-total td {
+        font-size: 1.15em;
+        font-weight: bold !important;
+        padding-top: 10px !important;
+        border-top: 2px solid var(--invoice-primary-color) !important;
+     }
+
+    .invoice-notes { margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc;}
+    .invoice-notes p { font-size: 0.95em; color: #555; }
+
+    .invoice-footer { margin-top: 30px; text-align: center; font-size: 0.9em; color: #777; border-top: 1px solid var(--invoice-border-color); padding-top: 10px; }
+    .thank-you { font-size: 1.05em; font-weight: bold; color: var(--invoice-primary-color); margin-bottom: 4px;}
+
+    @media print {
+        html, body { height: auto; margin: 0 !important; padding: 0 !important; }
+        body { background-color: #fff; }
+        .invoice-a4-container { padding: 0; background: none; box-shadow: none;}
+        .invoice-box { max-width: 100%; width: 100%; border: none; box-shadow: none; margin: 0; padding: 5mm !important; font-size: 8.5pt; }
+        .no-print { display: none !important; }
+        @page { margin: 10mm; size: A4; }
+        * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+         .invoice-header-table { border-bottom: 1.5px solid #333; }
+         .invoice-items-table tfoot tr.final-total td { border-top: 1.5px solid #333 !important; }
+         table, tr, td, th, tbody, thead, tfoot { page-break-inside: avoid !important; }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+{% endblock %}

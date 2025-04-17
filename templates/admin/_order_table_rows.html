@@ -1,0 +1,57 @@
+{# templates/admin/_order_table_rows.html #}
+{# Biến `orders` được truyền từ API/Route gốc #}
+{% from "macros/_ui_helpers.html" import status_badge with context %} {# Đảm bảo import macro #}
+
+{% for order in orders %}
+<tr>
+    <td class="text-center fw-bold">#{{ order.id }}</td>
+    <td class="customer-info"> {# Thêm class để JS có thể target nếu cần #}
+        <div class="fw-medium">
+            {% if order.customer %}
+            <a href="{{ url_for('admin.user_detail', user_id=order.customer.id) }}" title="Xem chi tiết KH">{{ order.customer.full_name or '[Chưa có tên]' }}</a>
+            {% else %}
+            {{ order.contact_phone or 'Khách vãng lai' }}
+            {% endif %}
+        </div>
+        <div class="small">
+            {% if order.customer and order.customer.email %} {{ order.customer.email }} {% endif %}
+            {% if order.customer and order.customer.phone %} <br>{{ order.customer.phone }} {% elif order.contact_phone and not order.customer %} <!-- Đã hiển thị SĐT ở trên --> {% endif %}
+        </div>
+    </td>
+     <td>
+        {# Ngày đặt hàng #}
+        <span title="{{ order.created_at }}">{{ order.created_at.strftime('%d/%m/%y %H:%M') if order.created_at else '' }}</span>
+     </td>
+     {# Tổng tiền cuối cùng #}
+     <td class="text-end fw-medium">{{ (order.final_amount if order.final_amount is not none else order.total_amount) | format_price if order.final_amount is not none or order.total_amount is not none }}</td> {# Cần format_price filter #}
+     {# Trạng thái thanh toán #}
+    <td class="text-center status-col"> {# Thêm class status-col #}
+        {{ status_badge(order.payment_status | default('Chưa TT')) }}
+     </td>
+     {# Trạng thái đơn hàng #}
+    <td class="project-state text-center status-col"> {# Thêm class status-col #}
+         {{ status_badge(order.status | default('Pending')) }}
+     </td>
+     {# Các nút hành động #}
+    <td class="project-actions text-center">
+        <div class="btn-group btn-group-sm" role="group">
+            <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                <i class="fas fa-eye"></i>
+            </a>
+            {% if url_for('admin.view_invoice', order_id=order.id) %}
+            <a href="{{ url_for('admin.view_invoice', order_id=order.id) }}" class="btn btn-outline-info" data-bs-toggle="tooltip" title="Xem Hóa đơn Web" target="_blank">
+                <i class="fas fa-receipt"></i>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('admin.print_invoice_pdf', order_id=order.id) }}" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="In Hóa đơn PDF" target="_blank">
+                 <i class="fas fa-print"></i>
+            </a>
+            <a href="{{ url_for('admin.order_details', order_id=order.id) }}#edit-status" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="Sửa Trạng thái"> {# Sửa tooltip #}
+                <i class="fas fa-pencil-alt"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+{% else %}
+{# Để trống, thông báo "Không tìm thấy" sẽ hiển thị ở ngoài #}
+{% endfor %}

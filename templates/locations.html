@@ -1,94 +1,188 @@
 {% extends "base.html" %}
 
-{% block title %}Dragon Coffee Shop - Locations{% endblock %}
+{% block title %}Dragon Coffee Shop - Các Chi nhánh{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Our Locations</h1>
-        
-        <div class="row mb-5">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="map-container">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.991772685623!2d-122.41941742346177!3d37.77492611154602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA%2C%20USA!5e0!3m2!1sen!2suk!4v1682421296098!5m2!1sen!2suk" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
+        <h1 class="section-title">Các Chi Nhánh Của Chúng Tôi</h1>
+        <p class="lead text-center mb-5">Mỗi không gian Dragon Coffee đều mang một nét riêng, nhưng chất lượng và hương vị thì luôn đồng nhất. Tìm địa điểm gần bạn nhất!</p>
+
+        {# --- Vòng lặp hiển thị từng địa điểm và bản đồ riêng --- #}
+        {% if locations %}
+            <div class="row gy-5"> {# Thêm gy-5 để tạo khoảng cách dọc giữa các hàng địa điểm #}
+                {% for location in locations %}
+                    <div class="col-lg-10 mx-auto"> {# Tăng độ rộng hoặc giữ nguyên tùy ý #}
+                        <div class="card location-card h-100 shadow-sm"> {# Bọc mỗi địa điểm trong card #}
+                            <div class="row g-0"> {# Row không có gutter ngang #}
+                                {# --- Cột Thông tin Địa điểm --- #}
+                                <div class="col-md-6">
+                                    <div class="card-body p-4">
+                                        <h4 class="card-title mb-3"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ location.name }}</h4>
+                                        <p class="card-text mb-2">{{ location.address }}</p>
+                                        {% if location.phone %}
+                                            <p class="card-text mb-2"><i class="fas fa-phone fa-fw text-muted me-2"></i> {{ location.phone }}</p>
+                                        {% endif %}
+                                        {% if location.hours %}
+                                             <p class="card-text mb-0"><i class="fas fa-clock fa-fw text-muted me-2"></i> {{ location.hours|replace('|', '<br>')|safe }}</p>
+                                        {% endif %}
+                                        {# Có thể bỏ nút này nếu bản đồ đã hiện ngay bên cạnh #}
+                                        {# {% if location.map_embed_url %}
+                                             <a href="{{ location.map_embed_url }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-3">Mở trên Google Maps <i class="fas fa-external-link-alt fa-xs ms-1"></i></a>
+                                        {% endif %} #}
+                                    </div>
+                                </div>
+                                {# --- Cột Bản đồ Riêng --- #}
+                                <div class="col-md-6">
+                                    <div class="location-map-container">
+                                        {% if location.map_embed_url %}
+                                            <iframe src="{{ location.map_embed_url }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Bản đồ {{ location.name }}"></iframe>
+                                        {% else %}
+                                            <div class="no-map-placeholder">
+                                                <i class="fas fa-map-marked-alt fa-3x text-muted mb-2"></i>
+                                                <p class="small text-muted">Chưa có bản đồ cho địa điểm này</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div> {# End .row.g-0 #}
+                        </div> {# End .card #}
+                    </div> {# End .col-lg-10 #}
+                {% endfor %}
+            </div> {# End .row.gy-5 #}
+        {% else %}
+            <div class="alert alert-light text-center mt-4">
+                <p class="mb-0">Hiện chưa có thông tin chi nhánh nào được cập nhật.</p>
             </div>
-            <div class="col-lg-6">
-                <h2>Find a Dragon Coffee Near You</h2>
-                <p class="lead">We have multiple locations to serve you. Each of our coffee shops offers the same great quality and dragon-inspired experience that our customers love.</p>
-                <p>Use the interactive map to find the location closest to you, or browse our list of stores below.</p>
-                
-                <div class="mt-4">
-                    <h5><i class="fas fa-map-marker-alt text-primary me-2"></i> Downtown</h5>
-                    <p>123 Dragon Street, Downtown<br>
-                    Cityville, ST 12345<br>
-                    Phone: (123) 456-7890<br>
-                    Hours: Mon-Fri 7AM-8PM, Sat-Sun 8AM-9PM</p>
-                </div>
-                
-                <div class="mt-4">
-                    <h5><i class="fas fa-map-marker-alt text-primary me-2"></i> Westside</h5>
-                    <p>456 Flame Avenue, Westside<br>
-                    Cityville, ST 12345<br>
-                    Phone: (123) 456-7891<br>
-                    Hours: Mon-Fri 7AM-8PM, Sat-Sun 8AM-9PM</p>
-                </div>
-                
-                <div class="mt-4">
-                    <h5><i class="fas fa-map-marker-alt text-primary me-2"></i> Northside Mall</h5>
-                    <p>789 Scale Road, Northside Mall<br>
-                    Cityville, ST 12345<br>
-                    Phone: (123) 456-7892<br>
-                    Hours: Mon-Sun 9AM-9PM</p>
-                </div>
+        {% endif %}
+        {# --- Kết thúc Vòng lặp --- #}
+
+
+        {# --- Thư viện ảnh chung (Giữ nguyên hoặc chỉnh sửa) --- #}
+        <h2 class="section-title mt-5 pt-4">Khám phá Không gian Dragon</h2>
+         <div class="row g-4 mt-3">
+            <div class="col-lg-3 col-md-6">
+                 <div class="card h-100 border-0 shadow-sm location-gallery-card">
+                    <img src="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" class="card-img-top" alt="Không gian Dragon Coffee 1">
+                     <div class="card-body text-center small">
+                         <p class="card-text">Góc sofa ấm cúng</p>
+                     </div>
+                 </div>
             </div>
+             <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm location-gallery-card">
+                     <img src="{{ url_for('static', filename='images/cafe_ambiance.jpg') }}" class="card-img-top" alt="Không gian Dragon Coffee 2">
+                    <div class="card-body text-center small">
+                        <p class="card-text">Quầy bar pha chế</p>
+                     </div>
+                 </div>
+             </div>
+            <div class="col-lg-3 col-md-6">
+                 <div class="card h-100 border-0 shadow-sm location-gallery-card">
+                     <img src="https://images.unsplash.com/photo-1511920183353-34e3411c0a8a" class="card-img-top" alt="Không gian Dragon Coffee 3">
+                     <div class="card-body text-center small">
+                        <p class="card-text">Không gian ngoài trời (dự kiến)</p>
+                    </div>
+                 </div>
+             </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm location-gallery-card">
+                    <img src="{{ url_for('static', filename='images/staff_team.jpg') }}" class="card-img-top" alt="Không gian Dragon Coffee 4">
+                     <div class="card-body text-center small">
+                        <p class="card-text">Nơi đội ngũ làm việc</p>
+                     </div>
+                 </div>
+             </div>
         </div>
-        
-        <h2 class="section-title mt-5">Photo Gallery</h2>
-        <div class="row g-4 mt-3">
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1521017432531-fbd92d768814" class="card-img-top" alt="Coffee Shop Interior">
-                    <div class="card-body">
-                        <h5 class="card-title">Downtown Location</h5>
-                        <p class="card-text">Our first and flagship store in the heart of downtown.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1522126039546-182129aa0b93" class="card-img-top" alt="Coffee Shop Interior">
-                    <div class="card-body">
-                        <h5 class="card-title">Westside Location</h5>
-                        <p class="card-text">Our cozy neighborhood shop with outdoor seating.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1559417004-3f15daa4fd37" class="card-img-top" alt="Coffee Shop Interior">
-                    <div class="card-body">
-                        <h5 class="card-title">Northside Mall Location</h5>
-                        <p class="card-text">Our convenient mall location for shoppers on the go.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1599579134411-bd068f77d4d9" class="card-img-top" alt="Coffee Shop Interior">
-                    <div class="card-body">
-                        <h5 class="card-title">Coming Soon: Eastside</h5>
-                        <p class="card-text">Our newest location opening next month!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="text-center mt-5">
-            <h3>Planning an Event?</h3>
-            <p class="lead">We offer catering services and event spaces at select locations.</p>
-            <a href="{{ url_for('main.contact') }}" class="btn btn-primary mt-3">Contact Us for Details</a>
-        </div>
-    </div>
-</div>
+
+
+        {# --- CTA Section (Giữ nguyên) --- #}
+         <div class="text-center mt-5 pt-4">
+            <h3>Ghé Thăm Chúng Tôi</h3>
+            <p class="lead">Chọn một chi nhánh gần bạn và đến trải nghiệm hương vị cà phê độc đáo!</p>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-primary mt-2">Xem Thực Đơn Ngay</a>
+         </div>
+
+    </div> {# End content-container #}
+</div> {# End container #}
+{% endblock %}
+
+{% block extra_css %}
+{{ super() }} {# Kế thừa CSS từ base #}
+<style>
+    .location-card {
+        overflow: hidden; /* Để bo góc cho map */
+        border: 1px solid var(--border-color-subtle, #eee);
+    }
+    .location-map-container {
+        height: 350px; /* Chiều cao cố định cho các map nhỏ */
+        width: 100%;
+        background-color: #f8f9fa; /* Nền khi map chưa load */
+        position: relative; /* Cho placeholder */
+    }
+    /* Canh giữa card-body theo chiều dọc nếu muốn */
+    .location-card .col-md-6 {
+       display: flex;
+       flex-direction: column;
+       justify-content: center; /* Căn giữa dọc */
+    }
+     .location-card .col-md-6 .card-body {
+        height: 100%; /* Đảm bảo card body chiếm hết chiều cao */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Căn giữa nội dung trong card body */
+    }
+
+    .location-card iframe {
+        display: block;
+        height: 100%; /* Lấp đầy container */
+        width: 100%;
+    }
+    .no-map-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        background-color: #f0f2f5; /* Màu nền placeholder */
+    }
+    .location-item h4.card-title {
+        color: var(--primary-color);
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.4rem; /* Giảm nhẹ size title trong card */
+    }
+    .location-item p {
+        font-size: 0.95rem;
+        color: var(--dark-color);
+        line-height: 1.7;
+    }
+     .location-item p i.fa-fw { /* Style icon gọn hơn */
+         width: 1.4em;
+         text-align: center;
+         color: var(--secondary-color);
+         opacity: 0.8;
+     }
+    .location-gallery-card img {
+        height: 180px;
+        object-fit: cover;
+    }
+    .location-gallery-card .card-body {
+        padding: 0.8rem 1rem;
+        background-color: #f9f9f9;
+    }
+    /* Responsive: Stack map trên điện thoại */
+    @media (max-width: 767.98px) {
+        .location-card .row > div {
+             height: auto; /* Reset height */
+        }
+         .location-card .col-md-6:last-child { /* Map ở cột thứ 2 */
+            height: 300px; /* Set lại chiều cao map trên mobile */
+        }
+         .location-card .card-body {
+             padding: 1.5rem; /* Tăng padding trên mobile */
+        }
+    }
+</style>
 {% endblock %}

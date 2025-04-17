@@ -1,0 +1,93 @@
+<!-- START UPDATED HTML FOR templates/admin/add_stock_form.html -->
+{# templates/admin/add_stock_form.html #}
+{% extends "admin/base.html" %}
+{# {% from "macros/_form_helpers.html" import render_field, render_submit_button %} #}
+
+{% block title %}{{ title }} - Quản trị viên{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.inventory') }}">Tồn kho</a></li>
+    <li class="breadcrumb-item active">Nhập kho</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Thông tin nhập kho</h3>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_stock') }}">
+                {{ form.hidden_tag() }} {# CSRF Token #}
+                <div class="card-body">
+
+                    {# --- SỬA CÁCH RENDER SELECT FIELD --- #}
+                    <div class="mb-3">
+                        {{ form.inventory_item_id.label(class="form-label") }} <span class="text-danger">*</span>
+                        {# Render thẻ select thủ công hoặc dùng widget nếu phức tạp hơn #}
+                        <select name="{{ form.inventory_item_id.name }}"
+                                id="{{ form.inventory_item_id.id }}"
+                                class="form-select{{ ' is-invalid' if form.inventory_item_id.errors else '' }}"
+                                required> {# Thêm required HTML5 để nhắc nhở người dùng #}
+
+                            {# Thêm option placeholder thủ công #}
+                            <option value="" {% if not form.inventory_item_id.data %}selected{% endif %} disabled>-- Chọn sản phẩm --</option>
+
+                            {# Dùng vòng lặp của Jinja để render các lựa chọn từ DB #}
+                            {% for value, label in form.inventory_item_id.choices %}
+                                <option value="{{ value }}" {% if form.inventory_item_id.data|string == value|string %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {# Hiển thị lỗi validation #}
+                        {% if form.inventory_item_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.inventory_item_id.errors %} {{ error }} {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Chọn sản phẩm đã có trong danh sách tồn kho để nhập thêm.</div>
+                    </div>
+                     {# --- KẾT THÚC SỬA SELECT FIELD --- #}
+
+                    <div class="mb-3">
+                         {{ form.quantity_added.label(class="form-label") }} <span class="text-danger">*</span>
+                        {{ form.quantity_added(class="form-control" + (" is-invalid" if form.quantity_added.errors else ""), type="number", step="1", placeholder="Nhập số lượng > 0") }}
+                         {% if form.quantity_added.errors %}
+                            <div class="invalid-feedback">{% for error in form.quantity_added.errors %} {{ error }} {% endfor %}</div>
+                        {% endif %}
+                     </div>
+                    <div class="mb-3">
+                         {{ form.supplier.label(class="form-label") }}
+                        {{ form.supplier(class="form-control" + (" is-invalid" if form.supplier.errors else ""), placeholder="Tên nhà cung cấp (nếu có)") }}
+                         {% if form.supplier.errors %}
+                             <div class="invalid-feedback">{% for error in form.supplier.errors %} {{ error }} {% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.unit_cost.label(class="form-label") }}
+                         <div class="input-group">
+                             <span class="input-group-text">₫</span>
+                             {{ form.unit_cost(class="form-control" + (" is-invalid"if form.unit_cost.errors else ""), type="number", step="any", placeholder="0") }}
+                             {% if form.unit_cost.errors %}
+                                <div class="invalid-feedback">{% for error in form.unit_cost.errors %} {{ error }} {% endfor %}</div>
+                            {% endif %}
+                         </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows=3, placeholder="Ghi chú thêm về lần nhập hàng này...") }}
+                         {% if form.notes.errors %}
+                             <div class="invalid-feedback">{% for error in form.notes.errors %} {{ error }} {% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('admin.inventory') }}" class="btn btn-secondary">Hủy</a>
+                    {{ form.submit(class="btn btn-primary float-end") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!-- END CONTENT FOR templates/admin/add_stock_form.html -->

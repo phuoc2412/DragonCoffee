@@ -1,0 +1,70 @@
+{# templates/admin/_inventory_table_rows.html #}
+{% from "macros/_ui_helpers.html" import status_badge %} {# Đảm bảo import macro #}
+
+{# Biến inventory_items được truyền từ API hoặc route gốc #}
+{% for item in inventory_items %}
+    <tr class="{% if item.quantity <= 0 %}table-danger{% elif item.quantity <= item.min_quantity %}table-warning{% endif %}"
+        {# data-attributes giữ nguyên để JS filter nếu không dùng API #}
+        data-product-name="{{ item.product_inventory.name|lower if item.product_inventory else '' }}"
+        data-category-name="{{ item.product_inventory.category.name|lower if item.product_inventory and item.product_inventory.category else '' }}"
+        data-status="{% if item.quantity <= 0 %}out{% elif item.quantity <= item.min_quantity %}low{% else %}adequate{% endif %}">
+        <td>
+            {% if item.product_inventory %}
+            <div class="d-flex align-items-center">
+                 <img src="{{ item.product_inventory.image_url or url_for('static', filename='images/default_product.png') }}"
+                      alt="{{ item.product_inventory.name }}" width="40" height="40" class="rounded me-3 shadow-sm inventory-item-img" style="object-fit: cover;"> {# Thêm class inventory-item-img #}
+                 <div class="flex-grow-1">
+                     <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}" class="fw-medium text-dark text-decoration-none inventory-product-name">
+                         {{ item.product_inventory.name }}
+                     </a>
+                </div>
+            </div>
+            {% else %}
+                <span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Lỗi SP (ID: {{ item.product_id }})</span>
+            {% endif %}
+        </td>
+        <td>
+             {{ item.product_inventory.category.name if item.product_inventory and item.product_inventory.category else 'N/A' }}
+         </td>
+         <td class="text-center fw-medium inventory-quantity">{{ item.quantity }}</td>
+         <td class="text-center inventory-min-quantity">{{ item.min_quantity }}</td>
+        <td class="text-center">
+            {# Sử dụng macro status_badge đã có #}
+            {{ status_badge(
+                ('out' if item.quantity <= 0 else ('low' if item.quantity <= item.min_quantity else 'adequate')),
+                custom_classes={
+                    'out': 'badge bg-danger bg-opacity-75 text-white',
+                    'low': 'badge bg-warning text-dark',
+                    'adequate': 'badge bg-success bg-opacity-75 text-white'
+                    }
+            ) }}
+        </td>
+        <td> {# Cập nhật cuối #}
+            <span title="{{ item.last_updated if item.last_updated else item.last_restocked }}" class="small text-muted">
+                {{ (item.last_updated or item.last_restocked) | format_datetime('%d/%m/%y %H:%M') if (item.last_updated or item.last_restocked) else '--' }}
+            </span>
+        </td>
+        <td class="text-center">
+             {# Giữ nguyên các nút thao tác, dùng style nút nhỏ hơn #}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-primary" title="Cập nhật số lượng"
+                        data-bs-toggle="modal" data-bs-target="#updateStockModal"
+                        data-item-id="{{ item.id }}"
+                        data-product-name="{{ item.product_inventory.name if item.product_inventory else 'Lỗi SP' }}"
+                        data-current-quantity="{{ item.quantity }}"
+                        data-current-min-quantity="{{ item.min_quantity }}"
+                        data-update-url="{{ url_for('admin.update_inventory', inventory_id=item.id) }}"> {# Không cần params pagination nữa #}
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-outline-info" title="Xem lịch sử Nhập/Xuất"
+                        data-bs-toggle="modal" data-bs-target="#historyModal"
+                        data-item-id="{{ item.id }}"
+                        data-product-name="{{ item.product_inventory.name if item.product_inventory else 'Lỗi SP' }}">
+                    <i class="fas fa-history"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+{% else %}
+    {# Để trống, thông báo sẽ hiển thị bên ngoài tbody #}
+{% endfor %}

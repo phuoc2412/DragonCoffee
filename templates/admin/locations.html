@@ -1,0 +1,115 @@
+{# templates/admin/locations.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}{{ title }} - Quản trị viên{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Địa điểm</li>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h3 class="card-title mb-2 mb-md-0">Danh sách Địa điểm</h3>
+            <div class="d-flex align-items-center">
+                <form method="GET" action="{{ url_for('admin.locations') }}" class="me-2">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="q" class="form-control" placeholder="Tìm tên, địa chỉ, SĐT..." value="{{ search_term or '' }}">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                        {% if search_term %}
+                        <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-secondary" title="Xóa tìm kiếm"><i class="fas fa-times"></i></a>
+                        {% endif %}
+                    </div>
+                </form>
+                <a href="{{ url_for('admin.add_location') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> Thêm Địa điểm
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if locations %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên Chi nhánh</th>
+                        <th style="width: 35%;">Địa chỉ</th>
+                        <th>Điện thoại</th>
+                        <th>Giờ mở cửa</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center" style="width: 15%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for location in locations %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="fw-medium">
+                                {{ location.name }}
+                            </a>
+                        </td>
+                        <td><small>{{ location.address }}</small></td>
+                        <td>{{ location.phone or '-' }}</td>
+                        <td><small>{{ location.hours or 'Chưa cập nhật' }}</small></td>
+                        <td class="text-center">
+                            {{ status_badge(location.is_active) }}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="btn btn-outline-primary" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteLocationModal{{ location.id }}" title="Xóa">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            {# --- Modal Xác nhận Xóa --- #}
+                            <div class="modal fade" id="deleteLocationModal{{ location.id }}" tabindex="-1" aria-hidden="true">
+                              <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Xác nhận xóa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body text-start">
+                                    Bạn chắc chắn muốn xóa địa điểm <strong>{{ location.name }}</strong>?
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="{{ url_for('admin.delete_location', location_id=location.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {# --- Kết thúc Modal --- #}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+             <div class="alert alert-secondary text-center m-3 border-0">
+                 {% if search_term %}
+                     Không tìm thấy địa điểm nào khớp với '{{ search_term }}'.
+                 {% else %}
+                     Chưa có địa điểm nào được thêm. <a href="{{ url_for('admin.add_location') }}">Thêm mới?</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.locations', q=search_term, align='end') }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

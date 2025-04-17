@@ -1,0 +1,39 @@
+{
+    "product_description": [
+        "Thưởng thức {product_name}, một {adjective} đồ uống {unique_quality} của Dragon Coffee. {flavor_profile} với {texture} tuyệt vời, đây là sự lựa chọn hoàn hảo cho {occasion}.",
+        "{product_name} của chúng tôi là sự kết hợp {adjective} giữa {ingredient} và {ingredient2}, tạo nên hương vị {flavor_profile} không thể quên. Thưởng thức {serving_suggestion} để có trải nghiệm tốt nhất.",
+        "Khám phá {product_name} - {adjective} đồ uống {origin} với {unique_quality}. {product_name} được phục vụ {serving_suggestion}, mang đến trải nghiệm {sensation} cho giác quan của bạn."
+    ],
+    "promotion_announcement": [
+        "🔥 KHUYẾN MÃI ĐẶC BIỆT! 🔥\nTừ {start_date} đến {end_date}, tận hưởng {discount}% cho {product_name}. {promotion_details}. Chỉ có tại Dragon Coffee! #DragonSpecial",
+        "⚡️ ƯU ĐÃI SHOCK! ⚡️\n{promotion_name} đã trở lại! {discount}% cho {product_category} từ {start_date}. {promotion_details}. Đừng bỏ lỡ!",
+        "🎉 DEAL HOT! 🎉\nMua {product_name}, tặng {free_item}! Chương trình {promotion_details} chỉ diễn ra từ {start_date} đến {end_date}. Ghé ngay Dragon Coffee!"
+    ],
+    "social_media_post": [
+        "☕ Bạn đã thử {product_name} chưa? {adjective} đồ uống này sẽ {benefit} và {benefit2}! Ghé Dragon Coffee ngay hôm nay và được giảm {discount}% khi check-in! #DragonCoffee #CoffeeLovers",
+        "🌟 {adjective} buổi sáng bắt đầu với {product_name}! {product_description} Hôm nay chúng tôi có chương trình {promotion_details}. Đừng bỏ lỡ! #MorningBoost #DragonCoffee",
+        "✨ Trải nghiệm mới tại Dragon Coffee! {product_name} đã trở lại với {unique_quality}. {product_description} Ghé thăm chúng tôi và chia sẻ cảm nhận của bạn! #NewExperience #DragonTaste"
+    ],
+    "email_newsletter": [
+        "Chào {customer_first_name},\n\nChúng tôi rất vui được chia sẻ về {product_name} mới của Dragon Coffee! {product_description}\n\nTừ {start_date} đến {end_date}, bạn sẽ nhận được {discount}% khi đặt hàng online. Chỉ cần sử dụng mã: {promo_code}.\n\n{promotion_details}\n\nChúc bạn một ngày tuyệt vời,\nĐội ngũ Dragon Coffee",
+        "Thân gửi {customer_first_name},\n\nBạn đã sẵn sàng cho {season} cùng Dragon Coffee chưa? Chúng tôi vừa ra mắt {product_name} - {product_description}\n\nĐặc biệt, khách hàng thân thiết như bạn sẽ được {discount}% khi sử dụng mã: {promo_code} từ {start_date}.\n\n{promotion_details}\n\nCảm ơn vì đã luôn đồng hành cùng chúng tôi,\nDragon Coffee",
+        "Chào {customer_first_name},\n\nChúng tôi nhớ rằng bạn yêu thích {previous_order}. Vì vậy, chúng tôi muốn giới thiệu với bạn {product_name} mới của chúng tôi!\n\n{product_description}\n\nHôm nay, bạn có thể dùng mã: {promo_code} để được giảm {discount}% cho đơn hàng tiếp theo.\n\n{promotion_details}\n\nCảm ơn vì đã chọn Dragon Coffee,\nĐội ngũ Dragon Coffee"
+    ],
+    "blog_post": [
+        "# {blog_title}\n\n*{publication_date}*\n\n## Giới thiệu\n\n{intro_paragraph}\n\n## {product_name} - Sự kết hợp hoàn hảo\n\n{product_description}\n\n## Cách thưởng thức tốt nhất\n\n{serving_suggestion}\n\n## Kết luận\n\n{conclusion_paragraph}",
+        "# {blog_title}\n\n*{publication_date}*\n\n![{product_name}](image_url)\n\n{intro_paragraph}\n\n## Nguồn gốc của {product_name}\n\n{origin_story}\n\n## Hương vị đặc trưng\n\n{flavor_profile}\n\n## Lợi ích sức khỏe\n\n{health_benefits}\n\n## Tại sao khách hàng yêu thích {product_name}\n\n{testimonial}\n\n## Kết luận\n\n{conclusion_paragraph}"
+    ],
+    "about_us_intro": [
+        "Chào mừng bạn đến với {shop_name}! Chúng tôi tự hào là điểm đến cà phê độc đáo, nơi {theme} huyền bí hòa quyện cùng hương vị {key_feature} tinh tế. Hãy bước vào không gian {adjective} của chúng tôi để có một {experience} khó quên.",
+        "Khám phá thế giới đầy mê hoặc tại {shop_name}, quán cà phê lấy cảm hứng từ {theme}. Chúng tôi không chỉ phục vụ những ly cà phê thơm ngon nhất mà còn mang đến {key_feature} và một bầu không khí {adjective}, hứa hẹn một {experience} tuyệt vời.",
+        "Bạn đang tìm kiếm một trải nghiệm cà phê khác biệt? Ghé ngay {shop_name}! Với chủ đề {theme} đặc trưng và cam kết về {key_feature}, chúng tôi tạo ra một không gian {adjective} để bạn tận hưởng những giây phút {experience} bên ly cà phê yêu thích.",
+        "Tại {shop_name}, chúng tôi tin rằng mỗi tách cà phê là một câu chuyện. Lấy cảm hứng từ {theme}, chúng tôi mang đến {key_feature} và một không gian {adjective} được thiết kế tỉ mỉ, mời bạn đến và tự mình {experience}."
+    ],
+
+    "interesting_story": [ 
+        "Người ta kể rằng, vào những đêm trăng tròn, {artifact} của Dragon Coffee lại phát ra ánh sáng huyền ảo. Có lẽ nó ẩn chứa một bí mật nào đó từ thời xa xưa?",
+        "Bạn có biết? Đã từng có {event} tại quán, và kể từ đó, dường như không khí nơi đây trở nên ấm áp và gắn kết hơn hẳn. Đó là một kỷ niệm đẹp mà chúng tôi luôn trân trọng.",
+        "Một {customer_type} từng ngồi tại góc bàn quen thuộc và nói nhỏ với chúng tôi rằng, {secret}. Liệu điều đó có thật không nhỉ?",
+        "Ít ai biết, ly {drink_name} bạn đang thưởng thức không chỉ đơn thuần là cà phê. Nó là kết tinh của niềm đam mê và một chút phép màu từ truyền thuyết về loài rồng..."
+    ]
+}

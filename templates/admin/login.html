@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Dragon Coffee Shop - Admin Login{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="content-container"> {# Giữ lại content-container nếu base.html của bạn dùng nó để định dạng chung #}
+                <h1 class="section-title text-center mb-4">Đăng nhập Quản trị</h1> {# Thêm mb-4 #}
+
+                {# === KHỐI HIỂN THỊ FLASH MESSAGE TRỰC TIẾP === #}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="mb-3"> {# Bọc trong div để có khoảng cách #}
+                         {% for category, message in messages %}
+                            {% set alert_category = category if category in ['success', 'danger', 'info', 'warning'] else 'info' %}
+                            <div class="alert alert-{{ alert_category }} alert-dismissible fade show py-2" role="alert"> {# py-2 để alert nhỏ hơn #}
+                                {{ message }}
+                                <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button> {# py-2 cho nút close #}
+                            </div>
+                         {% endfor %}
+                         </div>
+                    {% endif %}
+                {% endwith %}
+                {# ============================================= #}
+
+                <form method="POST" action="{{ url_for('admin.login') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        <div class="input-group"> {# Thêm input-group #}
+                             <span class="input-group-text"><i class="fas fa-envelope"></i></span> {# Icon email #}
+                             {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Nhập địa chỉ email admin/nhân viên") }}
+                             {% if form.email.errors %}
+                             <div class="invalid-feedback">
+                                 {% for error in form.email.errors %} {{ error }} {% endfor %}
+                             </div>
+                             {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                         <div class="input-group"> {# Thêm input-group #}
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span> {# Icon khóa #}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Nhập mật khẩu") }}
+                            {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %} {{ error }} {% endfor %}
+                            </div>
+                             {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3"> {# Đưa remember me và quên MK lên 1 hàng #}
+                        <div class="form-check mb-0">
+                             {{ form.remember_me(class="form-check-input") }}
+                             {{ form.remember_me.label(class="form-check-label") }}
+                        </div>
+                        <div>
+                             {# === LINK QUÊN MẬT KHẨU CHO ADMIN === #}
+                             <a href="{{ url_for('admin.forgot_password') }}" class="text-decoration-none small">Quên mật khẩu?</a>
+                        </div>
+                     </div>
+
+
+                    <div class="d-grid mt-4"> {# Tăng khoảng cách trên #}
+                        {{ form.submit(class="btn btn-primary btn-lg") }} {# Làm nút to hơn #}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

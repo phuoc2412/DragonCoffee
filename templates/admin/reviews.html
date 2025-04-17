@@ -1,0 +1,224 @@
+{# templates/admin/reviews.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}Quản lý Đánh giá{% endblock %}
+{% block page_header %}Quản lý Đánh giá{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Đánh giá</li>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h3 class="card-title mb-2 mb-md-0">Danh sách Đánh giá</h3>
+            {# Form tìm kiếm (ví dụ tìm theo tên SP, tên user) #}
+            <form method="GET" action="{{ url_for('admin.manage_reviews') }}">
+                <div class="input-group input-group-sm" style="width: 350px;">
+                    <input type="text" name="q" class="form-control" placeholder="Tìm tên sản phẩm, người dùng, nội dung..." value="{{ request.args.get('q', '') }}">
+                    <select name="filter_toxic" class="form-select form-select-sm" style="max-width: 150px;">
+                         <option value="" {% if not filter_toxic %}selected{% endif %}>Tất cả trạng thái</option>
+                         <option value="toxic" {% if filter_toxic == 'toxic' %}selected{% endif %}>Bị AI Lọc</option>
+                         <option value="clean" {% if filter_toxic == 'clean' %}selected{% endif %}>Nội dung gốc</option>
+                    </select>
+                    <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                    {% if request.args.get('q') or request.args.get('filter_toxic') %}
+                    <a href="{{ url_for('admin.manage_reviews') }}" class="btn btn-outline-secondary" title="Xóa bộ lọc"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if reviews_page and reviews_page.items %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 20%;">Sản phẩm</th>
+                        <th style="width: 15%;">Người đánh giá</th>
+                        <th>Nội dung</th>
+                        <th class="text-center">Rating</th>
+                         <th class="text-center">Bị Lọc</th>
+                        <th class="text-center">Ngày</th>
+                        <th class="text-center" style="width: 12%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews_page.items %}
+                    <tr class="{{ 'table-warning' if review.is_toxic_guess else '' }}">
+                        <td>
+                            {% if review.product %}
+                                <a href="{{ url_for('admin.edit_product', product_id=review.product.id) }}" title="{{ review.product.name }}">
+                                    {{ review.product.name|truncate(30) }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">[Sản phẩm đã xóa]</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if review.author %}
+                                <div class="modal fade" id="toggleBanModal{{ review.author.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Xác nhận {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Chặn' }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-start">
+                                        Bạn chắc chắn muốn <strong>{{ 'BỎ CHẶN' if review.author.is_comment_banned else 'CHẶN' }}</strong> quyền bình luận của người dùng <strong>{{ review.author.username }}</strong>?
+                                        {% if not review.author.is_comment_banned %}
+                                        <p class="small text-muted mt-2">Người dùng này hiện có {{ review.author.review_warning_count }} cảnh báo.</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                        {# ====> SỬA url_for Ở ĐÂY <==== #}
+                                        <form action="{{ url_for('admin.toggle_user_comment_ban', user_id=review.author.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn {{ 'btn-success' if review.author.is_comment_banned else 'btn-warning' }} btn-sm">
+                                                {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Xác nhận Chặn' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
+                                {% endif %}
+                        </td>
+                        <td>
+                            {% if review.is_toxic_guess %}
+                                <strong class="text-danger">{{ review.content | truncate(100) }}</strong>
+                                {% if review.original_content %}
+                                    <a href="#" data-bs-toggle="popover" title="Nội dung gốc (Đã lọc)" data-bs-content="{{ review.original_content|e }}" data-bs-placement="top">
+                                        <i class="fas fa-eye-slash ms-1 text-warning"></i>
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {{ review.content|truncate(100) }}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if review.rating %}{{ review.rating }} <i class="fas fa-star text-warning"></i>{% else %}N/A{% endif %}
+                        </td>
+                         <td class="text-center">
+                             {% if review.is_toxic_guess %}
+                                 <i class="fas fa-check-circle text-danger" title="Đã bị AI lọc"></i>
+                             {% else %}
+                                 <i class="fas fa-minus-circle text-muted" title="Nội dung gốc"></i>
+                             {% endif %}
+                         </td>
+                        <td class="text-center"><small>{{ review.created_at.strftime('%d/%m/%y %H:%M') }}</small></td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                {# Nút Xóa #}
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ review.id }}" title="Xóa đánh giá">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                {# Nút Duyệt (chỉ hiện khi đang pending) #}
+                                {% if review.status == 'pending' %}
+                                <form action="{{ url_for('admin.update_review_status', review_id=review.id) }}" method="POST" class="d-inline">
+                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                     <input type="hidden" name="status" value="approved">
+                                     <button type="submit" class="btn btn-outline-success" title="Duyệt đánh giá này">
+                                         <i class="fas fa-check"></i>
+                                     </button>
+                                 </form>
+                                 {# Nút Từ chối (chỉ hiện khi đang pending) #}
+                                 <form action="{{ url_for('admin.update_review_status', review_id=review.id) }}" method="POST" class="d-inline">
+                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                     <input type="hidden" name="status" value="rejected">
+                                     <button type="submit" class="btn btn-outline-secondary" title="Từ chối đánh giá này">
+                                         <i class="fas fa-times"></i>
+                                     </button>
+                                 </form>
+                                {% endif %}
+                                 {# Nút Chặn User (giữ nguyên) #}
+                                 {% if review.author %} {# ... code nút chặn user ... #} {% endif %}
+                            </div>
+
+                             {# --- Modal Xóa Review --- #}
+                             <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-hidden="true">
+                              <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Xác nhận xóa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                  </div>
+                                  <div class="modal-body text-start">
+                                    Xóa đánh giá của <strong>{{ review.author.username if review.author else 'Ẩn danh' }}</strong> cho sản phẩm "{{ review.product.name if review.product else 'N/A' }}"?
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="{{ url_for('admin.delete_review', review_id=review.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {# --- Modal Cấm/Bỏ cấm User --- #}
+                            {% if review.author %}
+                            <div class="modal fade" id="toggleBanModal{{ review.author.id }}" tabindex="-1" aria-hidden="true">
+                              <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Xác nhận {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Chặn' }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                  </div>
+                                  <div class="modal-body text-start">
+                                    Bạn chắc chắn muốn <strong>{{ 'BỎ CHẶN' if review.author.is_comment_banned else 'CHẶN' }}</strong> quyền bình luận của người dùng <strong>{{ review.author.username }}</strong>?
+                                    {% if not review.author.is_comment_banned %}
+                                      <p class="small text-muted mt-2">Người dùng này hiện có {{ review.author.review_warning_count }} cảnh báo.</p>
+                                    {% endif %}
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="{{ url_for('admin.toggle_comment_ban', user_id=review.author.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn {{ 'btn-success' if review.author.is_comment_banned else 'btn-warning' }} btn-sm">
+                                            {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Xác nhận Chặn' }}
+                                        </button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="alert alert-light text-center m-3 border-0">
+                Không tìm thấy đánh giá nào.
+            </div>
+        {% endif %}
+    </div>
+    {% if reviews_page and reviews_page.pages > 1 %}
+    <div class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(reviews_page, 'admin.manage_reviews', q=request.args.get('q', ''), filter_toxic=request.args.get('filter_toxic'), align='end') }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ super() }}
+    {# Khởi tạo Popover (Bootstrap 5) #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl, { html: true, sanitize: false }); // Cho phép HTML, tắt sanitize nếu cần
+            });
+        });
+    </script>
+{% endblock %}

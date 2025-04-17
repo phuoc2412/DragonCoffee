@@ -1,59 +1,61 @@
+# /ai_services/content_generator.py
+
 """
-Dragon Coffee Shop - Content Generator
-This module generates marketing content, product descriptions, and promotional materials.
+Dragon Coffee Shop - Content Generator (Template-Based Only)
+This module generates marketing content, product descriptions, etc., using ONLY predefined templates.
 """
 
 import random
 import re
-import numpy as np
-from datetime import datetime, timedelta
 import os
 import json
-
-# Try to use OpenAI if available, or fall back to rule-based generation
-try:
-    from openai import OpenAI
-    openai_available = True
-except ImportError:
-    openai_available = False
+from flask import current_app # Để ghi log
+import logging # Dùng logging cơ bản nếu không có app context
+from datetime import datetime, timedelta
 
 class ContentGenerator:
     def __init__(self):
-        """Initialize content generator"""
-        # Templates directory
-        self.templates_dir = 'ai_services/data'
+        """Initialize template-based content generator"""
+        self.logger = self._get_logger() # Lấy logger
+        self.templates_dir = os.path.join(os.path.dirname(__file__), 'data')
         os.makedirs(self.templates_dir, exist_ok=True)
-        
-        # Load templates
+        self.templates_path = os.path.join(self.templates_dir, 'content_templates.json')
         self.templates = self.load_templates()
-        
-        # Initialize OpenAI client if available
-        self.openai_client = None
-        if openai_available:
-            try:
-                api_key = os.environ.get('OPENAI_API_KEY')
-                if api_key:
-                    self.openai_client = OpenAI(api_key=api_key)
-            except Exception as e:
-                print(f"Error initializing OpenAI client: {e}")
-    
-    def load_templates(self):
-        """Load content templates from file or create defaults"""
-        templates_path = os.path.join(self.templates_dir, 'content_templates.json')
-        
-        if os.path.exists(templates_path):
-            try:
-                with open(templates_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                return self.create_default_templates()
+        self.logger.info("Template-based ContentGenerator initialized.")
+
+    def _get_logger(self):
+        """Helper to get logger safely."""
+        if current_app:
+            return current_app.logger
         else:
-            return self.create_default_templates()
-    
+            logger = logging.getLogger('content_generator')
+            if not logger.hasHandlers():
+                 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - CONTENT_GEN - %(message)s')
+            # logger.info("ContentGenerator logger initialized outside Flask context.")
+            return logger
+
+    def load_templates(self):
+        """Load content templates from file or create defaults."""
+        if os.path.exists(self.templates_path):
+            try:
+                with open(self.templates_path, 'r', encoding='utf-8') as f:
+                    templates = json.load(f)
+                    self.logger.info(f"Loaded templates from {self.templates_path}")
+                    return templates
+            except Exception as e:
+                self.logger.error(f"Error loading templates file: {e}. Using defaults.", exc_info=True)
+                # Fall through to create defaults
+        else:
+            self.logger.warning(f"Templates file not found at {self.templates_path}. Creating defaults.")
+
+        return self.create_default_templates() # Create defaults if load fails or file not found
+
+
     def create_default_templates(self):
-        """Create default content templates"""
+        """Create default content templates (nội dung template giữ nguyên như cũ)."""
+        self.logger.info("Creating default content templates structure.")
         templates = {
-            'product_description': [
+             'product_description': [
                 "Thưởng thức {product_name}, một {adjective} đồ uống {unique_quality} của Dragon Coffee. {flavor_profile} với {texture} tuyệt vời, đây là sự lựa chọn hoàn hảo cho {occasion}.",
                 "{product_name} của chúng tôi là sự kết hợp {adjective} giữa {ingredient} và {ingredient2}, tạo nên hương vị {flavor_profile} không thể quên. Thưởng thức {serving_suggestion} để có trải nghiệm tốt nhất.",
                 "Khám phá {product_name} - {adjective} đồ uống {origin} với {unique_quality}. {product_name} được phục vụ {serving_suggestion}, mang đến trải nghiệm {sensation} cho giác quan của bạn."
@@ -70,396 +72,206 @@ class ContentGenerator:
             ],
             'email_newsletter': [
                 "Chào {customer_first_name},\n\nChúng tôi rất vui được chia sẻ về {product_name} mới của Dragon Coffee! {product_description}\n\nTừ {start_date} đến {end_date}, bạn sẽ nhận được {discount}% khi đặt hàng online. Chỉ cần sử dụng mã: {promo_code}.\n\n{promotion_details}\n\nChúc bạn một ngày tuyệt vời,\nĐội ngũ Dragon Coffee",
-                "Thân gửi {customer_first_name},\n\nBạn đã sẵn sàng cho {season} cùng Dragon Coffee chưa? Chúng tôi vừa ra mắt {product_name} - {product_description}\n\nĐặc biệt, khách hàng thân thiết như bạn sẽ được {discount}% khi sử dụng mã: {promo_code} từ {start_date}.\n\n{promotion_details}\n\nCảm ơn vì đã luôn đồng hành cùng chúng tôi,\nDragon Coffee",
-                "Chào {customer_first_name},\n\nChúng tôi nhớ rằng bạn yêu thích {previous_order}. Vì vậy, chúng tôi muốn giới thiệu với bạn {product_name} mới của chúng tôi!\n\n{product_description}\n\nHôm nay, bạn có thể dùng mã: {promo_code} để được giảm {discount}% cho đơn hàng tiếp theo.\n\n{promotion_details}\n\nCảm ơn vì đã chọn Dragon Coffee,\nĐội ngũ Dragon Coffee"
+                # ... (Thêm các template email khác nếu cần) ...
             ],
-            'blog_post': [
-                "# {blog_title}\n\n*{publication_date}*\n\n## Giới thiệu\n\n{intro_paragraph}\n\n## {product_name} - Sự kết hợp hoàn hảo\n\n{product_description}\n\n## Cách thưởng thức tốt nhất\n\n{serving_suggestion}\n\n## Kết luận\n\n{conclusion_paragraph}",
-                "# {blog_title}\n\n*{publication_date}*\n\n![{product_name}](image_url)\n\n{intro_paragraph}\n\n## Nguồn gốc của {product_name}\n\n{origin_story}\n\n## Hương vị đặc trưng\n\n{flavor_profile}\n\n## Lợi ích sức khỏe\n\n{health_benefits}\n\n## Tại sao khách hàng yêu thích {product_name}\n\n{testimonial}\n\n## Kết luận\n\n{conclusion_paragraph}"
+             "about_us_intro": [
+                "Chào mừng bạn đến với {shop_name}! Chúng tôi tự hào là điểm đến cà phê độc đáo, nơi {theme} huyền bí hòa quyện cùng hương vị {key_feature} tinh tế. Hãy bước vào không gian {adjective} của chúng tôi để có một {experience} khó quên.",
+                "Khám phá thế giới đầy mê hoặc tại {shop_name}, quán cà phê lấy cảm hứng từ {theme}. Chúng tôi không chỉ phục vụ những ly cà phê thơm ngon nhất mà còn mang đến {key_feature} và một bầu không khí {adjective}, hứa hẹn một {experience} tuyệt vời.",
+            ],
+             "interesting_story": [
+                "Người ta kể rằng, vào những đêm trăng tròn, {artifact} của Dragon Coffee lại phát ra ánh sáng huyền ảo.",
+                "Đã từng có {event} tại quán, và kể từ đó, không khí nơi đây trở nên ấm áp hơn hẳn.",
+                "Một {customer_type} từng nói nhỏ với chúng tôi rằng, {secret}.",
+                "Ít ai biết, ly {drink_name} bạn đang thưởng thức không chỉ đơn thuần là cà phê..."
             ]
+             # ... (Thêm các key template khác bạn cần) ...
         }
-        
-        # Save templates
-        templates_path = os.path.join(self.templates_dir, 'content_templates.json')
+        # Cố gắng lưu file default
         try:
-            with open(templates_path, 'w', encoding='utf-8') as f:
+            os.makedirs(os.path.dirname(self.templates_path), exist_ok=True)
+            with open(self.templates_path, 'w', encoding='utf-8') as f:
                 json.dump(templates, f, ensure_ascii=False, indent=4)
+            self.logger.info(f"Saved default templates to {self.templates_path}")
         except Exception as e:
-            print(f"Error saving templates: {e}")
-        
+            self.logger.error(f"Could not save default templates: {e}")
         return templates
-    
+
+    def fill_template(self, template_key, data, default_data):
+        """Fills a template using provided data and defaults."""
+        self.logger.debug(f"Filling template '{template_key}' with data: {data}")
+        templates_list = self.templates.get(template_key)
+        if not templates_list:
+            self.logger.error(f"Template key '{template_key}' not found in loaded templates.")
+            return f"Lỗi: Không tìm thấy mẫu nội dung cho '{template_key}'." # Trả về lỗi rõ ràng
+
+        if not isinstance(templates_list, list) or not templates_list:
+             self.logger.error(f"Template for '{template_key}' is not a valid list or is empty.")
+             return f"Lỗi: Mẫu nội dung cho '{template_key}' không hợp lệ."
+
+        template = random.choice(templates_list)
+        context = {**default_data, **data} # Ưu tiên data được truyền vào
+
+        try:
+            # Tìm placeholders dạng {key}
+            placeholders = re.findall(r'{(\w+)}', template)
+            # Tạo context cuối cùng, chỉ giữ lại các key có trong placeholder
+            final_context = {k: context.get(k, f"[{k.upper()}]") for k in placeholders} # Hiển thị placeholder nếu thiếu data
+
+            filled_template = template.format(**final_context)
+            # self.logger.debug(f"Filled template for '{template_key}': '{filled_template[:100]}...'")
+            return filled_template
+        except KeyError as ke:
+            self.logger.error(f"Missing key '{ke}' while formatting template '{template_key}'. Context: {context}")
+            return f"Lỗi tạo nội dung (thiếu: {ke})"
+        except Exception as format_e:
+            self.logger.error(f"Error formatting template '{template_key}': {format_e}", exc_info=True)
+            return f"Lỗi xử lý mẫu nội dung '{template_key}'."
+
+
+    # --- Các hàm generate_* giờ chỉ gọi fill_template ---
+
     def generate_product_description(self, product_data):
-        """Generate a product description"""
-        # Try OpenAI first if available
-        if self.openai_client:
-            try:
-                openai_result = self.generate_with_openai(
-                    "product_description", product_data
-                )
-                if openai_result:
-                    return openai_result
-            except Exception as e:
-                print(f"Error using OpenAI for product description: {e}")
-        
-        # Fall back to template-based generation
-        try:
-            # Select a random template
-            template = random.choice(self.templates['product_description'])
-            
-            # Add default values for missing fields
-            defaults = {
-                'product_name': product_data.get('name', 'Đồ uống đặc biệt'),
-                'adjective': random.choice(['thơm ngon', 'tuyệt vời', 'đặc biệt', 'độc đáo', 'hấp dẫn']),
-                'unique_quality': random.choice(['độc đáo', 'đặc trưng', 'khó cưỡng', 'đậm đà']),
-                'flavor_profile': random.choice(['Hương vị đậm đà', 'Vị ngọt tinh tế', 'Hương thơm quyến rũ']),
-                'texture': random.choice(['độ mịn', 'bọt kem', 'sự hòa quyện', 'lớp topping']),
-                'occasion': random.choice(['buổi sáng tràn đầy năng lượng', 'giây phút thư giãn', 'cuộc họp đầu ngày']),
-                'ingredient': random.choice(['hạt cà phê Arabica', 'trà xanh thượng hạng', 'sô-cô-la Bỉ']),
-                'ingredient2': random.choice(['sữa tươi', 'kem tươi', 'caramel', 'bạc hà']),
-                'serving_suggestion': random.choice(['nóng', 'đá', 'với bánh ngọt', 'vào buổi sáng']),
-                'origin': random.choice(['Việt Nam', 'Á Đông', 'truyền thống', 'hiện đại']),
-                'sensation': random.choice(['thư giãn', 'sảng khoái', 'hài lòng', 'khó quên'])
-            }
-            
-            # Merge provided data with defaults
-            context = {**defaults, **product_data}
-            
-            # Fill template with context
-            description = template
-            for key, value in context.items():
-                pattern = '{' + key + '}'
-                description = description.replace(pattern, str(value))
-            
-            return description
-        except Exception as e:
-            print(f"Error generating product description: {e}")
-            return f"Thưởng thức {product_data.get('name', 'đồ uống đặc biệt')} tại Dragon Coffee."
-    
+        self.logger.info(f"Generating product description for '{product_data.get('name')}' using TEMPLATE ONLY.")
+        defaults = {
+            'product_name': 'Sản phẩm', 'adjective': 'đặc biệt', 'unique_quality': ' độc đáo',
+            'flavor_profile': 'hương vị khó quên', 'texture': 'kết cấu mịn màng',
+            'occasion': 'mọi dịp', 'ingredient': 'nguyên liệu chọn lọc',
+            'ingredient2': 'công thức bí truyền', 'serving_suggestion': 'khi dùng lạnh',
+            'origin': 'từ Dragon Coffee', 'sensation': 'tuyệt vời'
+        }
+        return self.fill_template('product_description', product_data, defaults)
+
     def generate_promotion(self, promotion_data):
-        """Generate a promotion announcement"""
-        # Try OpenAI first if available
-        if self.openai_client:
-            try:
-                openai_result = self.generate_with_openai(
-                    "promotion_announcement", promotion_data
-                )
-                if openai_result:
-                    return openai_result
-            except Exception as e:
-                print(f"Error using OpenAI for promotion: {e}")
-        
-        # Fall back to template-based generation
-        try:
-            # Select a random template
-            template = random.choice(self.templates['promotion_announcement'])
-            
-            # Format dates
-            start_date = promotion_data.get('start_date')
-            if isinstance(start_date, str):
-                try:
-                    start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-                except:
-                    start_date = start_date
-            elif isinstance(start_date, datetime):
-                start_date = start_date.strftime('%d/%m/%Y')
-            
-            end_date = promotion_data.get('end_date')
-            if isinstance(end_date, str):
-                try:
-                    end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-                except:
-                    end_date = end_date
-            elif isinstance(end_date, datetime):
-                end_date = end_date.strftime('%d/%m/%Y')
-            
-            # Add default values for missing fields
-            defaults = {
-                'promotion_name': promotion_data.get('name', 'Khuyến mãi đặc biệt'),
-                'discount': promotion_data.get('discount_percent', '20'),
-                'product_name': random.choice(['Cà phê Dragon', 'Trà sữa Phượng Hoàng', 'Cappuccino Rồng Vàng']),
-                'product_category': random.choice(['tất cả đồ uống', 'cà phê', 'trà', 'đồ uống đặc biệt']),
-                'promotion_details': random.choice(['Áp dụng cho mọi chi nhánh', 'Chỉ áp dụng khi đặt hàng online', 'Giới hạn 1 ly/khách hàng']),
-                'start_date': start_date or 'hôm nay',
-                'end_date': end_date or 'cuối tháng',
-                'free_item': random.choice(['bánh quy', 'bánh ngọt', 'upsize miễn phí', 'topping thêm'])
-            }
-            
-            # Merge provided data with defaults
-            context = {**defaults, **promotion_data}
-            
-            # Fill template with context
-            announcement = template
-            for key, value in context.items():
-                pattern = '{' + key + '}'
-                announcement = announcement.replace(pattern, str(value))
-            
-            return announcement
-        except Exception as e:
-            print(f"Error generating promotion: {e}")
-            return f"KHUYẾN MÃI! {promotion_data.get('discount_percent', '20')}% cho {promotion_data.get('name', 'đồ uống')}. Chỉ tại Dragon Coffee!"
-    
+        self.logger.info(f"Generating promotion announcement for '{promotion_data.get('name')}' using TEMPLATE ONLY.")
+        defaults = {
+             'promotion_name': 'KM Đặc Biệt', 'discount': '10', 'product_name': 'Đồ uống bất kỳ',
+             'product_category': 'sản phẩm', 'promotion_details': 'Áp dụng tại quán.',
+             'start_date': 'Hôm nay', 'end_date': 'Sớm thôi',
+             'free_item': 'quà tặng nhỏ'
+        }
+        # Format date nếu cần
+        if isinstance(promotion_data.get('start_date'), datetime):
+             promotion_data['start_date'] = promotion_data['start_date'].strftime('%d/%m')
+        if isinstance(promotion_data.get('end_date'), datetime):
+             promotion_data['end_date'] = promotion_data['end_date'].strftime('%d/%m/%Y')
+
+        return self.fill_template('promotion_announcement', promotion_data, defaults)
+
     def generate_social_post(self, post_data):
-        """Generate a social media post"""
-        # Try OpenAI first if available
-        if self.openai_client:
-            try:
-                openai_result = self.generate_with_openai(
-                    "social_media_post", post_data
-                )
-                if openai_result:
-                    return openai_result
-            except Exception as e:
-                print(f"Error using OpenAI for social post: {e}")
-        
-        # Fall back to template-based generation
-        try:
-            # Select a random template
-            template = random.choice(self.templates['social_media_post'])
-            
-            # Add default values for missing fields
-            defaults = {
-                'product_name': post_data.get('product_name', 'Đồ uống Dragon'),
-                'adjective': random.choice(['Tuyệt vời', 'Tràn đầy năng lượng', 'Mới mẻ', 'Thư giãn']),
-                'benefit': random.choice(['đánh thức vị giác', 'tiếp thêm năng lượng', 'làm dịu tâm hồn']),
-                'benefit2': random.choice(['mang đến cảm giác sảng khoái', 'tạo cảm hứng cho ngày mới', 'làm cuộc sống thêm thú vị']),
-                'discount': random.choice(['10', '15', '20']),
-                'product_description': post_data.get('product_description', 'Đồ uống độc đáo với hương vị khó cưỡng.'),
-                'promotion_details': random.choice(['mua 1 tặng 1', 'giảm giá đặc biệt', 'quà tặng bất ngờ']),
-                'unique_quality': random.choice(['hương vị mới', 'công thức cải tiến', 'nguyên liệu cao cấp'])
-            }
-            
-            # Merge provided data with defaults
-            context = {**defaults, **post_data}
-            
-            # Fill template with context
-            post = template
-            for key, value in context.items():
-                pattern = '{' + key + '}'
-                post = post.replace(pattern, str(value))
-            
-            return post
-        except Exception as e:
-            print(f"Error generating social post: {e}")
-            return f"☕ Thưởng thức {post_data.get('product_name', 'đồ uống Dragon')} tại Dragon Coffee! #DragonCoffee"
-    
+        self.logger.info(f"Generating social post for '{post_data.get('product_name')}' using TEMPLATE ONLY.")
+        defaults = {
+             'product_name': 'Món Mới', 'adjective': 'Tuyệt hảo', 'benefit': 'thêm năng lượng',
+             'benefit2': 'cho ngày mới', 'discount': '5',
+             'product_description': 'Hãy thử ngay!', 'promotion_details': 'ưu đãi hấp dẫn.',
+             'unique_quality': 'vị ngon khó cưỡng'
+        }
+        return self.fill_template('social_media_post', post_data, defaults)
+
     def generate_email(self, email_data):
-        """Generate an email newsletter"""
-        # Try OpenAI first if available
-        if self.openai_client:
-            try:
-                openai_result = self.generate_with_openai(
-                    "email_newsletter", email_data
-                )
-                if openai_result:
-                    return openai_result
-            except Exception as e:
-                print(f"Error using OpenAI for email: {e}")
-        
-        # Fall back to template-based generation
-        try:
-            # Select a random template
-            template = random.choice(self.templates['email_newsletter'])
-            
-            # Format dates
-            start_date = email_data.get('start_date')
-            if isinstance(start_date, str):
-                try:
-                    start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-                except:
-                    start_date = start_date
-            elif isinstance(start_date, datetime):
-                start_date = start_date.strftime('%d/%m/%Y')
-            
-            end_date = email_data.get('end_date')
-            if isinstance(end_date, str):
-                try:
-                    end_date = datetime.strptime(end_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-                except:
-                    end_date = end_date
-            elif isinstance(end_date, datetime):
-                end_date = end_date.strftime('%d/%m/%Y')
-            
-            # Generate promo code if not provided
-            promo_code = email_data.get('promo_code')
-            if not promo_code:
-                promo_code = f"DRAGON{random.randint(1000, 9999)}"
-            
-            # Add default values for missing fields
-            defaults = {
-                'customer_first_name': email_data.get('customer_name', 'Quý khách'),
-                'product_name': email_data.get('product_name', 'Đồ uống Dragon đặc biệt'),
-                'product_description': email_data.get('product_description', 'Đồ uống độc đáo với hương vị khó cưỡng.'),
-                'discount': email_data.get('discount', '15'),
-                'promo_code': promo_code,
-                'start_date': start_date or 'hôm nay',
-                'end_date': end_date or 'cuối tháng',
-                'promotion_details': email_data.get('promotion_details', 'Chương trình áp dụng cho mọi chi nhánh Dragon Coffee.'),
-                'season': random.choice(['mùa hè', 'mùa thu', 'mùa đông', 'mùa xuân']),
-                'previous_order': random.choice(['Cà phê Dragon', 'Trà sữa Phượng Hoàng', 'Cappuccino Rồng Vàng'])
-            }
-            
-            # Merge provided data with defaults
-            context = {**defaults, **email_data}
-            
-            # Fill template with context
-            email = template
-            for key, value in context.items():
-                pattern = '{' + key + '}'
-                email = email.replace(pattern, str(value))
-            
-            return email
-        except Exception as e:
-            print(f"Error generating email: {e}")
-            return f"Chào {email_data.get('customer_name', 'Quý khách')},\n\nChúng tôi xin giới thiệu {email_data.get('product_name', 'đồ uống mới')} tại Dragon Coffee.\n\nTrân trọng,\nĐội ngũ Dragon Coffee"
-    
+        self.logger.info(f"Generating email for '{email_data.get('customer_first_name')}' using TEMPLATE ONLY.")
+        defaults = {
+            'customer_first_name': 'Bạn', 'product_name': 'Ưu đãi mới',
+            'product_description': 'Nhiều món ngon đang chờ.', 'discount': '10',
+            'promo_code': f"DRAGON{random.randint(100,999)}", 'start_date': 'Hiện tại',
+            'end_date': 'Sắp hết hạn', 'promotion_details': 'Đặt hàng ngay!',
+            'season': 'mùa này', 'previous_order': 'món bạn thích'
+        }
+        # Format date
+        if isinstance(email_data.get('start_date'), datetime): email_data['start_date'] = email_data['start_date'].strftime('%d/%m/%Y')
+        if isinstance(email_data.get('end_date'), datetime): email_data['end_date'] = email_data['end_date'].strftime('%d/%m/%Y')
+
+        return self.fill_template('email_newsletter', email_data, defaults)
+
+    # Blog post generator có thể phức tạp, template có thể chưa đủ, nhưng vẫn tạo fallback
     def generate_blog_post(self, blog_data):
-        """Generate a blog post about a product"""
-        # Try OpenAI first if available
-        if self.openai_client:
-            try:
-                openai_result = self.generate_with_openai(
-                    "blog_post", blog_data
-                )
-                if openai_result:
-                    return openai_result
-            except Exception as e:
-                print(f"Error using OpenAI for blog post: {e}")
-        
-        # Fall back to template-based generation
-        try:
-            # Select a random template
-            template = random.choice(self.templates['blog_post'])
-            
-            # Format publication date
-            publication_date = blog_data.get('publication_date')
-            if not publication_date:
-                publication_date = datetime.now().strftime('%d/%m/%Y')
-            elif isinstance(publication_date, datetime):
-                publication_date = publication_date.strftime('%d/%m/%Y')
-            
-            # Generate blog title if not provided
-            blog_title = blog_data.get('blog_title')
-            if not blog_title:
-                product_name = blog_data.get('product_name', 'Đồ uống Dragon')
-                blog_title = f"Khám phá {product_name}: Hành trình hương vị đặc biệt"
-            
-            # Add default values for missing fields
-            defaults = {
-                'blog_title': blog_title,
-                'publication_date': publication_date,
-                'product_name': blog_data.get('product_name', 'Đồ uống Dragon'),
-                'intro_paragraph': blog_data.get('intro_paragraph', 
-                    f"Dragon Coffee tự hào giới thiệu {blog_data.get('product_name', 'đồ uống đặc biệt')} - một trải nghiệm hương vị độc đáo mà chúng tôi muốn chia sẻ với bạn. Trong bài viết này, chúng tôi sẽ khám phá những điều đặc biệt về sản phẩm này."),
-                'product_description': blog_data.get('product_description', 
-                    f"{blog_data.get('product_name', 'Đồ uống này')} được chế biến từ những nguyên liệu tươi ngon nhất, tạo nên hương vị đậm đà và khó quên. Sự kết hợp tinh tế giữa các thành phần tạo nên một đồ uống hoàn hảo cho mọi thời điểm trong ngày."),
-                'serving_suggestion': blog_data.get('serving_suggestion',
-                    f"Để thưởng thức {blog_data.get('product_name', 'đồ uống')} một cách trọn vẹn nhất, chúng tôi khuyên bạn nên uống khi còn nóng/lạnh. Bạn có thể kết hợp với bánh ngọt hoặc bánh mặn để có trải nghiệm ẩm thực trọn vẹn."),
-                'conclusion_paragraph': blog_data.get('conclusion_paragraph',
-                    f"Hãy ghé thăm Dragon Coffee để thưởng thức {blog_data.get('product_name', 'đồ uống đặc biệt')} và nhiều lựa chọn tuyệt vời khác. Chúng tôi luôn cam kết mang đến cho khách hàng những trải nghiệm ẩm thực tuyệt vời nhất."),
-                'origin_story': blog_data.get('origin_story',
-                    f"{blog_data.get('product_name', 'Đồ uống này')} có nguồn gốc từ những công thức truyền thống, được cải tiến bởi các barista tài năng của Dragon Coffee. Chúng tôi đã nghiên cứu và phát triển công thức này trong nhiều tháng để đạt được hương vị hoàn hảo."),
-                'flavor_profile': blog_data.get('flavor_profile',
-                    f"{blog_data.get('product_name', 'Đồ uống này')} có hương vị đậm đà, với notes của chocolate và caramel. Vị ngọt vừa phải kết hợp với độ đắng tinh tế tạo nên sự cân bằng hoàn hảo."),
-                'health_benefits': blog_data.get('health_benefits',
-                    "Bên cạnh hương vị tuyệt vời, đồ uống này còn cung cấp nhiều lợi ích cho sức khỏe. Các thành phần tự nhiên giúp tăng cường năng lượng, cải thiện tâm trạng và hỗ trợ hệ tiêu hóa."),
-                'testimonial': blog_data.get('testimonial',
-                    '"Tôi hoàn toàn bị chinh phục bởi hương vị đặc biệt này. Mỗi ngày tôi đều ghé Dragon Coffee để thưởng thức." - Một khách hàng thân thiết')
-            }
-            
-            # Merge provided data with defaults
-            context = {**defaults, **blog_data}
-            
-            # Fill template with context
-            blog_post = template
-            for key, value in context.items():
-                pattern = '{' + key + '}'
-                blog_post = blog_post.replace(pattern, str(value))
-            
-            return blog_post
-        except Exception as e:
-            print(f"Error generating blog post: {e}")
-            return f"# {blog_data.get('blog_title', 'Đồ uống Dragon')}\n\nGiới thiệu về {blog_data.get('product_name', 'đồ uống đặc biệt')} tại Dragon Coffee."
-    
-    def generate_with_openai(self, content_type, data):
-        """Generate content using OpenAI"""
-        if not self.openai_client:
-            return None
-        
-        try:
-            # Map content types to prompts
-            prompts = {
-                "product_description": f"Hãy viết một mô tả hấp dẫn cho sản phẩm {data.get('name', 'đồ uống')} tại quán cà phê Dragon Coffee. Sản phẩm có giá {data.get('price', '')}. Đây là một quán cà phê với chủ đề rồng châu Á. Viết bằng tiếng Việt, độ dài khoảng 2-3 câu.",
-                
-                "promotion_announcement": f"Hãy viết một thông báo khuyến mãi hấp dẫn cho {data.get('name', 'chương trình khuyến mãi')} tại quán cà phê Dragon Coffee. Khuyến mãi giảm {data.get('discount_percent', '20')}% và diễn ra từ {data.get('start_date', 'hôm nay')} đến {data.get('end_date', 'cuối tháng')}. Viết bằng tiếng Việt, ngắn gọn và thu hút, phù hợp đăng trên mạng xã hội.",
-                
-                "social_media_post": f"Hãy viết một bài đăng mạng xã hội ngắn gọn, hấp dẫn về {data.get('product_name', 'sản phẩm')} tại quán cà phê Dragon Coffee. Sản phẩm có đặc điểm: {data.get('product_description', 'đồ uống độc đáo')}. Viết bằng tiếng Việt, thêm emoji phù hợp và hashtag.",
-                
-                "email_newsletter": f"Hãy viết một email ngắn gửi đến khách hàng {data.get('customer_name', 'quý khách')} để giới thiệu về {data.get('product_name', 'sản phẩm mới')} tại quán cà phê Dragon Coffee. Email có mã giảm giá {data.get('promo_code', 'DRAGON2023')} giảm {data.get('discount', '15')}%. Viết bằng tiếng Việt, lịch sự và chuyên nghiệp.",
-                
-                "blog_post": f"Hãy viết một bài blog chi tiết về {data.get('product_name', 'sản phẩm')} tại quán cà phê Dragon Coffee. Bài viết nên bao gồm giới thiệu, mô tả sản phẩm, nguồn gốc, hương vị, và kết luận. Hãy viết bằng tiếng Việt, với định dạng Markdown, độ dài khoảng 300-500 từ."
-            }
-            
-            prompt = prompts.get(content_type)
-            if not prompt:
-                return None
-            
-            # Call OpenAI API
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-                messages=[
-                    {"role": "system", "content": "Bạn là một chuyên gia marketing cho quán cà phê Dragon Coffee, một quán cà phê với phong cách châu Á và hình ảnh rồng. Hãy viết nội dung marketing hấp dẫn bằng tiếng Việt."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500
-            )
-            
-            return response.choices[0].message.content
-        except Exception as e:
-            print(f"Error generating content with OpenAI: {e}")
-            return None
+         self.logger.info(f"Generating blog post titled '{blog_data.get('blog_title')}' using TEMPLATE ONLY.")
+         defaults = {
+             'blog_title': blog_data.get('product_name', 'Bài viết mới'),
+             'publication_date': datetime.now().strftime('%d/%m/%Y'),
+             'product_name': 'Sản phẩm Đặc Biệt',
+             'intro_paragraph': 'Giới thiệu về chủ đề...',
+             'product_description': 'Mô tả chi tiết...',
+             'serving_suggestion': 'Cách thưởng thức...',
+             'conclusion_paragraph': 'Kết luận.',
+             'origin_story': 'Câu chuyện nguồn gốc...',
+             'flavor_profile': 'Hương vị ra sao...',
+             'health_benefits': 'Lợi ích...',
+             'testimonial': '"Khách hàng nói..."',
+             'image_url': '#'
+         }
+         # Format date nếu cần
+         pub_date = blog_data.get('publication_date')
+         if isinstance(pub_date, datetime): blog_data['publication_date'] = pub_date.strftime('%d/%m/%Y')
+
+         return self.fill_template('blog_post', blog_data, defaults)
 
 
-# Singleton instance
+    def generate_about_us_intro(self, shop_data):
+        self.logger.info(f"Generating 'About Us' intro for '{shop_data.get('shop_name')}' using TEMPLATE ONLY.")
+        defaults = {
+             'shop_name': 'Dragon Coffee', 'theme': 'độc đáo', 'key_feature': 'chất lượng tuyệt hảo',
+             'adjective': 'ấm cúng', 'experience': 'thú vị'
+        }
+        return self.fill_template('about_us_intro', shop_data, defaults)
+
+
+    def generate_interesting_story(self, story_data=None):
+        """Generates an interesting story using templates."""
+        self.logger.info("Generating interesting story using TEMPLATE ONLY.")
+        if story_data is None: story_data = {}
+        defaults = {
+            'artifact': 'chiếc ấm cổ', 'event': 'một buổi chiều mưa',
+            'drink_name': 'Cà Phê Rồng', 'customer_type': 'vị khách quen',
+            'secret': 'có một công thức bí mật.'
+        }
+        # Logic format drink_name trong secret nếu cần
+        if '{drink_name}' in defaults.get('secret',''):
+             drink = story_data.get('drink_name', defaults['drink_name'])
+             defaults['secret'] = defaults['secret'].format(drink_name=drink)
+
+        return self.fill_template('interesting_story', story_data, defaults)
+
+# --- Singleton instance ---
 content_generator = None
 
 def init_content_generator():
-    """Initialize the content generator"""
+    """Initialize the template-based content generator."""
     global content_generator
-    content_generator = ContentGenerator()
+    if content_generator is None:
+        content_generator = ContentGenerator()
     return content_generator
 
+# --- Helper functions ---
+# Đảm bảo các hàm này gọi đúng phiên bản content_generator chỉ dùng template
+
 def generate_product_description(product_data):
-    """Generate a product description"""
-    if content_generator is None:
-        init_content_generator()
-    
+    if content_generator is None: init_content_generator()
     return content_generator.generate_product_description(product_data)
 
 def generate_promotion(promotion_data):
-    """Generate a promotion announcement"""
-    if content_generator is None:
-        init_content_generator()
-    
+    if content_generator is None: init_content_generator()
     return content_generator.generate_promotion(promotion_data)
 
 def generate_social_post(post_data):
-    """Generate a social media post"""
-    if content_generator is None:
-        init_content_generator()
-    
+    if content_generator is None: init_content_generator()
     return content_generator.generate_social_post(post_data)
 
 def generate_email(email_data):
-    """Generate an email newsletter"""
-    if content_generator is None:
-        init_content_generator()
-    
+    if content_generator is None: init_content_generator()
     return content_generator.generate_email(email_data)
 
 def generate_blog_post(blog_data):
-    """Generate a blog post about a product"""
-    if content_generator is None:
-        init_content_generator()
-    
-    return content_generator.generate_blog_post(blog_data)
+     if content_generator is None: init_content_generator()
+     return content_generator.generate_blog_post(blog_data)
+
+def generate_about_us_intro(shop_data):
+    if content_generator is None: init_content_generator()
+    if not isinstance(shop_data, dict): shop_data = {}
+    if 'shop_name' not in shop_data: shop_data['shop_name'] = 'Dragon Coffee' # Thêm default
+    return content_generator.generate_about_us_intro(shop_data)
+
+def generate_interesting_story(story_data=None):
+    if content_generator is None: init_content_generator()
+    return content_generator.generate_interesting_story(story_data)
+
+# Không cần hàm check_openai_available nữa vì không dùng

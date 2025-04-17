@@ -1,0 +1,119 @@
+<!-- START CONTENT FOR templates/admin/messages.html -->
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination %} {# Import macro phân trang nếu có #}
+
+{% block title %}{{ title }} - Quản trị viên{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Hộp thư</li>
+{% endblock %}
+
+{% block content %}
+<div class="card card-outline card-primary shadow-sm">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title">Danh sách Tin nhắn</h3>
+            {# Bộ lọc trạng thái đọc #}
+            <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('admin.contact_messages', filter='all') }}" class="btn btn-outline-secondary {% if current_filter == 'all' %}active{% endif %}">Tất cả</a>
+                <a href="{{ url_for('admin.contact_messages', filter='unread') }}" class="btn btn-outline-secondary {% if current_filter == 'unread' %}active{% endif %}">Chưa đọc</a>
+                <a href="{{ url_for('admin.contact_messages', filter='read') }}" class="btn btn-outline-secondary {% if current_filter == 'read' %}active{% endif %}">Đã đọc</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if messages %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 25%;">Người gửi</th>
+                        <th>Chủ đề</th>
+                        <th style="width: 20%;">Ngày nhận</th>
+                        <th style="width: 10%;" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    {# Thêm class nếu chưa đọc #}
+                    <tr class="{{ 'table-info fw-medium' if not message.is_read else '' }}">
+                        <td>
+                            {{ message.name }}
+                            <br>
+                            <a href="mailto:{{ message.email }}" class="small text-muted">{{ message.email }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.view_message', message_id=message.id) }}" class="text-dark text-decoration-none">
+                                {{ message.subject | truncate(70) }}
+                                {% if not message.is_read %}
+                                    <i class="fas fa-circle text-primary fa-xs ms-1" title="Chưa đọc"></i>
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>{{ message.created_at.strftime('%d/%m/%Y %H:%M') if message.created_at else '' }}</td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.view_message', message_id=message.id) }}" class="btn btn-outline-primary" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMessageModal{{ message.id }}" title="Xóa tin nhắn">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            {# Modal Xác nhận Xóa cho từng tin nhắn #}
+                            <div class="modal fade" id="deleteMessageModal{{ message.id }}" tabindex="-1" aria-hidden="true">
+                              <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Xác nhận xóa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    Bạn chắc chắn muốn xóa tin nhắn từ <strong>{{ message.name }}</strong>?
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="{{ url_for('admin.delete_message', message_id=message.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+             <div class="alert alert-light text-center m-3">
+                 {% if current_filter == 'unread' %}Không có tin nhắn chưa đọc nào.
+                 {% elif current_filter == 'read' %}Không có tin nhắn đã đọc nào.
+                 {% else %} Hộp thư trống. {% endif %}
+             </div>
+        {% endif %}
+    </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer clearfix">
+        {{ render_pagination(pagination, 'admin.contact_messages', filter=current_filter, align='end') }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# Thêm script để bật tooltip (nếu base template chưa có) #}
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+     return new bootstrap.Tooltip(tooltipTriggerEl)
+   })
+ })
+</script>
+{% endblock %}
+<!-- END CONTENT FOR templates/admin/messages.html -->

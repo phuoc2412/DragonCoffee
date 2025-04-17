@@ -1,31 +1,120 @@
 {% extends "base.html" %}
 
-{% block title %}Dragon Coffee Shop - Contact Us{% endblock %}
+{% block title %}Dragon Coffee Shop - Liên hệ{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+  .contact-info h3 {
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+  }
+  .contact-info p {
+    margin-bottom: 1.2rem;
+    display: flex; /* Canh icon và text */
+    align-items: flex-start; /* Align top nếu text dài */
+    color: var(--dark-color); /* Rõ ràng hơn */
+    line-height: 1.6;
+  }
+  .contact-info p i {
+    color: var(--secondary-color);
+    font-size: 1.4rem;
+    margin-right: 15px;
+    width: 25px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 2px; /* Canh tốt hơn với dòng đầu text */
+  }
+  .contact-info div > h5 { /* Thẻ div chứa H5 và P */
+     font-weight: 600;
+     color: var(--dark-color);
+     font-size: 1rem;
+  }
+  .contact-info div > p {
+      font-size: 0.95rem;
+      margin-bottom: 0; /* P bên trong ko cần margin */
+      color: var(--gray-color);
+  }
+
+  .map-container {
+    height: 350px; /* Chiều cao phù hợp */
+    border-radius: var(--border-radius-soft);
+    overflow: hidden;
+    box-shadow: var(--box-shadow-medium);
+    border: 5px solid #fff; /* Khung trắng */
+    margin-top: 1.5rem; /* Khoảng cách với thông tin trên */
+  }
+
+  .card .card-title { /* Style lại title trong card */
+      font-family: var(--font-heading);
+      color: var(--primary-color);
+      border-bottom: 1px solid var(--border-color-subtle);
+      padding-bottom: 0.7rem;
+  }
+  /* Thêm style cho FAQ Accordion nếu cần */
+  .faq-card .accordion-button {
+    font-weight: 600;
+    color: var(--primary-color);
+    background-color: #fbf7f2; /* Nền nhẹ cho button */
+    border-radius: var(--border-radius-soft);
+    box-shadow: none !important; /* Loại bỏ shadow của Bootstrap */
+    border-bottom: 1px solid var(--border-color-subtle) !important; /* Thay border Bootstrap */
+  }
+   .faq-card .accordion-button:not(.collapsed) {
+       color: #fff;
+       background-color: var(--secondary-color); /* Màu nền khi mở */
+   }
+   .faq-card .accordion-button:not(.collapsed)::after { /* Style mũi tên khi mở */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e"); /* Đổi màu mũi tên */
+        transform: rotate(-180deg); /* Xoay mũi tên */
+   }
+   .faq-card .accordion-body {
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--dark-color);
+   }
+    .faq-card .accordion-item { /* Border giữa các item */
+        border-radius: var(--border-radius-soft) !important;
+        border: 1px solid var(--border-color-subtle) !important;
+        overflow: hidden; /* Để radius hoạt động */
+        margin-bottom: 0.5rem; /* Khoảng cách nhẹ giữa các câu hỏi */
+   }
+   .faq-card .accordion-item:first-of-type, .faq-card .accordion-item:last-of-type {
+       border-radius: var(--border-radius-soft) !important; /* Đảm bảo radius */
+   }
+
+   @media (max-width: 768px) {
+     .map-container { height: 280px; }
+   }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="content-container">
-        <h1 class="section-title">Contact Us</h1>
+        <h1 class="section-title">Liên hệ với chúng tôi</h1>
         
         <div class="row">
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="contact-info mb-4">
-                    <h3>Get In Touch</h3>
-                    <p>We'd love to hear from you! Whether you have a question about our products, feedback about your experience, or want to explore business opportunities, our team is here to help.</p>
+                    <h3>Liên hệ</h3>
+                    <p>Chúng tôi rất mong nhận được ý kiến từ bạn! Dù bạn có câu hỏi về sản phẩm, phản hồi về trải nghiệm của mình hay muốn tìm hiểu cơ hội hợp tác kinh doanh, đội ngũ của chúng tôi luôn sẵn sàng hỗ trợ.</p>
                     
                     <div class="d-flex align-items-center mb-3">
                         <i class="fas fa-map-marker-alt contact-icon"></i>
                         <div>
-                            <h5 class="mb-0">Main Office</h5>
-                            <p class="mb-0">123 Dragon Street, Downtown<br>Cityville, ST 12345</p>
+                            <h5 class="mb-0">Văn phòng chính</h5>
+                            <p class="mb-0">123 Dragon Street, Phuoc<br>Phía Nam, ST 2412</p>
                         </div>
                     </div>
                     
                     <div class="d-flex align-items-center mb-3">
                         <i class="fas fa-phone contact-icon"></i>
                         <div>
-                            <h5 class="mb-0">Phone</h5>
-                            <p class="mb-0">(123) 456-7890</p>
+                            <h5 class="mb-0">Điện thoại</h5>
+                            <p class="mb-0">00024122003</p>
                         </div>
                     </div>
                     
@@ -33,17 +122,17 @@
                         <i class="fas fa-envelope contact-icon"></i>
                         <div>
                             <h5 class="mb-0">Email</h5>
-                            <p class="mb-0">info@dragoncoffee.com</p>
+                            <p class="mb-0">phuoclongthan@gmail.com</p>
                         </div>
                     </div>
                     
                     <div class="d-flex align-items-center">
                         <i class="fas fa-clock contact-icon"></i>
                         <div>
-                            <h5 class="mb-0">Business Hours</h5>
+                            <h5 class="mb-0">Giờ làm việc</h5>
                             <p class="mb-0">
-                                Monday - Friday: 7:00 AM - 8:00 PM<br>
-                                Saturday - Sunday: 8:00 AM - 9:00 PM
+                                Monday - Friday: 7:00 AM - 8:00 PM hoặc Full ngày<br>
+                                Saturday - Sunday: 8:00 AM - 9:00 PM hoặc Full ngày
                             </p>
                         </div>
                     </div>
@@ -57,16 +146,16 @@
             <div class="col-lg-6">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Send Us a Message</h3>
+                        <h3 class="card-title mb-4">Gửi tin nhắn cho chúng tôi</h3>
                         
                         <!-- Alert for success -->
                         <div id="contactSuccess" class="alert alert-success d-none" role="alert">
-                            Your message has been sent successfully! We'll get back to you soon.
+                            Tin nhắn của bạn đã được gửi thành công! Chúng tôi sẽ sớm phản hồi bạn.
                         </div>
                         
                         <!-- Alert for error -->
                         <div id="contactError" class="alert alert-danger d-none" role="alert">
-                            There was an error sending your message. Please try again.
+                            Đã xảy ra lỗi khi gửi tin nhắn của bạn. Vui lòng thử lại.
                         </div>
                         
                         <form method="POST" action="{{ url_for('main.contact') }}">
@@ -129,18 +218,18 @@
                 
                 <div class="card border-0 shadow-sm mt-4">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-3">Frequently Asked Questions</h3>
+                        <h3 class="card-title mb-3">Những câu hỏi thường gặp</h3>
                         
                         <div class="accordion" id="faqAccordion">
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="faqHeading1">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="false" aria-controls="faqCollapse1">
-                                        Do you offer catering services?
+                                        Bạn có cung cấp dịch vụ ăn uống không?
                                     </button>
                                 </h2>
                                 <div id="faqCollapse1" class="accordion-collapse collapse" aria-labelledby="faqHeading1" data-bs-parent="#faqAccordion">
                                     <div class="accordion-body">
-                                        Yes, we offer catering for events of all sizes! From coffee service for morning meetings to full beverage and pastry setups for large gatherings, our catering team can customize a package to meet your needs. Please contact us at catering@dragoncoffee.com for more information.
+                                        Vâng, chúng tôi cung cấp dịch vụ phục vụ tiệc cho các sự kiện với mọi quy mô! Từ dịch vụ cà phê cho các cuộc họp buổi sáng đến đồ uống đầy đủ và các thiết lập bánh ngọt cho các cuộc tụ họp lớn, nhóm phục vụ tiệc của chúng tôi có thể tùy chỉnh một gói để đáp ứng nhu cầu của bạn. Vui lòng liên hệ với chúng tôi theo địa chỉ phuoclongthan@gmail.com để biết thêm thông tin.
                                     </div>
                                 </div>
                             </div>
@@ -148,12 +237,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="faqHeading2">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
-                                        How can I apply for a job at Dragon Coffee?
+                                        Tôi có thể ứng tuyển vào Dragon Coffee như thế nào?
                                     </button>
                                 </h2>
                                 <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2" data-bs-parent="#faqAccordion">
                                     <div class="accordion-body">
-                                        We're always looking for passionate team members! You can apply through our Careers page on the website or visit any of our locations to fill out an application in person. We value enthusiasm, customer service skills, and a love for coffee.
+                                        Chúng tôi luôn tìm kiếm những thành viên nhiệt huyết trong nhóm! Bạn có thể nộp đơn qua trang Tuyển dụng trên trang web hoặc đến bất kỳ địa điểm nào của chúng tôi để nộp đơn trực tiếp. Chúng tôi coi trọng sự nhiệt tình, kỹ năng dịch vụ khách hàng và tình yêu dành cho Rồng và cà phê.
                                     </div>
                                 </div>
                             </div>
@@ -161,12 +250,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="faqHeading3">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
-                                        Do you sell your coffee beans retail?
+                                        Bạn có bán lẻ hạt cà phê không?
                                     </button>
                                 </h2>
                                 <div id="faqCollapse3" class="accordion-collapse collapse" aria-labelledby="faqHeading3" data-bs-parent="#faqAccordion">
                                     <div class="accordion-body">
-                                        Yes! You can purchase our signature blends in whole bean or ground form at any of our locations or through our online store. We also offer a subscription service for regular deliveries of your favorite Dragon Coffee beans.
+                                        Có! Bạn có thể mua hỗn hợp đặc trưng của chúng tôi ở dạng hạt nguyên hoặc dạng xay tại bất kỳ địa điểm nào của chúng tôi hoặc thông qua cửa hàng trực tuyến của chúng tôi. Chúng tôi cũng cung cấp dịch vụ đăng ký để giao hàng thường xuyên hạt cà phê Dragon Coffee yêu thích của bạn.
                                     </div>
                                 </div>
                             </div>

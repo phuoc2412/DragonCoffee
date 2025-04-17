@@ -1,307 +1,762 @@
 /*
-  Dragon Coffee Shop - Cart & Checkout Styles
+  Dragon Coffee Shop - Cart & Checkout Styles (Upgraded Theme Integration v2.0)
+  Refined for seamless, elegant shopping & order experience.
 */
 
-/* Cart Items */
+/* Root Variables (Assuming integration with the main theme) */
+:root {
+  /* Coffee-Inspired Palette (from main theme) */
+  --primary-color: #6F4E37;      /* Coffee Brown */
+  --secondary-color: #A0522D;    /* Sienna */
+  --accent-color: #E8A87C;       /* Warm Beige/Light Peach */
+  --dark-color: #3B2F2F;         /* Dark Chocolate */
+  --light-color: #FAF0E6;        /* Linen */
+  --gray-color: #7a7a7a;         /* Softer Gray */
+  --light-gray-color: #e0e0e0;   /* Lighter Gray */
+
+  /* Functional Colors */
+  --success-color: #198754; /* Bootstrap 5 Green */
+  --success-bg-tint: rgba(25, 135, 84, 0.1); /* Soft green */
+  --success-border-soft: rgba(25, 135, 84, 0.3);
+
+  --warning-color: #ffc107; /* Bootstrap 5 Yellow */
+  --warning-text-darker: #997404; /* Darker text for better contrast on light bg */
+  --warning-bg-tint: rgba(255, 193, 7, 0.1);
+  --warning-border-soft: rgba(255, 193, 7, 0.3);
+
+  --danger-color: #dc3545; /* Bootstrap 5 Red */
+  --danger-darker: #a11d2a; /* Darker red for hover */
+  --danger-bg-tint: rgba(220, 53, 69, 0.1);
+  --danger-border-soft: rgba(220, 53, 69, 0.3);
+
+  --info-color: #0dcaf0; /* Bootstrap 5 Cyan */
+  --info-text-darker: #055160;
+  --info-bg-tint: rgba(13, 202, 240, 0.1);
+  --info-border-soft: rgba(13, 202, 240, 0.3);
+
+  /* Fonts (from main theme) */
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Lato', sans-serif;
+
+  /* UI Variables (from main theme) */
+  --transition-speed-fast: 0.2s;
+  --transition-speed-normal: 0.35s;
+  --transition-timing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius-soft: 10px; /* Should match main theme's soft radius */
+  --border-radius-pill: 50px;
+  --box-shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.06);
+  --box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.09);
+  --box-shadow-lifted: 0 14px 35px rgba(59, 47, 47, 0.12);
+  --border-color-soft: #EAE0D6; /* Use a consistent soft border color */
+}
+
+/* Base Styling (Optional - Assumes main styles are present) */
+body {
+  font-family: var(--font-body);
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  font-size: 16px;
+  line-height: 1.7; /* Consistent line height */
+}
+
+.container { /* Basic container */
+    max-width: 1200px; /* Wider container potentially */
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* --- General Section Card Styling --- */
+/* Using a distinct class for sections within cart/checkout pages */
+.shop-section-card {
+  background-color: #fff;
+  border-radius: var(--border-radius-soft);
+  padding: 2rem 2.5rem; /* Consistent, generous padding */
+  margin-bottom: 2.5rem; /* More space between sections */
+  box-shadow: var(--box-shadow-soft);
+  border: 1px solid var(--border-color-soft);
+}
+@media (max-width: 768px) {
+  .shop-section-card {
+      padding: 1.5rem 1.5rem; /* Adjust padding for smaller screens */
+  }
+}
+@media (max-width: 576px) {
+  .shop-section-card {
+      padding: 1.25rem 1rem;
+  }
+}
+
+
+/* Section Title Styling */
+.shop-section-title {
+  font-family: var(--font-heading);
+  font-size: 1.8rem; /* Larger section titles */
+  color: var(--primary-color);
+  margin-bottom: 2rem; /* Space after title */
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid var(--secondary-color); /* Use secondary color for accent border */
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* --- Cart Items --- */
+/* Applied within a .shop-section-card presumably holding the list */
+.cart-list {
+  margin: 0; /* Reset list margin/padding */
+  padding: 0;
+  list-style: none;
+}
+
 .cart-item {
-  background-color: white;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.8rem; /* Slightly more gap */
+  padding: 1.8rem 0; /* More vertical padding */
+  border-bottom: 1px solid var(--border-color-soft);
+  transition: background-color var(--transition-speed-fast) var(--transition-timing-smooth);
+}
+
+.cart-list .cart-item:first-child { /* No top border needed */
+    /* No specific style needed now using only bottom borders */
+}
+
+.cart-list .cart-item:last-child {
+    border-bottom: none; /* Remove border on last item */
 }
 
 .cart-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+   background-color: rgba(111, 78, 55, 0.03); /* Consistent subtle hover */
 }
 
 .cart-item-img {
-  width: 80px;
-  height: 80px;
+  width: 110px; /* Consistent larger size */
+  height: 110px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--border-radius-soft);
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08); /* Subtle shadow */
+  border: 1px solid var(--border-color-soft);
+}
+
+.cart-item-details {
+    flex-grow: 1;
+    display: flex; /* Use flex to position subtotal */
+    flex-direction: column;
+    justify-content: space-between; /* Push content vertically if needed */
+    min-height: 110px; /* Match image height for better alignment */
+}
+
+.cart-item-info { /* Wrapper for title, price, notes, quantity */
+    margin-bottom: 1rem; /* Space before potential subtotal separation */
 }
 
 .cart-item-title {
   font-family: var(--font-heading);
   color: var(--primary-color);
+  font-size: 1.3rem; /* Larger title */
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.cart-item-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-speed-fast);
+}
+.cart-item-title a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline; /* Add standard underline */
+  text-decoration-color: var(--accent-color);
+  text-underline-offset: 3px;
 }
 
 .cart-item-price {
   color: var(--gray-color);
+  font-size: 1rem; /* Slightly larger */
+  margin-bottom: 0.6rem;
 }
 
 .cart-item-notes {
   font-style: italic;
+  font-size: 0.9rem; /* Larger notes */
+  color: var(--gray-color);
+  margin-top: 0.6rem;
+  display: block; /* Ensure block display */
 }
 
 .cart-item-subtotal {
   font-weight: 700;
   color: var(--secondary-color);
+  font-size: 1.25rem; /* Larger subtotal */
+  text-align: right;
+  align-self: flex-end; /* Align to bottom right within details flex */
+  margin-top: auto; /* Push to bottom */
+  padding-left: 1rem; /* Ensure space from quantity */
 }
 
-/* Cart Quantity Controls */
+
+/* --- Cart Quantity Controls (Refined) --- */
 .cart-quantity {
   display: flex;
   align-items: center;
+  margin-top: 1rem; /* Consistent space */
 }
 
 .cart-quantity-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background-color: #f8f9fa;
+  width: 38px; /* Larger buttons */
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: var(--dark-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  font-size: 1.1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
 }
 
 .cart-quantity-btn:hover {
-  background-color: var(--primary-color);
+  background-color: var(--secondary-color); /* Use secondary color for hover */
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--secondary-color);
+  transform: scale(1.08);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+.cart-quantity-btn:active {
+    transform: scale(0.98);
+    background-color: #834322; /* Darker secondary */
+    border-color: #834322;
 }
 
 .cart-quantity-input {
-  width: 50px;
-  height: 32px;
+  width: 60px;
+  height: 38px; /* Match button height */
   text-align: center;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin: 0 5px;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius-soft); /* Match global */
+  margin: 0 0.7rem; /* More space */
+  font-size: 1.1rem;
+  font-weight: 700; /* Bold quantity */
+  color: var(--primary-color);
+  background-color: #fdfdfd; /* Slight off-white */
+  -moz-appearance: textfield;
+}
+.cart-quantity-input::-webkit-outer-spin-button,
+.cart-quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.cart-quantity-input:focus {
+  border-color: var(--secondary-color); /* Focus with secondary color */
+  box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.15); /* Secondary color glow */
+  outline: none;
+  background-color: #fff; /* White on focus */
 }
 
-/* Cart Summary */
-.cart-summary {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-}
 
-.cart-item {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.cart-item:last-child {
-    border-bottom: none;
-}
-
-.cart-item-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.cart-quantity {
-    display: flex;
-    align-items: center;
-}
-
-.cart-quantity-btn {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cart-quantity-input {
-    width: 50px;
-    text-align: center;
-    border: 1px solid #ddd;
-    margin: 0 5px;
-    padding: 5px;
-    border-radius: 4px;
-}
-
+/* --- Remove Button (Subtle) --- */
 .remove-from-cart-btn {
     background: none;
     border: none;
-    color: #dc3545;
+    color: var(--gray-color); /* Gray for less emphasis */
     cursor: pointer;
+    font-size: 1rem; /* Adjust size as needed, using an icon is preferred */
+    padding: 0.6rem; /* Larger click area */
+    line-height: 1;
+    transition: color var(--transition-speed-fast) ease, transform var(--transition-speed-fast) ease;
+    align-self: center; /* Center vertically with quantity/subtotal area */
+    margin-left: auto; /* Push to far right */
+}
+.remove-from-cart-btn i { /* If using an icon */
+  font-size: 1.2rem;
+}
+.remove-from-cart-btn:hover {
+    color: var(--danger-color); /* Turn red on hover */
+    transform: scale(1.15);
+}
+
+
+/* --- Cart Summary (Sticky & Enhanced) --- */
+.cart-summary-container { /* Wrapper to make summary sticky */
+   position: sticky;
+   top: 100px; /* Adjust based on navbar height + desired gap */
+   z-index: 10; /* Keep above content */
+}
+
+.cart-summary {
+  /* Applied to a .shop-section-card */
+   background-color: #FBF7F2; /* Slightly different bg */
+}
+.cart-summary-title {
+  /* Using .shop-section-title class */
 }
 
 .summary-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 1.1rem; /* Adjusted spacing */
+  font-size: 1.05rem; /* Slightly larger text */
+}
+.summary-item span:first-child {
+    color: var(--gray-color); /* Lighter label */
+}
+.summary-item span:last-child {
+  font-weight: 600;
+  color: var(--dark-color); /* Ensure dark color */
+}
+
+.summary-divider {
+  height: 1px;
+  background-color: var(--border-color-soft);
+  margin: 1.8rem 0; /* More space around divider */
 }
 
 .summary-total {
-  font-size: 1.5rem;
+  font-size: 2rem; /* Prominent total */
   font-weight: 700;
   color: var(--primary-color);
-}
-
-/* Payment Icons */
-.payment-icon {
-  width: 60px;
-  height: 40px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gray-color);
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 1.8rem;
+  padding-top: 1.2rem;
+  border-top: 2px solid var(--primary-color); /* Primary color top border */
+}
+.summary-total span:first-child {
+    font-size: 1.1rem; /* Slightly smaller label */
+    font-weight: 600;
+    color: var(--dark-color); /* Make label dark */
 }
 
-/* Checkout Form */
-.checkout-section {
-  margin-bottom: 30px;
+.btn-checkout {
+  /* Use global .btn styles with overrides */
+  display: block;
+  width: 100%;
+  margin-top: 2.5rem;
+  padding: 1rem 1.5rem; /* Generous padding */
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  /* Applying specific styles, assuming .btn, .btn-primary exist */
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--light-color);
+  border-radius: var(--border-radius-pill); /* Consistent button radius */
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  box-shadow: var(--box-shadow-soft);
+}
+.btn-checkout i { margin-left: 10px; } /* Space for potential icon */
+.btn-checkout:hover {
+  background-color: var(--secondary-color); /* Hover changes to secondary */
+  border-color: var(--secondary-color);
+  color: white; /* Ensure text is white on secondary */
+  transform: translateY(-4px) scale(1.02); /* More pronounced hover */
+  box-shadow: var(--box-shadow-medium);
 }
 
-.checkout-section-title {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  font-family: var(--font-heading);
-  color: var(--primary-color);
+
+/* --- Checkout Form --- */
+.checkout-form {
+   /* Structure using rows/cols is assumed */
 }
+
+.checkout-section { /* Wrapper for logical groups (address, payment) */
+   /* This might be the .shop-section-card itself */
+   margin-bottom: 2.5rem;
+}
+
+/* Title defined by .shop-section-title */
+
+.checkout-form .form-label {
+  font-weight: 600;
+  color: var(--primary-color); /* Label color */
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.checkout-form .form-control,
+.checkout-form .form-select {
+  border-radius: var(--border-radius-soft);
+  padding: 1rem 1.2rem; /* Consistent input padding */
+  border: 1px solid #ced4da;
+  font-size: 1rem;
+  transition: border-color var(--transition-speed-fast) ease, box-shadow var(--transition-speed-fast) ease;
+  background-color: #fff; /* Ensure white bg */
+}
+.checkout-form .form-control::placeholder,
+.checkout-form .form-select::placeholder {
+  color: #aaa;
+}
+
+.checkout-form .form-control:focus,
+.checkout-form .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.15); /* Primary color focus glow */
+  outline: none;
+}
+.checkout-form .form-check-label {
+    font-size: 1rem;
+    font-weight: 400; /* Standard weight for checkbox label */
+    color: var(--dark-color); /* Dark text */
+}
+.checkout-form .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.checkout-form .form-check-input:focus {
+    box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.15); /* Consistent focus glow */
+}
+
+/* Payment Method Styling (Enhanced) */
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Default to stack */
+    gap: 1rem;
+}
+/* Grid for larger screens if desired */
+@media (min-width: 768px) {
+    .payment-methods-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
 
 .payment-method-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
+  border: 2px solid var(--border-color-soft);
+  border-radius: var(--border-radius-soft);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 0; /* Handled by gap */
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Space between elements inside card */
+  background-color: #fff;
 }
 
-.payment-method-card:hover,
+.payment-method-card:hover {
+  border-color: var(--secondary-color);
+  background-color: rgba(160, 82, 45, 0.04); /* Lighter Sienna tint */
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-soft);
+}
+
 .payment-method-card.active {
   border-color: var(--primary-color);
-  background-color: rgba(139, 0, 0, 0.05);
+  background-color: rgba(111, 78, 55, 0.06); /* Lighter Primary tint */
+  box-shadow: var(--box-shadow-medium);
+}
+.payment-method-card.active .form-check-input {
+  /* Checked state handled by Bootstrap */
 }
 
-.payment-method-card.active {
-  box-shadow: 0 5px 15px rgba(139, 0, 0, 0.1);
+.payment-method-card .form-check-input {
+  margin-right: 0; /* Remove default margin */
+  flex-shrink: 0;
+  margin-top: 0;
+  transform: scale(1.25); /* Larger radio */
 }
 
-.payment-method-icon {
-  font-size: 1.5rem;
-  margin-right: 10px;
-  color: var(--primary-color);
+
+.payment-method-icon { /* If using icons like Font Awesome */
+  font-size: 1.8rem; /* Larger icon */
+  color: var(--secondary-color); /* Use secondary color for visual interest */
+  width: 35px;
+  text-align: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.payment-method-details {
+    flex-grow: 1;
+}
+.payment-method-name {
+    font-weight: 700; /* Bolder name */
+    color: var(--dark-color);
+    margin-bottom: 0.2rem;
+    font-size: 1.05rem; /* Slightly larger */
+}
+.payment-method-desc {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+    line-height: 1.5; /* Better line height for desc */
 }
 
-/* Order Confirmation */
+/* --- Order Confirmation (Polished) --- */
+.order-confirmation-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+.order-confirmation-icon {
+    font-size: 4rem; /* Large icon */
+    color: var(--success-color);
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+.order-confirmation-title {
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.order-confirmation-subtitle {
+    font-size: 1.1rem;
+    color: var(--gray-color);
+    max-width: 600px;
+    margin: 0 auto 1.5rem; /* Center and add space below */
+}
+
+
 .order-status-badge {
-  font-size: 1.2rem;
-  padding: 10px 20px;
-  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem; /* More padding */
+  border-radius: var(--border-radius-pill);
   display: inline-block;
+  margin-bottom: 2rem;
+  border: 1px solid transparent; /* Base border */
+  letter-spacing: 0.5px;
+  text-transform: capitalize; /* Capitalize first letter */
 }
 
 .order-status-badge.success {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: var(--success-bg-tint);
   color: var(--success-color);
-  border: 1px solid rgba(40, 167, 69, 0.2);
+  border-color: var(--success-border-soft);
 }
-
 .order-status-badge.pending {
-  background-color: rgba(255, 193, 7, 0.1);
-  color: var(--warning-color);
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  background-color: var(--warning-bg-tint);
+  color: var(--warning-text-darker);
+  border-color: var(--warning-border-soft);
+}
+.order-status-badge.processing {
+  background-color: var(--info-bg-tint);
+  color: var(--info-text-darker);
+  border-color: var(--info-border-soft);
+}
+.order-status-badge.cancelled,
+.order-status-badge.failed { /* Add failed state */
+  background-color: var(--danger-bg-tint);
+  color: var(--danger-color);
+  border-color: var(--danger-border-soft);
 }
 
-.order-status-badge.cancelled {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: var(--danger-color);
-  border: 1px solid rgba(220, 53, 69, 0.2);
-}
 
 .order-detail-section {
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background-color: #fefcf9; /* Very subtle off-white */
+  border-radius: var(--border-radius-soft);
+  padding: 1.8rem 2rem; /* Consistent padding */
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color-soft);
+}
+.order-detail-section h5 {
+  font-weight: 700;
+  font-size: 1.25rem; /* Slightly larger */
+  color: var(--primary-color);
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border-color-soft); /* Separate title */
+  padding-bottom: 0.6rem;
+}
+.order-detail-item {
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--dark-color);
+}
+.order-detail-item strong {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-right: 8px; /* Space after label */
+    min-width: 120px; /* Align values (optional) */
+    display: inline-block; /* Allows min-width */
 }
 
+/* Ordered Items in Confirmation (re-use cart styles lightly) */
+.order-item-list .cart-item { /* Using cart-item as base */
+    padding: 1.2rem 0; /* Slightly less padding */
+    border-color: #eee; /* Lighter border */
+    gap: 1.2rem;
+}
+.order-item-list .cart-item:hover { background-color: transparent; } /* Disable hover */
+.order-item-list .cart-item-img { width: 70px; height: 70px;} /* Smaller image */
+.order-item-list .cart-item-title { font-size: 1.1rem; margin-bottom: 0.2rem; }
+.order-item-list .cart-item-price { font-size: 0.9rem; margin-bottom: 0.4rem;}
+.order-item-list .cart-quantity-display { /* Display only, not input */
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+.order-item-list .cart-quantity-display strong { font-weight: 600; color: var(--dark-color);}
+.order-item-list .cart-item-subtotal { font-size: 1.1rem;}
+/* Remove interactive elements from order confirmation items */
+.order-item-list .cart-quantity,
+.order-item-list .remove-from-cart-btn { display: none; }
+
+
+/* Enhanced Order Timeline (More elegant) */
 .order-timeline {
   position: relative;
-  margin-left: 20px;
+  margin-left: 10px; /* Base indent */
+  padding-left: 30px; /* Space for icons + line */
+  margin-top: 1.5rem;
 }
 
 .order-timeline-item {
   position: relative;
-  padding-bottom: 30px;
-  padding-left: 30px;
+  padding-bottom: 3rem; /* Generous space */
+  padding-left: 35px; /* More space from line */
 }
 
 .order-timeline-item:last-child {
-  padding-bottom: 0;
+  padding-bottom: 0.5rem; /* Small padding at end */
 }
 
+/* Timeline Circle Marker + Icon */
 .order-timeline-item::before {
-  content: '';
+  content: ''; /* Icon character added via .status-* class */
+  font-family: 'bootstrap-icons'; /* Assuming Bootstrap Icons */
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 12px;
-  height: 12px;
+  left: -12px; /* Adjust for perfect alignment */
+  top: 0; /* Align top */
+  width: 24px; /* Icon container size */
+  height: 24px;
+  line-height: 24px; /* Center icon vertically */
+  text-align: center;
+  font-size: 0.9rem; /* Icon size */
   border-radius: 50%;
-  background-color: var(--primary-color);
-  z-index: 1;
+  background-color: var(--light-gray-color); /* Default background */
+  color: var(--gray-color); /* Default icon color */
+  border: 2px solid #fff; /* White border to lift from line */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08); /* Subtle shadow */
+  z-index: 2;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Timeline Connecting Line */
 .order-timeline-item::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 12px;
+  left: 0;
+  top: 5px; /* Start below top of icon */
   width: 2px;
-  height: calc(100% - 12px);
-  background-color: #ddd;
+  height: 100%;
+  background-color: var(--light-gray-color); /* Lighter line */
+  z-index: 1;
 }
 
 .order-timeline-item:last-child::after {
   display: none;
 }
 
+/* Timeline Item Status Styles (Update Icons & Colors) */
 .order-timeline-item.completed::before {
-  background-color: var(--success-color);
+    background-color: var(--success-color);
+    color: white;
+    content: '\f26a'; /* Bootstrap Icon: check */
 }
-
+.order-timeline-item.processing::before {
+    background-color: var(--info-color);
+    color: white;
+    content: '\f498'; /* Bootstrap Icon: arrow-repeat */
+}
 .order-timeline-item.pending::before {
-  background-color: var(--warning-color);
+    background-color: var(--warning-color);
+    color: var(--warning-text-darker);
+    content: '\f424'; /* Bootstrap Icon: hourglass-split */
+}
+.order-timeline-item.cancelled::before,
+.order-timeline-item.failed::before {
+    background-color: var(--danger-color);
+    color: white;
+    content: '\f62a'; /* Bootstrap Icon: x */
 }
 
-.order-timeline-item.cancelled::before {
-  background-color: var(--danger-color);
+.timeline-item-title {
+    font-weight: 700; /* Bolder */
+    color: var(--dark-color);
+    margin-bottom: 0.35rem;
+    font-size: 1.05rem;
+}
+.timeline-item-timestamp {
+    font-size: 0.9rem;
+    color: var(--gray-color);
 }
 
-/* Responsive Adjustments */
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 992px) {
+    .cart-summary-container {
+        position: static; /* Un-stick summary */
+        width: 100%; /* Full width */
+        margin-top: 2rem; /* Space above summary */
+    }
+    .order-timeline { margin-left: 5px; padding-left: 25px;} /* Reduce indent */
+}
+
+
 @media (max-width: 768px) {
+  /* Adjust cart item layout for medium screens */
   .cart-item {
-    flex-direction: column;
+    gap: 1.2rem;
+    padding: 1.2rem 0;
   }
-  
   .cart-item-img {
-    width: 100%;
-    height: 120px;
-    margin-bottom: 10px;
+    width: 90px;
+    height: 90px;
   }
-  
-  .cart-item-info,
-  .cart-item-price,
-  .cart-quantity,
-  .cart-item-subtotal {
-    margin-bottom: 10px;
+  .cart-item-details {
+      min-height: 90px; /* Match smaller image */
+      flex-direction: column; /* Stack info and subtotal/remove */
+      gap: 0.5rem; /* Space between info and actions row */
   }
-  
-  .cart-quantity {
-    justify-content: center;
+  .cart-item-info { margin-bottom: 0;}
+  .cart-item-subtotal { align-self: flex-start; margin-top: 0; padding-left: 0;} /* Reset alignment */
+  .cart-item-actions-row { /* Add a wrapper in HTML if needed or style direct children */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
   }
+   .remove-from-cart-btn { margin-left: 1rem;}
+}
+
+@media (max-width: 576px) {
+  .shop-section-card { padding: 1rem; }
+  .shop-section-title { font-size: 1.5rem; margin-bottom: 1.5rem;}
+
+  .cart-item {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+  }
+  .cart-item-img { width: 130px; height: 130px; margin-bottom: 0.5rem;}
+  .cart-item-details { min-height: auto; width: 100%; }
+  .cart-item-actions-row { justify-content: center; flex-direction: column; gap: 1rem;}
+  .cart-item-subtotal { align-self: center; margin-top: 0.5rem;}
+  .remove-from-cart-btn { margin-left: 0; margin-top: 0.5rem; }
+
+  .cart-summary-title { font-size: 1.4rem; }
+  .summary-total { font-size: 1.6rem; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+  .summary-total span:first-child { font-size: 1rem; align-self: flex-start;}
+  .btn-checkout { font-size: 1rem; padding: 0.8rem;}
+
+  .checkout-form .form-control, .checkout-form .form-select { padding: 0.8rem 1rem;}
+
+  .payment-method-card { flex-direction: column; text-align: center; gap: 0.8rem;}
+  .payment-method-icon { margin: 0 0 0.5rem 0;}
+
+  .order-timeline { padding-left: 20px; }
+  .order-timeline-item { padding-left: 30px; padding-bottom: 2rem; }
+  .order-timeline-item::before { left: -10px; width: 20px; height: 20px; line-height: 20px; font-size: 0.8rem;}
+  .order-timeline-item::after { top: 5px; height: 100%;}
+  .timeline-item-title { font-size: 1rem;}
+  .timeline-item-timestamp { font-size: 0.85rem; }
+
+  .order-confirmation-header { margin-bottom: 1.5rem;}
+  .order-confirmation-icon { font-size: 3rem;}
+  .order-confirmation-title { font-size: 1.6rem;}
+  .order-confirmation-subtitle { font-size: 1rem;}
+
 }

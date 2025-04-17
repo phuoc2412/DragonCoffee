@@ -1,0 +1,147 @@
+{# /templates/admin/promotions.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}Quản lý Khuyến mãi - Trang quản trị{% endblock %}
+{% block page_title %}Quản lý Khuyến mãi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+<li class="breadcrumb-item active">Khuyến mãi</li>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h3 class="card-title mb-2 mb-md-0">Danh sách Chương trình Khuyến mãi</h3>
+            <div class="d-flex align-items-center">
+                {# Form tìm kiếm #}
+                <form method="GET" action="{{ url_for('admin.promotions') }}" class="me-2">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="q" class="form-control" placeholder="Tìm tên, mã KM..." value="{{ q or '' }}">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                        {% if q %}
+                        <a href="{{ url_for('admin.promotions') }}" class="btn btn-outline-secondary" title="Xóa tìm kiếm"><i class="fas fa-times"></i></a>
+                        {% endif %}
+                    </div>
+                </form>
+                {# Nút thêm mới #}
+                <a href="{{ url_for('admin.add_promotion') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> Thêm Khuyến mãi
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0"> {# p-0 để table full card #}
+        {% if promotions %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Tên chương trình</th>
+                        <th>Mã Code</th>
+                        <th>Giảm giá</th>
+                        <th>Thời gian áp dụng</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center" style="width: 18%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for promo in promotions %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('admin.edit_promotion', promotion_id=promo.id) }}" class="fw-medium">
+                                {{ promo.name }}
+                            </a>
+                            {% if promo.description %}
+                            <p class="small text-muted mb-0">{{ promo.description | truncate(70) }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if promo.code %}
+                            <code class="badge bg-secondary text-white px-2 py-1">{{ promo.code }}</code>
+                            {% else %}
+                            <span class="text-muted fst-italic small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if promo.discount_percent %}
+                                <span class="text-success">{{ promo.discount_percent }}%</span>
+                            {% elif promo.discount_amount %}
+                                <span class="text-info">{{ promo.discount_amount | format_price }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                             {{ promo.start_date.strftime('%d/%m/%Y') }} - {{ promo.end_date.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td class="text-center">
+                            {# Dùng macro hoặc trực tiếp #}
+                            {{ status_badge(promo.is_active) }}
+                             {# <span class="badge bg-{{ 'success' if promo.is_active else 'secondary' }}">
+                                {{ 'Hoạt động' if promo.is_active else 'Không HĐ' }}
+                            </span> #}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                {# Nút Bật/Tắt #}
+                                <form action="{{ url_for('admin.toggle_promotion_active', promotion_id=promo.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-{{ 'secondary' if promo.is_active else 'success' }}"
+                                            data-bs-toggle="tooltip" title="{{ 'Hủy kích hoạt' if promo.is_active else 'Kích hoạt' }}">
+                                        <i class="fas {{ 'fa-toggle-off' if promo.is_active else 'fa-toggle-on' }}"></i>
+                                    </button>
+                                </form>
+                                {# Nút Sửa #}
+                                <a href="{{ url_for('admin.edit_promotion', promotion_id=promo.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {# Nút Xóa #}
+                                <form action="{{ url_for('admin.delete_promotion', promotion_id=promo.id) }}" method="POST" class="d-inline"
+                                      onsubmit="return confirm('Bạn chắc chắn muốn xóa khuyến mãi \'{{ promo.name }}\'?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="alert alert-secondary text-center m-3 border-0">
+                 {% if q %}
+                     Không tìm thấy chương trình khuyến mãi nào khớp với tìm kiếm '{{ q }}'.
+                     <a href="{{ url_for('admin.promotions') }}">Xem tất cả</a>
+                 {% else %}
+                    Chưa có chương trình khuyến mãi nào.
+                    <a href="{{ url_for('admin.add_promotion') }}">Thêm mới ngay!</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer clearfix bg-light border-top">
+        {{ render_pagination(pagination, 'admin.promotions', q=q, align='end') }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# Script để kích hoạt tooltip #}
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+     return new bootstrap.Tooltip(tooltipTriggerEl)
+   })
+ })
+</script>
+{% endblock %}

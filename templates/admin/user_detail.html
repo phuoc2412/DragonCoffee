@@ -1,0 +1,163 @@
+```html
+{# templates/admin/user_detail.html #}
+{% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
+
+{% block title %}{{ title }} - Quản lý Khách hàng{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.users') }}">Khách hàng</a></li>
+    <li class="breadcrumb-item active">Chi tiết</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        {# Card thông tin cơ bản #}
+        <div class="card card-primary card-outline shadow-sm mb-4">
+            <div class="card-body box-profile text-center">
+                 <h3 class="profile-username">{{ user.full_name or user.username }}</h3>
+                 <p class="text-muted">{{ user.email }}</p>
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>Ngày tham gia</b> <a class="float-right">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</a>
+                    </li>
+                    <li class="list-group-item">
+                         <b>Điện thoại</b> <a class="float-right">{{ user.phone or 'Chưa có' }}</a>
+                     </li>
+                     <li class="list-group-item">
+                        <b>Tổng Đơn hàng</b> <a class="float-right">{{ user.orders.count() }}</a> {# Giả định relationship 'orders' #}
+                    </li>
+                     <li class="list-group-item">
+                        <b>Số Review</b> <a class="float-right">{{ user.reviews.count() }}</a> {# Giả định relationship 'reviews' #}
+                    </li>
+                    <li class="list-group-item">
+                        <b>Trạng thái BL</b>
+                        <a class="float-right">
+                            <span class="badge bg-{{ 'danger' if user.is_comment_banned else 'success' }}">
+                                {{ 'Bị cấm' if user.is_comment_banned else 'Cho phép' }}
+                            </span>
+                        </a>
+                     </li>
+                    <li class="list-group-item">
+                        <b>Cảnh báo BL</b> <a class="float-right">{{ user.review_warning_count or 0 }}</a>
+                    </li>
+                 </ul>
+
+                 {# Nút Hành động #}
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-{{ 'success' if user.is_comment_banned else 'warning' }}" data-bs-toggle="modal" data-bs-target="#toggleBanModal{{ user.id }}" title="{{ 'Bỏ cấm' if user.is_comment_banned else 'Cấm' }} bình luận">
+                        <i class="fas {{ 'fa-user-check' if user.is_comment_banned else 'fa-user-slash' }} me-1"></i> {{ 'Bỏ cấm' if user.is_comment_banned else 'Cấm BL' }}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#sendResetModal{{ user.id }}" title="Gửi link Reset MK" {% if not user.email %}disabled{% endif %}>
+                         <i class="fas fa-key me-1"></i> Gửi Reset MK
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        {# Thêm card địa chỉ nếu có #}
+        {% if user.address %}
+            <div class="card card-secondary card-outline shadow-sm mb-4">
+                 <div class="card-header"><h3 class="card-title">Địa chỉ</h3></div>
+                <div class="card-body">
+                     <p>{{ user.address }}</p>
+                </div>
+             </div>
+         {% endif %}
+    </div>
+
+     <div class="col-md-8">
+        {# Tab Nội dung: Đơn hàng, Review,... #}
+        <div class="card shadow-sm">
+            <div class="card-header p-2">
+                <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#orders" data-bs-toggle="tab">Đơn hàng Gần đây</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#reviews" data-bs-toggle="tab">Đánh giá Gần đây</a></li>
+                    {# <li class="nav-item"><a class="nav-link" href="#settings" data-bs-toggle="tab">Cài đặt</a></li> #}
+                </ul>
+             </div>
+             <div class="card-body">
+                <div class="tab-content">
+                     {# Tab Đơn hàng #}
+                    <div class="active tab-pane" id="orders">
+                         {% if recent_orders %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead><tr><th>Mã ĐH</th><th>Ngày đặt</th><th class="text-end">Tổng tiền</th><th>Trạng thái</th></tr></thead>
+                                     <tbody>
+                                        {% for order in recent_orders %}
+                                         <tr>
+                                            <td><a href="{{ url_for('admin.order_details', order_id=order.id) }}">{{ order.order_number }}</a></td>
+                                             <td>{{ order.created_at.strftime('%d/%m/%y %H:%M') }}</td>
+                                             <td class="text-end">{{ (order.final_amount or order.total_amount)|format_price }}</td>
+                                            <td>{{ status_badge(order.status) }}</td>
+                                         </tr>
+                                         {% endfor %}
+                                     </tbody>
+                                </table>
+                            </div>
+                            {% if user.orders.count() > 5 %}
+                             <a href="#" class="btn btn-link btn-sm float-end">Xem tất cả đơn hàng...</a> {# Link đến trang lọc đơn của user này #}
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted text-center py-3">Chưa có đơn hàng nào.</p>
+                         {% endif %}
+                     </div>
+
+                    {# Tab Reviews #}
+                    <div class="tab-pane" id="reviews">
+                        {% if recent_reviews %}
+                             {% for review in recent_reviews %}
+                             <div class="post mb-3 pb-3 border-bottom">
+                                 <div class="user-block mb-2">
+                                     <span class="username" style="margin-left: 0;">
+                                         <a href="{{ url_for('admin.manage_reviews', q=user.username) }}">Đánh giá cho SP "{{ review.product.name if review.product else 'N/A' }}"</a>
+                                     </span>
+                                     <span class="description float-right">{{ review.created_at.strftime('%d/%m/%Y %H:%M') }} - {{ review.rating }} <i class="fas fa-star text-warning"></i></span>
+                                </div>
+                                 <p>
+                                     {% if review.is_toxic_guess %}
+                                        <em class="text-danger">{{ review.content|truncate(150) }}</em>
+                                    {% else %}
+                                        {{ review.content|truncate(150) }}
+                                    {% endif %}
+                                 </p>
+                                {# Thêm nút xóa review trực tiếp nếu muốn #}
+                                 {# <a href="#" class="link-black text-sm"><i class="far fa-thumbs-up mr-1"></i> Like</a>
+                                 <span class="float-right">...</span> #}
+                             </div>
+                            {% endfor %}
+                            {% if user.reviews.count() > 5 %}
+                                <a href="{{ url_for('admin.manage_reviews', q=user.username) }}" class="btn btn-link btn-sm float-end">Xem tất cả đánh giá...</a>
+                            {% endif %}
+                        {% else %}
+                             <p class="text-muted text-center py-3">Người dùng này chưa có đánh giá nào.</p>
+                         {% endif %}
+                    </div>
+
+                     {# Tab Settings (nếu có) #}
+                    {# <div class="tab-pane" id="settings">...</div> #}
+                </div>
+            </div>
+         </div>
+    </div>
+</div>
+
+{# Copy Modals từ trang user list vào đây (hoặc dùng chung template) #}
+ {# --- Modal Cấm/Bỏ cấm User --- #}
+ <div class="modal fade" id="toggleBanModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm"> <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Xác nhận {{ 'Bỏ cấm' if user.is_comment_banned else 'Cấm' }} Bình luận</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body text-start">Bạn chắc chắn muốn <strong>{{ 'BỎ CẤM' if user.is_comment_banned else 'CẤM' }}</strong> quyền bình luận của khách hàng <strong>{{ user.username }}</strong>?{% if user.is_comment_banned %}<p class="small mt-2 text-muted">Hành động này có thể sẽ reset số lần cảnh báo về 0.</p>{% endif %}</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+            {# ====> SỬA url_for Ở ĐÂY <==== #}
+            <form action="{{ url_for('admin.toggle_user_comment_ban', user_id=user.id) }}" method="POST" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn {{ 'btn-success' if user.is_comment_banned else 'btn-warning' }} btn-sm">{{ 'Bỏ cấm' if user.is_comment_banned else 'Xác nhận Cấm' }}</button></form>
+        </div>
+</div></div></div>
+
+{% endblock %}
+```

@@ -1,45 +1,70 @@
-/* 
-  Dragon Coffee Shop - Main Style
-  A modern and elegant coffee shop with dragon-themed aesthetics
+/*
+  Dragon Coffee Shop - Main Style (Upgraded Coffee Theme v2.0)
+  Enhanced: More polish, elegance, modernity, and cozy details.
 */
 
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"); /* Đảm bảo đã import icon */
+
 :root {
-  --primary-color: #8B0000;      /* Dark red */
-  --secondary-color: #FF4500;    /* Orange-red */
-  --accent-color: #FFD700;       /* Gold */
-  --dark-color: #1A0000;         /* Very dark red */
-  --light-color: #FFF5EE;        /* Seashell */
-  --gray-color: #6c757d;         /* Bootstrap gray */
-  --success-color: #28a745;      /* Bootstrap success */
-  --warning-color: #ffc107;      /* Bootstrap warning */
-  --danger-color: #dc3545;       /* Bootstrap danger */
-  --info-color: #17a2b8;         /* Bootstrap info */
-  --font-heading: 'Cinzel', serif;
+  /* Coffee-Inspired Palette (Unchanged) */
+  --primary-color: #6F4E37;      /* Coffee Brown */
+  --secondary-color: #A0522D;    /* Sienna */
+  --accent-color: #E8A87C;       /* Warm Beige/Light Peach */
+  --dark-color: #3B2F2F;         /* Dark Chocolate */
+  --light-color: #FAF0E6;        /* Linen */
+  --gray-color: #7a7a7a;         /* Slightly softer gray */
+
+  /* Standard Bootstrap Colors */
+  --success-color: #28a745;
+  --warning-color: #ffc107;      /* Kept for stars */
+  --danger-color: #dc3545;
+  --info-color: #0dcaf0; /* Using Bootstrap's info color */
+
+  /* Fonts */
+  --font-heading: 'Playfair Display', serif;
   --font-body: 'Lato', sans-serif;
+
+  /* Enhancement Variables */
+  --transition-speed-fast: 0.2s;
+  --transition-speed-normal: 0.35s; /* Slightly slower for smoother effect */
+  --transition-timing-smooth: cubic-bezier(0.4, 0, 0.2, 1); /* Smooth curve */
+  --border-radius-soft: 10px; /* Slightly rounder */
+  --border-radius-pill: 50px;
+  --box-shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.06);
+  --box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.09);
+  --box-shadow-lifted: 0 14px 35px rgba(59, 47, 47, 0.12);
+  --border-color-subtle: #EAE0D6; /* Subtle border color variable */
 }
 
 /* Base Styles */
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-body);
-  color: #333;
+  color: var(--dark-color);
   background-color: var(--light-color);
   position: relative;
   overflow-x: hidden;
+  line-height: 1.75; /* Increased for better readability */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility; /* Enhance font rendering */
 }
 
-/* Dragon Background */
+/* Subtle Dragon/Texture Background (Improved) */
 body::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(139, 0, 0, 0.85) 0%, rgba(80, 0, 0, 0.8) 100%);
+  width: 100vw;
+  height: 100vh;
+  /* Softer gradient */
+  background: linear-gradient(135deg, var(--light-color) 0%, #F5ECE0 100%);
   z-index: -2;
 }
 
@@ -48,14 +73,15 @@ body::after {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('/static/images/dragon_bg.svg');
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/static/images/dragon_bg.svg'); /* Ensure path is correct */
   background-repeat: no-repeat;
-  background-position: right bottom;
-  background-size: 60%;
-  opacity: 0.2;
+  background-position: center bottom; /* Adjust positioning */
+  background-size: cover; /* Or contain if it looks better */
+  opacity: 0.03; /* Even more subtle */
   z-index: -1;
+  pointer-events: none;
 }
 
 /* Typography */
@@ -63,159 +89,296 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   color: var(--primary-color);
+  margin-top: 1.5em; /* Increased top margin */
+  margin-bottom: 0.6em; /* Tighter bottom margin */
+  line-height: 1.3;
+  letter-spacing: 0.5px; /* Subtle spacing */
 }
 
-.text-primary {
-  color: var(--primary-color) !important;
+h1 { font-size: 3rem; }
+h2 { font-size: 2.4rem; }
+h3 { font-size: 1.9rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+
+
+.text-primary { color: var(--primary-color) !important; }
+.text-secondary { color: var(--secondary-color) !important; }
+.text-accent { color: var(--accent-color) !important; }
+
+p {
+    margin-bottom: 1.25rem; /* More consistent spacing */
 }
 
-.text-secondary {
-  color: var(--secondary-color) !important;
+a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  transition: color var(--transition-speed-fast) var(--transition-timing-smooth);
+}
+a:hover {
+    color: var(--primary-color);
+    text-decoration: underline; /* Add subtle underline on hover for clarity */
+    text-decoration-color: var(--accent-color);
+    text-underline-offset: 3px;
 }
 
-.text-accent {
-  color: var(--accent-color) !important;
+/* Improved Focus visible for accessibility */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--accent-color); /* Brighter, thicker outline */
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(232, 168, 124, 0.3); /* Subtle glow effect */
+}
+/* Reset Bootstrap's default focus shadow on forms */
+.form-control:focus, .form-select:focus {
+  box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.2); /* Keep consistent with general focus */
+  border-color: var(--secondary-color); /* Match focus outline color theme */
 }
 
 /* Container Styling */
 .content-container {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  padding: 30px;
-  margin-bottom: 30px;
+  background-color: rgba(255, 255, 255, 0.98); /* Almost opaque white */
+  border-radius: var(--border-radius-soft);
+  box-shadow: var(--box-shadow-medium); /* Slightly stronger base shadow */
+  padding: 45px 50px; /* Generous padding */
+  margin-top: 50px;
+  margin-bottom: 50px;
+  border: 1px solid var(--border-color-subtle); /* Subtle border */
 }
 
+@media (max-width: 992px) {
+  .content-container { padding: 35px 30px; }
+}
 @media (max-width: 768px) {
   .content-container {
-    padding: 15px;
-    margin-bottom: 20px;
+    padding: 30px 20px;
+    margin-top: 35px;
+    margin-bottom: 35px;
   }
 }
 
-/* Navbar Styling */
+/* Navbar Styling (Polished & Modern) */
 .navbar {
-  background-color: rgba(26, 0, 0, 0.9) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background-color: rgba(50, 38, 38, 0.92); /* Slightly less saturated dark chocolate */
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  transition: background-color var(--transition-speed-normal) var(--transition-timing-smooth);
+  /* Modern touch: subtle blur (if browser supports) */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  position: sticky; /* Keep navbar visible */
+  top: 0;
+  z-index: 1030; /* Ensure it's above most content */
 }
 
 .navbar-brand {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.6rem;
-  color: var(--accent-color) !important;
+  font-size: 1.9rem; /* Slightly increased */
+  color: var(--light-color) !important;
+  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth);
+  display: inline-flex; /* Align logo and text nicely */
+  align-items: center;
+}
+.navbar-brand:hover {
+  transform: scale(1.03); /* Subtle scale on hover */
+  color: #fff !important;
 }
 
 .navbar-brand img {
-  margin-right: 8px;
+  margin-right: 15px;
+  height: 42px; /* Slightly larger logo */
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); /* Subtle shadow */
 }
 
-.navbar-dark .navbar-nav .nav-link {
-  color: var(--light-color);
+.navbar .navbar-nav .nav-link {
+  color: rgba(250, 240, 230, 0.88); /* Linen color, more opaque */
   font-weight: 500;
-  transition: color 0.3s;
+  font-size: 1.05rem; /* Slightly larger */
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  padding: 0.6rem 1.4rem; /* More padding */
+  border-radius: var(--border-radius-pill);
+  margin: 0 0.3rem;
+  position: relative; /* For potential underlines or effects */
 }
 
-.navbar-dark .navbar-nav .nav-link:hover,
-.navbar-dark .navbar-nav .nav-link.active {
-  color: var(--accent-color);
+.navbar .navbar-nav .nav-link:hover,
+.navbar .navbar-nav .nav-link.active {
+  color: #fff; /* Brighter active/hover text */
+  background-color: rgba(255, 255, 255, 0.08); /* More noticeable background highlight */
+}
+
+/* Optional: Active link indicator */
+.navbar .navbar-nav .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 5px; /* Adjust position */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-color);
+  border-radius: 50%;
 }
 
 .navbar-toggler {
-  border-color: var(--accent-color);
+  border-color: rgba(232, 168, 124, 0.5); /* Accent color border */
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px; /* Softer radius */
+  transition: background-color var(--transition-speed-fast);
 }
+.navbar-toggler:hover {
+  background-color: rgba(232, 168, 124, 0.1);
+}
+.navbar-toggler:focus { /* Use custom focus */
+  box-shadow: none;
+  outline: 3px solid var(--accent-color);
+  outline-offset: 1px;
+}
+.navbar-toggler-icon {
+  /* Use a brighter SVG icon color */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28250, 240, 230, 0.95%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  width: 1.5em;
+  height: 1.5em;
+}
+
 
 .cart-icon {
   position: relative;
+  color: var(--light-color);
+  transition: color var(--transition-speed-fast) var(--transition-timing-smooth), transform var(--transition-speed-fast) var(--transition-timing-smooth);
+  font-size: 1.4rem; /* Slightly larger */
+}
+.cart-icon:hover {
+    color: var(--accent-color);
+    transform: scale(1.1); /* Pop effect */
 }
 
 .cart-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: var(--accent-color);
-  color: var(--dark-color);
+  top: -9px;
+  right: -13px;
+  background-color: var(--danger-color); /* Use danger color for attention */
+  color: white; /* Ensure high contrast */
   border-radius: 50%;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.2em 0.55em;
+  font-size: 0.7rem;
   font-weight: bold;
+  line-height: 1;
+  border: 2px solid var(--dark-color); /* Match navbar bg */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Add depth */
 }
 
-/* Hero Section */
+/* Hero Section (More Dramatic & Polished) */
 .hero-section {
-  height: 80vh;
-  min-height: 500px;
+  height: 80vh; /* Taller hero */
+  min-height: 550px;
   position: relative;
   display: flex;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.4);
-  background-blend-mode: overlay;
-  background-image: url('https://images.unsplash.com/photo-1521017432531-fbd92d768814');
+  justify-content: center;
+  background-color: #4a3f35; /* Darker fallback */
+  background-blend-mode: overlay; /* Try overlay for a different blend */
+  background-image: linear-gradient(rgba(59, 47, 47, 0.4), rgba(59, 47, 47, 0.7)), url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=85'); /* Higher res, overlay gradient */
   background-size: cover;
-  background-position: center;
+  background-position: center center; /* Ensure perfect centering */
+  background-attachment: fixed; /* Parallax-like effect */
   color: white;
-  border-radius: 15px;
+  border-radius: var(--border-radius-soft);
   overflow: hidden;
-  margin-bottom: 50px;
+  margin: 30px; /* Margin around the hero */
+  box-shadow: var(--box-shadow-lifted); /* Stronger shadow */
 }
 
 .hero-content {
   text-align: center;
-  padding: 2rem;
-  background-color: rgba(26, 0, 0, 0.7);
-  border-radius: 15px;
-  max-width: 700px;
-  margin: 0 auto;
+  padding: 4rem 3rem; /* Increased padding */
+  background-color: rgba(30, 25, 25, 0.8); /* Darker, less saturated overlay for better contrast */
+  border-radius: var(--border-radius-soft);
+  max-width: 750px;
+  margin: 1rem;
+  animation: fadeIn 1.2s var(--transition-timing-smooth) 0.3s backwards; /* Smoother timing, delay */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4); /* Shadow on content box */
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 3.8rem; /* Even larger */
   font-weight: 700;
-  margin-bottom: 1rem;
-  color: var(--accent-color);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.5rem;
+  color: #fff;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6); /* Deeper text shadow */
+  letter-spacing: 1px;
 }
 
 .hero-subtitle {
   font-size: 1.5rem;
-  margin-bottom: 2rem;
-  color: var(--light-color);
+  margin-bottom: 3rem;
+  color: rgba(250, 240, 230, 0.95); /* Brighter subtitle */
+  font-weight: 300;
+  line-height: 1.8;
 }
 
 .btn-hero {
-  padding: 0.75rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  background-color: var(--secondary-color);
+  padding: 1rem 2.8rem; /* Larger button */
+  font-size: 1.25rem;
+  font-weight: 700; /* Bolder */
+  background-color: var(--accent-color);
+  color: var(--dark-color);
   border: none;
-  transition: all 0.3s;
+  border-radius: var(--border-radius-pill);
+  transition: all var(--transition-speed-normal) var(--transition-timing-smooth);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .btn-hero:hover {
-  background-color: var(--primary-color);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+  transform: translateY(-5px) scale(1.05); /* Stronger lift and scale */
+  box-shadow: var(--box-shadow-lifted); /* Use defined lifted shadow */
 }
 
-/* Buttons */
+/* Buttons (Refined & Unified Hover) */
+.btn {
+  border-radius: var(--border-radius-pill);
+  padding: 0.75rem 2rem; /* Standard padding */
+  font-weight: 600;
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  box-shadow: var(--box-shadow-soft); /* Standard soft shadow */
+  border: 2px solid transparent; /* Prepare for outline borders */
+  letter-spacing: 0.4px;
+  text-transform: uppercase; /* Optional: Uppercase for style */
+  font-size: 0.95rem; /* Slightly smaller default btn text */
+}
+.btn:hover{
+    transform: translateY(-3px); /* Consistent lift */
+    box-shadow: var(--box-shadow-medium); /* Consistent medium shadow on hover */
+}
+
+/* Specific Button Styles Refined */
 .btn-primary {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
+  color: var(--light-color);
 }
-
 .btn-primary:hover {
-  background-color: #700000;
-  border-color: #700000;
+  background-color: #523A28;
+  border-color: #523A28;
+  color: var(--light-color);
 }
 
 .btn-secondary {
   background-color: var(--secondary-color);
   border-color: var(--secondary-color);
+  color: var(--light-color);
 }
-
 .btn-secondary:hover {
-  background-color: #E03E00;
-  border-color: #E03E00;
+  background-color: #834322;
+  border-color: #834322;
+  color: var(--light-color);
 }
 
 .btn-accent {
@@ -223,435 +386,1223 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--accent-color);
   color: var(--dark-color);
 }
-
 .btn-accent:hover {
-  background-color: #E6C000;
-  border-color: #E6C000;
+  background-color: #D59065;
+  border-color: #D59065;
   color: var(--dark-color);
+  box-shadow: var(--box-shadow-medium), 0 0 15px rgba(232, 168, 124, 0.4); /* Add accent glow */
 }
 
 .btn-outline-primary {
   color: var(--primary-color);
   border-color: var(--primary-color);
 }
-
 .btn-outline-primary:hover {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--light-color);
+}
+/* Add other outline variants if needed */
+.btn-outline-secondary {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+.btn-outline-secondary:hover {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
 }
 
-/* Card Styling */
+
+/* Card Styling (More Elegant Hover) */
 .card {
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: none;
-  border-radius: 15px;
+  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth),
+              box-shadow var(--transition-speed-normal) var(--transition-timing-smooth),
+              border-color var(--transition-speed-normal) var(--transition-timing-smooth); /* Add border transition */
+  border: 1px solid var(--border-color-subtle);
+  border-radius: var(--border-radius-soft);
   overflow: hidden;
+  background-color: #fff;
+  margin-bottom: 40px;
+  box-shadow: var(--box-shadow-soft);
 }
 
 .card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-12px); /* More lift */
+  box-shadow: var(--box-shadow-lifted);
+  border-color: var(--secondary-color); /* Highlight border on hover */
 }
 
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+.card .card-img-container { /* Add container for consistent image aspect ratio */
+    height: 250px; /* Fixed height for images */
+    overflow: hidden;
+    position: relative; /* Needed for potential overlay effects */
+}
+
+.card .card-img-top {
+  display: block; /* Remove potential bottom space */
+  width: 100%;
+  height: 100%; /* Fill container */
+  object-fit: cover; /* Cover ensures aspect ratio is kept */
+  transition: transform 0.5s var(--transition-timing-smooth); /* Slower, smoother zoom */
+}
+.card:hover .card-img-top {
+  transform: scale(1.08); /* Slightly more zoom */
+}
+
+.card-body {
+    padding: 2rem; /* More padding */
 }
 
 .card-title {
   font-family: var(--font-heading);
   color: var(--primary-color);
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.card-text {
+    color: var(--gray-color);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
 }
 
 .card-price {
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  display: block; /* Ensure it takes full width */
 }
 
-/* Featured Products Section */
+/* Featured Products Section (Refined Title) */
 .section-title {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 70px; /* More space */
   position: relative;
+  font-size: 2.6rem; /* Larger section titles */
+  font-weight: 700;
+  color: var(--primary-color); /* Ensure color */
+  padding-bottom: 15px; /* Space for the underline */
 }
 
-.section-title:after {
+.section-title::after {
   content: '';
   display: block;
-  width: 80px;
+  width: 85px;
   height: 4px;
-  background-color: var(--secondary-color);
-  margin: 15px auto 0;
-  border-radius: 2px;
+  background-image: linear-gradient(to right, var(--accent-color), var(--secondary-color)); /* Gradient underline */
+  margin: 0 auto; /* Center */
+  border-radius: 3px;
+  position: absolute; /* Position precisely */
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .featured-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 18px;
+  left: 18px; /* Position to left for variation */
   background-color: var(--accent-color);
   color: var(--dark-color);
-  padding: 0.25rem 0.5rem;
+  padding: 0.4rem 0.9rem; /* More padding */
   font-size: 0.8rem;
   font-weight: bold;
   border-radius: 5px;
   z-index: 5;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* About Section */
 .about-img {
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: var(--border-radius-soft);
+  box-shadow: var(--box-shadow-lifted); /* Use lifted shadow for prominent image */
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 
 .about-text {
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--dark-color); /* Slightly darker */
+  padding-left: 1rem; /* Indent text slightly */
+}
+.about-text p:first-of-type {
+    font-size: 1.3rem; /* Make first paragraph stand out */
+    font-weight: 300;
+    color: var(--primary-color);
 }
 
 /* Contact Section */
-.contact-info {
-  margin-bottom: 30px;
+.contact-info p {
+  margin-bottom: 1.5rem; /* More spacing */
+  font-size: 1.1rem;
+  display: flex; /* Align icon and text nicely */
+  align-items: center;
 }
 
 .contact-icon {
   color: var(--secondary-color);
-  font-size: 1.5rem;
-  margin-right: 10px;
+  font-size: 1.8rem; /* Larger icons */
+  margin-right: 20px;
+  vertical-align: middle;
+  width: 30px; /* Fixed width */
+  text-align: center;
+  flex-shrink: 0; /* Prevent icon shrinking */
 }
 
 .map-container {
-  height: 400px;
-  border-radius: 15px;
+  height: 420px; /* Taller map */
+  border-radius: var(--border-radius-soft);
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--box-shadow-medium);
+  border: 5px solid #fff; /* Add white frame effect */
+}
+.map-container iframe {
+    display: block; /* Remove potential iframe bottom space */
 }
 
-/* Menu Page */
+/* Menu Page (Sticky Category Nav - Requires JS to add/remove 'sticky') */
+.category-nav-container {
+    position: sticky; /* Make the container sticky */
+    top: 86px; /* Height of navbar approx */
+    z-index: 1020; /* Below navbar, above content */
+    background-color: rgba(250, 240, 230, 0.9); /* Slightly transparent linen */
+    padding: 5px 0;
+    margin-bottom: 40px;
+    transition: box-shadow 0.3s ease;
+     /* Subtle shadow when sticky - add this class with JS */
+    &.sticky {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      background-color: rgba(255, 255, 255, 0.95); /* Whiter when sticky */
+    }
+}
+
 .category-nav {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
+  background-color: transparent; /* Inherit from container */
+  border-radius: var(--border-radius-pill); /* Pill shape */
+  box-shadow: none; /* Shadow on container now */
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
+  padding: 8px 10px; /* Padding inside */
+  border: 1px solid var(--border-color-subtle);
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center items if they fit */
 }
 
 .category-nav .nav-link {
   color: var(--dark-color);
-  font-weight: 500;
-  padding: 15px 20px;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s;
+  font-weight: 600; /* Bolder */
+  padding: 12px 28px; /* Adjusted padding */
+  border-bottom: none; /* Remove bottom border */
+  transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
+  display: inline-block;
+  margin: 0 5px; /* Space between links */
+  border-radius: var(--border-radius-pill); /* Pill shape */
+  position: relative;
+  flex-shrink: 0; /* Prevent shrinking on smaller screens */
+  border: 1px solid transparent; /* Base border for smooth transition */
 }
 
 .category-nav .nav-link.active,
 .category-nav .nav-link:hover {
-  color: var(--primary-color);
-  background-color: rgba(139, 0, 0, 0.05);
-  border-bottom: 3px solid var(--primary-color);
+  color: var(--light-color); /* White text */
+  background-color: var(--secondary-color); /* Strong background color */
+  border-color: var(--secondary-color);
+  transform: translateY(-2px); /* Slight lift */
+  box-shadow: 0 3px 8px rgba(160, 82, 45, 0.3); /* Shadow in theme color */
 }
 
-/* Product Detail */
+
+/* Product Detail (More Refined Layout) */
 .product-detail-img {
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: var(--border-radius-soft);
+  box-shadow: var(--box-shadow-lifted);
   width: 100%;
-  height: 400px;
-  object-fit: cover;
+  /* Let height be natural, but set a max */
+  max-height: 600px;
+  object-fit: cover; /* Change back to cover if preferred */
+  background-color: #fff; /* Cleaner bg if contain is used */
+  border: 1px solid var(--border-color-subtle);
 }
 
 .product-detail-info {
-  padding: 20px;
+  padding: 15px 0 15px 45px; /* Adjust padding */
+}
+@media (max-width: 992px) {
+  .product-detail-info {
+    padding: 40px 0 0 0; /* Top padding on medium/small */
+  }
 }
 
 .product-detail-title {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 3.2rem;
+  margin-bottom: 5px; /* Closer to category */
+  line-height: 1.25;
+  color: var(--primary-color);
 }
 
 .product-detail-category {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--gray-color);
   margin-bottom: 20px;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 1px; /* More spacing */
+  font-weight: 600;
 }
 
 .product-detail-price {
-  font-size: 2rem;
+  font-size: 2.8rem; /* Larger price */
   font-weight: 700;
   color: var(--secondary-color);
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .product-detail-description {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  margin-bottom: 30px;
+  font-size: 1.15rem;
+  line-height: 1.85;
+  margin-bottom: 40px;
+  color: #555; /* Keep dark gray for body text */
 }
 
 .quantity-control {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 35px;
+}
+.quantity-label { /* Add a label */
+    font-weight: 600;
+    margin-right: 15px;
+    font-size: 1rem;
+    color: var(--dark-color);
 }
 
 .quantity-btn {
-  background-color: var(--light-color);
-  border: 1px solid #ddd;
+  background-color: #fff;
+  border: 1px solid #bbb; /* Slightly darker */
   color: var(--dark-color);
-  width: 40px;
-  height: 40px;
-  font-size: 1.2rem;
+  width: 44px; /* Larger click target */
+  height: 44px;
+  font-size: 1.5rem; /* Larger +/- signs */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-radius: var(--border-radius-soft); /* Match global radius */
+  transition: background-color var(--transition-speed-fast), border-color var(--transition-speed-fast);
+}
+.quantity-btn:hover {
+    background-color: #f5f5f5;
+    border-color: #999;
+    color: var(--primary-color);
+}
+.quantity-btn:active {
+    background-color: #e9e9e9;
 }
 
 .quantity-input {
-  width: 60px;
-  height: 40px;
-  border: 1px solid #ddd;
+  width: 70px;
+  height: 44px;
+  border: 1px solid #bbb;
   text-align: center;
-  font-size: 1.1rem;
-  margin: 0 5px;
+  font-size: 1.2rem; /* Larger number display */
+  margin: 0 8px;
+  border-radius: var(--border-radius-soft);
+  font-weight: 600;
+  color: var(--primary-color);
+}
+/* Remove browser default number input spinners */
+.quantity-input[type=number]::-webkit-inner-spin-button,
+.quantity-input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.quantity-input[type=number] { -moz-appearance: textfield; }
+
+
+/* Review Section (Clearer Separation & Visuals) */
+.reviews-section h3 {
+    text-align: left; /* Align section title left */
+    margin-bottom: 30px;
+}
+.reviews-section h3::after { /* Adjust title underline for left alignment */
+    margin: 8px 0 0 0;
+    left: 0;
+    transform: none;
 }
 
-/* Review Section */
 .review-list {
   margin-top: 40px;
+  border-top: 1px solid var(--border-color-subtle); /* Add top separator */
+  padding-top: 40px;
 }
 
 .review-item {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  border-radius: var(--border-radius-soft);
+  padding: 35px; /* More padding */
+  margin-bottom: 30px; /* More space */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color-subtle);
+  position: relative; /* For potential quote icon */
 }
+/* Optional: Add a quote icon */
+.review-item::before {
+    content: '\f4b4'; /* Bootstrap Icons quote character */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 2.5rem;
+    color: var(--light-color); /* Very light color */
+    opacity: 0.6;
+}
+
 
 .review-author {
   font-weight: 700;
-  margin-bottom: 5px;
+  margin-bottom: 3px; /* Tighter */
+  color: var(--primary-color);
+  font-size: 1.15rem;
 }
 
 .review-date {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--gray-color);
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
 .star-rating {
-  color: var(--accent-color);
-  margin-bottom: 10px;
+  color: var(--warning-color);
+  margin-bottom: 18px;
+}
+.star-rating .bi {
+    font-size: 1.25rem; /* Larger stars */
+    margin-right: 4px; /* More space between stars */
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1)); /* Subtle star shadow */
 }
 
-/* Cart and Checkout */
+.review-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #444; /* Slightly darker text */
+}
+
+/* Cart and Checkout (Enhanced Clarity) */
 .cart-item {
-  background-color: white;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  border-radius: var(--border-radius-soft);
+  padding: 25px; /* Increased padding */
+  margin-bottom: 25px;
+  box-shadow: var(--box-shadow-soft);
+  display: flex;
+  align-items: flex-start; /* Align items to top */
+  border: 1px solid var(--border-color-subtle);
 }
 
 .cart-item-img {
-  width: 80px;
-  height: 80px;
+  width: 85px; /* Larger image */
+  height: 85px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--border-radius-soft);
+  margin-right: 30px;
+  flex-shrink: 0;
 }
 
+.cart-item-details {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 15px; /* Space between elements when wrapping */
+}
+.cart-item-info {
+    flex-grow: 1; /* Take available space */
+    margin-right: 15px;
+}
+
+
+.cart-item-title {
+    font-weight: 700; /* Bolder */
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    font-size: 1.15rem;
+    line-height: 1.4;
+}
+.cart-item-price {
+    color: var(--secondary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    display: block; /* Ensure takes its own line if needed */
+}
+
+/* Cart item quantity/remove actions */
+.cart-item-actions {
+    display: flex;
+    flex-direction: column; /* Stack quantity and remove */
+    align-items: flex-end; /* Align actions to right */
+    min-width: 120px; /* Ensure minimum width */
+}
+.cart-item .quantity-control { margin-bottom: 10px; } /* Reduce bottom margin here */
+.btn-remove-item {
+    color: var(--danger-color);
+    background: none;
+    border: none;
+    padding: 5px;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.btn-remove-item:hover {
+    color: #a02633;
+    text-decoration: none;
+}
+.btn-remove-item i { margin-right: 5px; }
+
 .cart-summary {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  background-color: #FBF7F2; /* Even softer bg for summary */
+  border-radius: var(--border-radius-soft);
+  padding: 35px 40px; /* More padding */
+  box-shadow: var(--box-shadow-soft);
+  border: 1px solid var(--border-color-subtle);
+}
+
+.summary-title {
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+    font-size: 1.8rem; /* Larger summary title */
+    margin-bottom: 30px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #DCD1C5;
+    text-align: center; /* Center title */
 }
 
 .summary-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 20px; /* More space */
+  color: var(--dark-color);
+  font-size: 1.05rem; /* Slightly larger text */
+}
+.summary-item span:first-child { color: var(--gray-color); } /* Lighter label */
+.summary-item span:last-child {
+    font-weight: 700; /* Bolder value */
+    color: var(--dark-color);
 }
 
 .summary-total {
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* Prominent total */
   font-weight: 700;
   color: var(--primary-color);
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid var(--primary-color); /* Thicker top border */
+}
+.summary-total span { font-size: 1.2rem; font-weight: 400; color: var(--gray-color); margin-right: 10px; } /* Add label like 'Total:' */
+
+/* Form Styling (Enhanced Visuals) */
+.form-control, .form-select {
+  border-radius: var(--border-radius-soft);
+  padding: 16px 20px; /* Generous padding */
+  border: 1px solid #DCD1C5; /* Standard border */
+  transition: border-color var(--transition-speed-fast) var(--transition-timing-smooth),
+              box-shadow var(--transition-speed-fast) var(--transition-timing-smooth);
+  background-color: #fff;
+  font-size: 1rem;
+  color: var(--dark-color);
+}
+.form-control::placeholder, .form-select::placeholder {
+  color: #aaa; /* Lighter placeholder */
+  font-style: italic;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--secondary-color); /* Focus border color */
+  /* Using focus-visible definition for glow */
 }
 
-/* Form Styling */
-.form-control {
-  border-radius: 10px;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-}
-
-.form-control:focus {
-  box-shadow: none;
-  border-color: var(--primary-color);
+textarea.form-control {
+    min-height: 140px; /* Taller text area */
+    resize: vertical;
 }
 
 .form-label {
-  font-weight: 600;
-  color: var(--dark-color);
+  font-weight: 700; /* Bolder labels */
+  color: var(--primary-color); /* Label color */
+  margin-bottom: 0.7rem;
+  font-size: 1rem; /* Standard label size */
 }
 
-/* Footer */
+
+/* Footer (More Luxurious & Structured) */
 .footer {
   background-color: var(--dark-color);
-  color: var(--light-color);
-  padding: 50px 0 20px;
+  color: rgba(250, 240, 230, 0.8); /* Lighter text color */
+  padding: 80px 0 40px; /* More padding */
+  font-size: 1rem; /* Base footer text size */
 }
 
 .footer-logo {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.8rem;
-  color: var(--accent-color);
-  margin-bottom: 20px;
+  font-size: 2.2rem;
+  color: var(--light-color);
+  margin-bottom: 35px;
+  display: inline-block; /* Allow text-align center */
+  text-decoration: none; /* Remove underline if it's a link */
+}
+.footer-logo img { /* Style logo within if using an image */
+    height: 45px;
+    margin-right: 10px;
+    vertical-align: text-bottom;
+}
+.footer-logo:hover {
+    color: #fff;
 }
 
 .footer-text {
-  line-height: 1.8;
-  margin-bottom: 30px;
+  line-height: 1.85;
+  margin-bottom: 35px;
+  max-width: 400px; /* Limit width if centered */
+}
+.footer .text-center .footer-text { /* Center text if parent is centered */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .footer-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 20px;
-  color: var(--accent-color);
+  margin-bottom: 30px;
+  color: #fff; /* Pure white title */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  padding-bottom: 10px;
+}
+/* Underline for footer titles */
+.footer-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background-color: var(--accent-color);
+  border-radius: 2px;
+}
+.footer .text-center .footer-title::after { /* Center underline if title is centered */
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.footer-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-links li {
-  margin-bottom: 10px;
-}
-
+.footer-links { list-style: none; padding: 0; margin: 0; }
+.footer-links li { margin-bottom: 15px; }
 .footer-links a {
-  color: var(--light-color);
+  color: rgba(250, 240, 230, 0.8);
   text-decoration: none;
-  transition: color 0.3s;
+  transition: color var(--transition-speed-fast) var(--transition-timing-smooth), padding-left var(--transition-speed-fast) var(--transition-timing-smooth);
+  position: relative;
+  display: inline-block;
 }
-
 .footer-links a:hover {
   color: var(--accent-color);
+  padding-left: 10px; /* Indent more */
+  text-decoration: none; /* Ensure no underline conflict */
 }
+/* Add subtle arrow on hover */
+.footer-links a:hover::before {
+    content: '\f138'; /* Bootstrap icon chevron right */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
 
 .social-icons {
   display: flex;
-  margin-top: 20px;
+  gap: 15px; /* Use gap for spacing */
+  margin-top: 30px;
+}
+/* Center icons if parent is centered */
+.footer .text-center .social-icons {
+    justify-content: center;
 }
 
 .social-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: rgba(255, 255, 255, 0.1);
+  width: 44px; /* Consistent size */
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.12); /* Slightly more visible */
   border-radius: 50%;
-  margin-right: 10px;
+  /* margin-right removed, using gap */
   color: var(--light-color);
   text-decoration: none;
-  transition: all 0.3s;
+  transition: all var(--transition-speed-normal) var(--transition-timing-smooth); /* Smoother transition */
 }
-
 .social-link:hover {
   background-color: var(--accent-color);
   color: var(--dark-color);
-  transform: translateY(-3px);
+  transform: translateY(-5px) rotate(15deg); /* Pop and slight rotate */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
+.social-link .bi { font-size: 1.3rem; /* Larger icons */ }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 20px;
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid rgba(250, 240, 230, 0.2); /* More visible border */
+  padding-top: 40px;
+  margin-top: 60px;
+  font-size: 0.95rem;
+  color: rgba(250, 240, 230, 0.65); /* Lighter copyright */
+  text-align: center;
 }
 
-/* Responsive fixes */
+
+/* Responsive fixes - Review sizes and spacing */
+@media (max-width: 1200px) {
+  h1 { font-size: 2.8rem; }
+  h2 { font-size: 2.2rem; }
+  .hero-title { font-size: 3.4rem; }
+  .product-detail-title { font-size: 2.8rem; }
+  .product-detail-price { font-size: 2.5rem; }
+}
+
 @media (max-width: 992px) {
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1.2rem;
-  }
+  h1 { font-size: 2.6rem; }
+  h2 { font-size: 2.0rem; }
+  .hero-title { font-size: 3.0rem; }
+  .hero-subtitle { font-size: 1.4rem; }
+  .product-detail-title { font-size: 2.4rem; }
+  .footer { text-align: center; } /* Center footer content on medium */
+  .footer-title::after { left: 50%; transform: translateX(-50%); } /* Center underline */
+  .social-icons { justify-content: center; }
+  .footer-text { margin-left: auto; margin-right: auto; }
 }
 
 @media (max-width: 768px) {
-  .hero-section {
-    height: 60vh;
-  }
-  
-  .hero-title {
-    font-size: 2rem;
-  }
-  
-  .section-title {
-    font-size: 1.8rem;
-  }
-  
-  .product-detail-title {
-    font-size: 2rem;
-  }
-  
-  .product-detail-price {
-    font-size: 1.5rem;
-  }
+  html { font-size: 15px; } /* Adjust base */
+  body { line-height: 1.7; }
+  .content-container { padding: 30px 25px; }
+  .hero-section { height: 70vh; min-height: 480px; margin: 20px; }
+  .hero-title { font-size: 2.6rem; }
+  .hero-subtitle { font-size: 1.3rem; }
+  .section-title { font-size: 2.2rem; margin-bottom: 55px;}
+  .product-detail-title { font-size: 2.1rem; }
+  .product-detail-price { font-size: 2rem; }
+  .category-nav { justify-content: flex-start; } /* Allow scrolling */
+  .footer { padding-top: 60px; }
+  .cart-item { padding: 20px; }
+  .cart-item-img { width: 70px; height: 70px; margin-right: 20px;}
 }
 
 @media (max-width: 576px) {
-  .hero-section {
-    height: 50vh;
-  }
-  
-  .hero-content {
-    padding: 1rem;
-  }
-  
-  .hero-title {
-    font-size: 1.8rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .btn-hero {
-    padding: 0.5rem 1.5rem;
-    font-size: 1rem;
-  }
+  html { font-size: 14.5px; }
+  h1 { font-size: 2.2rem; }
+  .hero-content { padding: 2.5rem 1.5rem; }
+  .hero-title { font-size: 2.2rem; }
+  .hero-subtitle { font-size: 1.15rem; }
+  .btn-hero { padding: 0.9rem 2.2rem; font-size: 1.1rem; }
+  .card-body { padding: 1.5rem; }
+  .card-title { font-size: 1.3rem;}
+  .card-text { font-size: 0.95rem; }
+  .card-price { font-size: 1.3rem;}
+  .product-detail-img { max-height: 400px; }
+  .product-detail-info { padding: 25px 0 0 0;}
+  .product-detail-title { font-size: 1.9rem; }
+  .product-detail-price { font-size: 1.8rem; }
+  .cart-item { flex-direction: column; align-items: center; text-align: center; }
+  .cart-item-img { margin-right: 0; margin-bottom: 20px; }
+  .cart-item-details { width: 100%; flex-direction: column; align-items: center; gap: 5px; }
+  .cart-item-info { margin-right: 0; margin-bottom: 10px; }
+  .cart-item-actions { align-items: center; width: 100%;}
+  .cart-summary { padding: 25px; }
+  .summary-title { font-size: 1.5rem; }
+  .summary-item { font-size: 1rem; }
+  .summary-total { font-size: 1.5rem; }
 }
 
-/* Animations */
+/* Animations (Smoother Easing) */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(15px); } /* Slightly more pronounced move */
+  to { opacity: 1; transform: translateY(0); }
 }
-
 .fade-in {
-  animation: fadeIn 1.5s ease-out;
+  animation: fadeIn 1s var(--transition-timing-smooth) backwards;
 }
 
 @keyframes slideUp {
-  from { transform: translateY(50px); opacity: 0; }
+  from { transform: translateY(60px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
 .slide-up {
-  animation: slideUp 0.8s ease-out;
+  /* Apply this class with JS Intersection Observer for scroll animations */
+  animation: slideUp 1s cubic-bezier(0.165, 0.84, 0.44, 1) backwards;
+  /* Initial state set by CSS or JS */
+  opacity: 0;
+}
+/* Make slide-up elements visible when animation should run */
+.slide-up.visible {
+  opacity: 1;
+}
+
+
+/* Accessibility */
+.sr-only { /* Standard screen reader only class */
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ---- AI Description & Image Results Styling --- */
+.ai-generated-description {
+  font-style: italic;
+  color: #555;
+  border-left: 4px solid var(--info-color); /* Thicker info border */
+  padding: 10px 15px;
+  margin: 20px 0;
+  background-color: rgba(13, 202, 240, 0.05); /* Very light info background */
+  border-radius: 0 5px 5px 0; /* Soft radius */
+}
+
+.image-results-container {
+  padding: 10px 0;
+  background-color: #f0f0f0; /* Light gray background for image results */
+  border-radius: var(--border-radius-soft);
+  margin-top: 15px;
+}
+.image-results-title {
+  font-weight: 600; /* Bolder title */
+  margin-bottom: 10px !important;
+  font-size: 0.95em;
+  color: var(--dark-color);
+  padding: 0 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.image-results-row {
+    padding: 0 10px; /* Padding around the row */
+}
+.image-result-item {
+    text-align: center;
+    margin-bottom: 10px; /* Space below each item */
+}
+.image-result-item img {
+  border: 2px solid #ddd; /* Thicker border */
+  border-radius: 6px; /* Soft radius */
+  transition: transform 0.25s ease-in-out, border-color 0.25s ease-in-out;
+  width: 100%; /* Make image responsive within column */
+  aspect-ratio: 1 / 1; /* Square aspect ratio */
+  object-fit: cover;
+}
+.image-result-item:hover img {
+   transform: scale(1.1);
+   border-color: var(--secondary-color); /* Theme color border on hover */
+   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.image-result-item span {
+   color: var(--gray-color);
+   font-size: 0.85em;
+   display: block;
+   margin-top: 5px;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+.image-result-item:hover span {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+
+/* --- CHATBOT STYLES (Polished) --- */
+.chatbot-container {
+    position: fixed;
+    bottom: 95px; /* Above FAB */
+    right: 25px;
+    width: 370px; /* Wider */
+    max-width: calc(100vw - 50px);
+    height: 500px; /* Taller */
+    max-height: calc(100vh - 120px);
+    background-color: #fff;
+    border-radius: 15px; /* More rounded */
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18); /* Stronger shadow */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1040;
+    transform: translateY(20px) scale(0.95) translateX(10px); /* Start slightly offset */
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.35s var(--transition-timing-smooth),
+                opacity 0.3s ease-out,
+                visibility 0.35s;
+}
+
+.chatbot-container:not(.collapsed) {
+    transform: translateY(0) scale(1) translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Nút Toggle đã tích hợp vào FAB Container */
+
+.chatbot-header {
+    background-color: var(--primary-color); color: white; padding: 12px 18px; /* More padding */
+    display: flex; justify-content: space-between; align-items: center; cursor: grab;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    border-top-left-radius: 15px; border-top-right-radius: 15px; /* Match container */
+    user-select: none; /* Prevent text selection when dragging */
+}
+.chatbot-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.chatbot-minimize-btn {
+    background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.4em;
+    cursor: pointer; padding: 0; line-height: 1; opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.chatbot-minimize-btn:hover { opacity: 1; transform: scale(1.1); }
+
+.chat-messages {
+    flex-grow: 1; padding: 20px; overflow-y: auto;
+    background-color: #F9F6F2; /* Softer chat background */
+    scrollbar-width: thin;
+    scrollbar-color: #ccc #F9F6F2;
+}
+.chat-messages::-webkit-scrollbar { width: 8px; }
+.chat-messages::-webkit-scrollbar-track { background: #eee; border-radius: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; border: 2px solid #eee; }
+.chat-messages::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+.message {
+    margin-bottom: 15px; padding: 10px 16px; border-radius: 20px; /* More rounded messages */
+    max-width: 88%; word-wrap: break-word; line-height: 1.5;
+    animation: messageFadeIn 0.4s var(--transition-timing-smooth) backwards; /* Animate messages */
+}
+@keyframes messageFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-message {
+    background-color: var(--secondary-color); /* Use secondary for user */
+    color: white; margin-left: auto; border-bottom-right-radius: 6px;
+}
+.bot-message {
+    background-color: #e5e5ea; /* Slightly different gray for bot */
+    color: #2c2c2e; /* Darker text for bot msg */
+    margin-right: auto; border-bottom-left-radius: 6px;
+}
+.message p { margin-bottom: 0; }
+
+/* Bot image results refined */
+.bot-message .image-results-container {
+    background-color: transparent; /* Remove nested background */
+    padding-top: 8px;
+    margin: -5px -5px 0; /* Adjust margins to fit better */
+}
+.bot-message .image-results-title {
+    padding: 0 10px 5px; font-size: 0.85em; font-weight: 500; color: #555;
+}
+.bot-message .image-results-container .d-flex {
+    padding: 0 10px 10px; gap: 8px; /* Add gap between images */
+}
+.bot-message .image-result-item { margin-bottom: 0; } /* Remove bottom margin here */
+.bot-message .image-result-item img {
+    width: 60px; height: 60px; object-fit: cover; border-radius: 8px; /* Rounder thumbs */
+    border: 1px solid rgba(0,0,0,0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    cursor: pointer;
+}
+.bot-message .image-result-item:hover img {
+    transform: scale(1.1); box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    border-color: var(--secondary-color);
+}
+.bot-message .image-result-item span {
+    color: #444; font-size: 0.75em; margin-top: 4px; display: block;
+    text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 60px;
+}
+.bot-message .image-result-item:hover span { color: var(--secondary-color); }
+
+.chat-input-container {
+    padding: 15px; border-top: 1px solid #ddd; background-color: #fdfdfd;
+    border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+}
+.chat-form { display: flex; align-items: center; gap: 10px; }
+#chat-input {
+    flex-grow: 1; border: 1px solid #ccc; border-radius: 25px; /* Fully rounded */
+    padding: 12px 20px; outline: none; font-size: 1rem;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+#chat-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.15);
+}
+#chatForm button {
+    background-color: var(--primary-color); color: white; border: none;
+    border-radius: 50%; /* Round button */
+    width: 44px; /* Fixed size */
+    height: 44px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#chatForm button:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.1);
+}
+#chatForm button i {
+    font-size: 1.2rem;
+    line-height: 1; /* Align icon properly */
+    vertical-align: middle;
+}
+/* --- KẾT THÚC CHATBOT STYLES --- */
+
+
+/* ---- Styling cho Floating Action Buttons Container ---- */
+.floating-action-buttons-container {
+  position: fixed;
+  bottom: 25px; /* Lift higher */
+  right: 25px;
+  display: flex;
+  flex-direction: column-reverse; /* Stack bottom-up */
+  gap: 15px; /* Increase gap */
+  z-index: 1045; /* Ensure it's above most elements, including chatbot container if closed */
+}
+
+/* Style chung cho các nút nổi */
+.floating-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 55px;      /* Larger FABs */
+  height: 55px;
+  border-radius: 50%;
+  background-color: var(--primary-color); /* Default color */
+  color: white;
+  font-size: 24px;    /* Larger icons */
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+  border: none;
+  cursor: pointer;
+  transition: transform 0.25s var(--transition-timing-smooth),
+              box-shadow 0.25s var(--transition-timing-smooth),
+              background-color 0.25s ease-in-out;
+  overflow: hidden;
+}
+
+.floating-action-button:hover {
+  transform: translateY(-4px) scale(1.1); /* Lift and scale effect */
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* Nút cụ thể */
+.floating-action-button.fab-facebook {
+  background-color: #1877F2;
+}
+.floating-action-button.fab-facebook:hover {
+  background-color: #166fe5;
+}
+
+.floating-action-button.fab-tiktok {
+  background-color: #000000;
+  /* TikTok's multi-color icon needs specific SVG or Font Awesome for accuracy */
+  /* Using a simple icon here */
+}
+.floating-action-button.fab-tiktok:hover {
+  background-color: #333;
+}
+
+/* Style nút toggle chatbot như FAB khác */
+.floating-action-button.chatbot-toggle-btn {
+  background-color: var(--secondary-color); /* Chatbot gets secondary color */
+}
+.floating-action-button.chatbot-toggle-btn:hover {
+  background-color: #834322; /* Darker secondary on hover */
+}
+
+.card, .category-card, .promo-card {
+  /* Existing styles... */
+  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth),
+              box-shadow var(--transition-speed-normal) var(--transition-timing-smooth),
+              border-color var(--transition-speed-normal) var(--transition-timing-smooth); /* Add border transition */
+  border: 1px solid var(--border-color-subtle); /* Add base subtle border */
+}
+
+.card:hover, .category-card:hover, .promo-card:hover {
+  transform: translateY(-10px); /* More noticeable lift */
+  box-shadow: var(--box-shadow-lifted); /* Stronger shadow */
+  border-color: var(--secondary-color); /* Highlight border on hover */
+}
+
+/* --- 2. Subtle Image Zoom on Card Hover --- */
+/* Ensure you have a container if needed, or apply directly to img if card has overflow:hidden */
+.card .card-img-container { /* Add this class wrapper in HTML if you haven't */
+  overflow: hidden;
+  border-radius: var(--border-radius-soft) var(--border-radius-soft) 0 0; /* Match card top radius */
+}
+
+/* Target images within any card */
+.card .card-img-top {
+  transition: transform 0.5s var(--transition-timing-smooth); /* Slower, smoother zoom */
+}
+
+.card:hover .card-img-top {
+  transform: scale(1.06); /* Slightly increased zoom factor */
+}
+
+/* --- 3. Enhanced Button Hover Effects --- */
+.btn {
+  /* Existing styles... */
+  transition: all var(--transition-speed-normal) var(--transition-timing-smooth); /* Use normal speed */
+  box-shadow: var(--box-shadow-soft); /* Add base shadow to buttons */
+  will-change: transform; /* Hint browser for smoother transform */
+}
+
+.btn:hover {
+  /* Existing hover colors should remain */
+  transform: translateY(-4px) scale(1.03); /* Combine lift and slight scale */
+  box-shadow: var(--box-shadow-medium); /* Use medium shadow on hover */
+}
+.btn:active {
+    transform: translateY(-1px) scale(0.99); /* Press down effect */
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Inset shadow */
+}
+
+/* Special Hero Button Hover */
+.btn-hero:hover {
+  /* Existing styles... */
+  transform: translateY(-6px) scale(1.06); /* More dramatic for hero */
+  box-shadow: var(--box-shadow-lifted);
+}
+
+/* Add to cart button hover specifically */
+.add-to-cart-btn:hover {
+   /* Keep primary/outline styles but add transform/shadow */
+   /* Optional: Add a specific effect like subtle glow */
+   /* box-shadow: var(--box-shadow-medium), 0 0 15px rgba(111, 78, 55, 0.2); */
+}
+
+
+/* --- 4. Navbar Brand Hover --- */
+.navbar-brand {
+  /* Existing styles... */
+  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth);
+}
+.navbar-brand:hover {
+  /* Existing hover styles... */
+  transform: scale(1.03); /* Keep subtle scale */
+}
+
+/* --- 5. Featured Badge Animation --- */
+@keyframes pulse-badge {
+  0% { transform: scale(1); box-shadow: 0 3px 6px rgba(0,0,0,0.15); opacity: 1; }
+  50% { transform: scale(1.08); box-shadow: 0 5px 12px rgba(232, 168, 124, 0.4); opacity: 0.9; } /* Accent color glow */
+  100% { transform: scale(1); box-shadow: 0 3px 6px rgba(0,0,0,0.15); opacity: 1; }
+}
+
+.featured-badge {
+  /* Existing styles... */
+  animation: pulse-badge 3.5s infinite ease-in-out; /* Slow, subtle pulse */
+}
+
+.category-card {
+  position: relative; /* Cho phép định vị tuyệt đối overlay */
+  overflow: visible; /* CHO PHÉP overlay hiện ra ngoài card nếu muốn, hoặc hidden */
+}
+
+.category-overlay {
+  position: absolute;
+  bottom: 0; /* Hiển thị từ dưới lên */
+  left: 0;
+  right: 0;
+  background-color: rgba(59, 47, 47, 0.92); /* Nền Dark Chocolate mờ */
+  color: var(--light-color);
+  padding: 15px 20px;
+  border-radius: 0 0 var(--border-radius-soft) var(--border-radius-soft); /* Bo góc dưới */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(15px) scale(0.95); /* Hiệu ứng xuất hiện từ dưới và nhỏ */
+  transition: opacity 0.3s var(--transition-timing-smooth),
+              visibility 0s linear 0.3s, /* Delay visibility để transition opacity xong */
+              transform 0.3s var(--transition-timing-smooth);
+  z-index: 2; /* Nằm trên nội dung card body */
+  pointer-events: none; /* Không bắt sự kiện chuột trên overlay */
+  border-top: 2px solid var(--secondary-color); /* Viền ngăn cách màu Sienna */
+}
+
+/* Style cho liên kết cha khi overlay hiện (có thể giảm opacity nội dung gốc) */
+.category-card-link:hover .category-card .card-body {
+    /* Optional: Làm mờ nội dung gốc khi hover */
+    /* opacity: 0.7; */
+    /* filter: blur(1px); */
+}
+
+.category-card-link:hover .category-card .category-overlay {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.25s var(--transition-timing-smooth),
+              visibility 0s linear 0s,
+              transform 0.25s var(--transition-timing-smooth);
+}
+
+.category-overlay .overlay-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--accent-color); /* Màu accent cho tiêu đề overlay */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(232, 168, 124, 0.3); /* Border màu accent mờ */
+}
+
+.category-overlay .overlay-product-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem; /* Chữ nhỏ hơn trong overlay */
+  line-height: 1.5;
+  max-height: 70px; /* Giới hạn chiều cao nếu nhiều sản phẩm */
+  overflow: hidden;
+}
+
+.category-overlay .overlay-product-list li {
+  margin-bottom: 3px;
+  white-space: nowrap; /* Tránh xuống dòng tên SP */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Thêm ... nếu quá dài */
+}
+.category-overlay .overlay-product-list li::before {
+    content: "– "; /* Dấu gạch đầu dòng đơn giản */
+    margin-right: 4px;
+    opacity: 0.6;
+}
+
+.category-overlay .overlay-no-products {
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.7;
+    margin-top: 5px;
+    margin-bottom: 0;
 }

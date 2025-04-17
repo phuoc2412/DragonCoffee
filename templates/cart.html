@@ -1,128 +1,118 @@
+{# templates/cart.html #}
 {% extends "base.html" %}
 
 {% block title %}Dragon Coffee Shop - Your Cart{% endblock %}
 
+{# Nạp CSS riêng cho giỏ hàng nếu có #}
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+    {{ super() }} {# Kế thừa CSS từ base #}
+    {# <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}"> #}
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="content-container">
-        <h1 class="section-title">Your Cart</h1>
-        
-        {% if cart_items and cart_items|length > 0 %}
+    <div class="content-container"> {# Thêm container nếu base dùng #}
+        <h1 class="section-title">Giỏ hàng của bạn</h1>
+        {% if cart_items %} {# Dùng biến cart_items từ route #}
         <div class="row">
             <div class="col-lg-8 mb-4 mb-lg-0">
+                {# Phần hiển thị các mặt hàng trong giỏ #}
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Cart Items</h3>
-                        
+                        <h3 class="card-title mb-4">Các mặt hàng trong giỏ hàng</h3>
                         {% for item in cart_items %}
-                        <div class="cart-item d-flex align-items-center" data-product-id="{{ item.id }}" data-price="{{ item.price }}">
-                            <img src="{{ item.image_url or 'https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb' }}" alt="{{ item.name }}" class="cart-item-img me-3">
-                            
+                        {# ---- THÊM data-product-id VÀO DIV CHA ---- #}
+                        <div class="cart-item d-flex align-items-center {% if not loop.last %}mb-3 pb-3 border-bottom{% endif %}" data-product-id="{{ item.id }}">
+                            <img src="{{ item.image_url or url_for('static', filename='images/default_product.png') }}" alt="{{ item.name }}" class="cart-item-img me-3 rounded"> {# Thêm rounded #}
+
                             <div class="flex-grow-1">
                                 <h5 class="cart-item-title mb-1">{{ item.name }}</h5>
-                                <p class="cart-item-price mb-1">${{ "%.2f"|format(item.price) }}</p>
+                                <p class="cart-item-price mb-1 text-primary fw-bold">${{ "%.2f"|format(item.price) }}</p> {# Thêm class và style #}
                                 {% if item.notes %}
-                                <p class="cart-item-notes small mb-0 text-muted">Notes: {{ item.notes }}</p>
+                                <p class="cart-item-notes small mb-0 text-muted fst-italic">- {{ item.notes }}</p>
                                 {% endif %}
                             </div>
-                            
+
+                            {# ---- NÚT +/- VÀ INPUT SỐ LƯỢNG ---- #}
                             <div class="cart-quantity mx-3">
-                                <div class="d-flex align-items-center">
-                                    <button class="cart-quantity-btn decrement">-</button>
-                                    <form method="POST" action="{{ url_for('order.update_cart') }}">
-                                        <input type="hidden" name="product_id" value="{{ item.id }}">
-                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="cart-quantity-input" style="width: 60px;">
-                                        <button type="submit" class="update-cart-btn d-none">Update</button>
-                                    </form>
-                                    <button class="cart-quantity-btn increment">+</button>
+                                <div class="input-group input-group-sm"> {# Bọc trong input-group-sm #}
+                                    <button class="btn btn-outline-secondary cart-quantity-btn decrement" type="button">-</button>
+                                    <input type="number" value="{{ item.quantity }}" min="1" max="99" class="form-control text-center cart-quantity-input" style="max-width: 60px;" readonly aria-label="Số lượng {{ item.name }}"> {# Thêm readonly và aria-label #}
+                                    <button class="btn btn-outline-secondary cart-quantity-btn increment" type="button">+</button>
                                 </div>
                             </div>
-                            
-                            <div class="cart-item-subtotal me-3">${{ "%.2f"|format(item.subtotal) }}</div>
-                            
-                            <form method="POST" action="{{ url_for('order.remove_from_cart', product_id=item.id) }}">
-                                <button type="submit" class="btn btn-sm text-danger remove-from-cart-btn" data-product-id="{{ item.id }}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+                             {# ---- END NÚT +/- ---- #}
+
+                            {# Subtotal của item #}
+                            <div class="cart-item-subtotal fw-medium me-3">${{ "%.2f"|format(item.subtotal) }}</div>
+
+                            {# Nút Xóa Item (Dùng button type button và JS hoặc form nếu cần) #}
+                             {# Sử dụng data-product-id để JS biết xóa item nào #}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-from-cart-btn" data-product-id="{{ item.id }}" data-bs-toggle="tooltip" title="Xóa {{ item.name }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
-                        {% if not loop.last %}<hr>{% endif %}
                         {% endfor %}
                     </div>
                 </div>
-                
-                <div class="d-flex justify-content-between mt-3">
-                    <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i> Continue Shopping
+                {# Nút quay lại mua sắm và xóa giỏ hàng #}
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('main.menu') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Tiếp tục mua sắm
                     </a>
-                    
-                    <form method="POST" action="{{ url_for('order.clear_cart') }}">
-                        <button type="submit" class="btn btn-outline-danger">
-                            <i class="fas fa-trash me-2"></i> Clear Cart
+                    <form action="{{ url_for('order.clear_cart') }}" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn xóa toàn bộ giỏ hàng?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {# <<< SỬA Ở ĐÂY #}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times-circle me-1"></i> Xóa giỏ hàng
                         </button>
                     </form>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm cart-summary">
+                 {# Phần tóm tắt đơn hàng #}
+                <div class="card border-0 shadow-sm cart-summary sticky-top" style="top: 85px;"> {# Thêm sticky-top #}
                     <div class="card-body p-4">
-                        <h3 class="card-title mb-4">Order Summary</h3>
-                        
+                        <h3 class="card-title mb-4">Tóm tắt đơn hàng</h3>
                         <div class="summary-item">
-                            <span>Subtotal</span>
-                            <span class="cart-subtotal-value">${{ "%.2f"|format(total) }}</span>
+                            <span>Tổng cộng</span>
+                            <span class="cart-subtotal-value">${{ "%.2f"|format(total) }}</span> {# Dùng biến total từ route #}
                         </div>
-                        
                         <div class="summary-item">
-                            <span>Tax</span>
+                            <span>Thuế (10%)</span>
+                             {# Tính thuế dựa trên total #}
                             <span class="cart-tax-value">${{ "%.2f"|format(total * 0.1) }}</span>
                         </div>
-                        
                         <hr>
-                        
-                        <div class="summary-item">
-                            <span class="fw-bold">Total</span>
+                        <div class="summary-item total"> {# Thêm class total #}
+                            <span class="fw-bold">Tổng cộng</span>
+                            {# Tính tổng cuối cùng #}
                             <span class="summary-total cart-total-value">${{ "%.2f"|format(total * 1.1) }}</span>
                         </div>
-                        
                         <div class="d-grid mt-4">
                             <a href="{{ url_for('order.checkout') }}" class="btn btn-primary btn-lg">
-                                Proceed to Checkout
+                                Tiến hành thanh toán <i class="fas fa-arrow-right ms-1"></i>
                             </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card border-0 shadow-sm mt-3">
-                    <div class="card-body p-4">
-                        <h5 class="mb-3">We Accept</h5>
-                        <div class="d-flex gap-2">
-                            <div class="payment-icon"><i class="fab fa-cc-visa fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-mastercard fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-amex fa-2x"></i></div>
-                            <div class="payment-icon"><i class="fab fa-cc-paypal fa-2x"></i></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         {% else %}
+         {# Hiển thị khi giỏ hàng trống #}
         <div class="text-center py-5">
             <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
-            <h3>Your cart is empty</h3>
-            <p class="lead mb-4">Looks like you haven't added any items to your cart yet.</p>
-            <a href="{{ url_for('main.menu') }}" class="btn btn-primary">Explore Our Menu</a>
+            <h3>Giỏ hàng của bạn đang trống</h3>
+            <p class="lead mb-4">Hãy thêm vài món ngon vào giỏ nào!</p>
+            <a href="{{ url_for('main.menu') }}" class="btn btn-primary">Khám phá thực đơn</a>
         </div>
         {% endif %}
-    </div>
+    </div> {# End content-container #}
 </div>
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 {% endblock %}
+
+{# --- QUAN TRỌNG: Nạp cart.js --- #}
+{% block extra_js %}
+    {{ super() }} {# Kế thừa JS từ base #}
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script> {# <<<< NẠP FILE cart.js Ở ĐÂY #}
 {% endblock %}

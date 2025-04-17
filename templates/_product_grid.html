@@ -1,0 +1,48 @@
+{# templates/_product_grid.html - Partial Template #}
+
+{% if products %}
+    {% for product in products %}
+    <div class="col-lg-4 col-md-6 mb-4 product-card-wrapper">
+        <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp">
+            {% if product.is_featured %}
+            <div class="featured-badge">Nổi bật</div>
+            {% endif %}
+
+            {# === BỌC KHỐI ẢNH BẰNG THẺ <a> ĐỂ TRIGGER MODAL === #}
+            <a href="#" class="quick-view-trigger d-block"
+               data-product-id="{{ product.id }}"
+               title="Xem nhanh {{ product.name }}">
+                <div class="card-img-container">
+                     <img src="{{ product.image_url or url_for('static', filename='images/default_product.png') }}" class="card-img-top" alt="{{ product.name }}">
+                </div>
+            </a>
+            {# ================================================== #}
+
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">
+                    {# Link Tên Sản Phẩm (vẫn giữ để click được) #}
+                    <a href="#" class="quick-view-trigger text-dark text-decoration-none"
+                       data-product-id="{{ product.id }}"
+                       title="Xem nhanh {{ product.name }}">
+                        {{ product.name }}
+                    </a>
+                </h5>
+                <p class="card-text">{{ product.description|truncate(100) }}</p>
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+                    <div class="card-price">{{ format_currency(product.price) }}</div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Chi tiết</a>
+                        <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+                            <i class="fas fa-cart-plus"></i> Thêm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="col-12 text-center py-5">
+        <p class="lead text-muted">Không tìm thấy sản phẩm nào phù hợp.</p>
+    </div>
+{% endif %}

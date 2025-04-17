@@ -7,14 +7,14 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="content-container">
-                <h1 class="section-title">Login</h1>
+                <h1 class="section-title">Đăng nhập</h1>
                 
                 <form method="POST" action="{{ url_for('auth.login') }}">
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email address") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Nhập địa chỉ email của bạn") }}
                         {% if form.email.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.email.errors %}
@@ -26,7 +26,7 @@
                     
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Nhập mật khẩu của bạn") }}
                         {% if form.password.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.password.errors %}
@@ -46,13 +46,13 @@
                     </div>
                     
                     <div class="text-center mb-3">
-                        <a href="#">Forgot Password?</a>
+                        <a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu?</a>
                     </div>
                     
                     <hr>
                     
                     <div class="text-center">
-                        <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+                        <p>Bạn chưa có tài khoản? <a href="{{ url_for('auth.register') }}">Đăng ký tại đây</a></p>
                     </div>
                 </form>
             </div>

@@ -3,39 +3,7 @@
  * Handles client-side functionality for the admin dashboard and POS system
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tooltips
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-    
-    // Initialize sidebar toggle for mobile
-    setupSidebarToggle();
-    
-    // Initialize charts for dashboard
-    initCharts();
-    
-    // Setup POS system if on POS page
-    if (document.querySelector('.pos-container')) {
-        setupPOS();
-    }
-    
-    // Setup inventory management if on inventory page
-    if (document.querySelector('.inventory-table')) {
-        setupInventoryManagement();
-    }
-    
-    // Setup order management if on orders page
-    if (document.querySelector('.orders-table')) {
-        setupOrderManagement();
-    }
-    
-    // Setup confirmation for delete actions
-    setupDeleteConfirmations();
-});
 
-/**
- * Set up the mobile sidebar toggle
- */
 function setupSidebarToggle() {
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.admin-sidebar');

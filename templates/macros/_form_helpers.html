@@ -1,0 +1,88 @@
+{# templates/macros/_form_helpers.html #}
+
+{# Macro để render một trường form của WTForms với Bootstrap 5 styling #}
+{% macro render_field(field, label_visible=true, class='') -%}
+    {# Args:
+        field: Đối tượng trường WTForms (ví dụ: form.username)
+        label_visible: Boolean, hiển thị label hay không (mặc định là có)
+        class: Các lớp CSS bổ sung cho div bao ngoài (mb-3 là mặc định)
+        **kwargs: Các thuộc tính HTML khác sẽ được thêm vào thẻ input/select/textarea
+    #}
+
+    {# Thêm class form-control mặc định cho hầu hết input, ngoại trừ checkbox/radio/file #}
+    {% set field_class = kwargs.pop('class_', '') %} {# Lấy class từ kwargs nếu có #}
+    {% if field.type not in ('CSRFTokenField', 'HiddenField', 'BooleanField', 'RadioField', 'SubmitField', 'FileField') %}
+        {% set field_class = 'form-control ' + field_class %}
+    {% endif %}
+    {% if field.errors %}
+        {% set field_class = field_class + ' is-invalid' %}
+    {% endif %}
+     {# Xử lý riêng cho checkbox/radio/file #}
+    {% if field.type == 'BooleanField' %}
+        {% set field_class = 'form-check-input ' + field_class %}
+     {% elif field.type == 'RadioField' %}
+        {# Radio cần xử lý đặc biệt trong vòng lặp, macro này không render radio tối ưu #}
+         {% set field_class = 'form-check-input ' + field_class %}
+     {% elif field.type == 'FileField' %}
+        {% set field_class = 'form-control ' + field_class %} {# Bootstrap 5 cũng dùng form-control cho file #}
+     {% endif %}
+
+
+    <div class="mb-3 {{ class }}"> {# Bootstrap 5 margin bottom #}
+        {% if label_visible and field.type not in ('CSRFTokenField', 'HiddenField', 'SubmitField') %}
+             {# Nếu là BooleanField (checkbox), render label khác #}
+            {% if field.type == 'BooleanField' %}
+                 <div class="form-check">
+                    {{ field(class_=field_class, **kwargs) }}
+                    {{ field.label(class="form-check-label") }}
+                 </div>
+            {% elif field.type == 'RadioField' %}
+                 {# Render Radio cần vòng lặp và label riêng cho từng option #}
+                 {{ field.label(class="form-label d-block mb-2 fw-bold") }} {# Label chung cho group #}
+                  {% for subfield in field %}
+                     <div class="form-check form-check-inline">
+                         {{ subfield(class_=field_class, **kwargs) }}
+                         {{ subfield.label(class="form-check-label") }}
+                     </div>
+                 {% endfor %}
+
+            {% else %}
+                 {{ field.label(class="form-label") }}
+                {{ field(class_=field_class, **kwargs) }}
+             {% endif %} {# End of Boolean/Radio Field type check #}
+
+        {% elif field.type not in ('CSRFTokenField', 'HiddenField', 'SubmitField') %}
+            {# Vẫn render field nhưng không có label #}
+             {{ field(class_=field_class, **kwargs) }}
+        {% else %}
+             {# Render các field ẩn hoặc Submit #}
+             {{ field(**kwargs) }}
+         {% endif %} {# End of label_visible check #}
+
+        {# Hiển thị help text nếu có #}
+        {% if field.description %}
+            <div class="form-text">{{ field.description }}</div>
+        {% endif %}
+
+         {# Hiển thị lỗi validation #}
+         {% if field.errors %}
+             <div class="invalid-feedback">
+                {% for error in field.errors %}
+                     <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+         {% endif %}
+    </div>
+{% endmacro %}
+
+
+{# Macro đơn giản hơn cho nút submit #}
+{% macro render_submit_button(field, class='btn btn-primary') %}
+     {{ field(class=class) }}
+{% endmacro %}
+
+{# Bạn có thể thêm các macro khác ở đây, ví dụ:
+   - render_checkbox_field
+   - render_radio_field (chi tiết hơn)
+   - render_form(form) để render toàn bộ form
+#}
