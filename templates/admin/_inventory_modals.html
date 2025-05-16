@@ -86,3 +86,31 @@
        </div>
    </div>
 </div>
+
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"> {# Căn giữa modal #}
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="qrCodeModalLabel">Mã QR Sản phẩm</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body text-center"> {# Căn giữa nội dung #}
+        <h6 id="qrProductNameModal" class="mb-3">[Tên Sản phẩm]</h6>
+        <div id="qrImageContainer" style="min-height: 200px; display:flex; align-items:center; justify-content:center; border: 1px solid #eee; padding:10px; border-radius: 5px;">
+            {# Spinner sẽ hiện khi ảnh đang tải #}
+            <div class="spinner-border text-primary qr-image-loading" role="status" style="display:none;">
+                <span class="visually-hidden">Đang tải QR...</span>
+            </div>
+            <img id="qrImageModal" src="#" alt="QR Code" class="img-fluid" style="max-width: 250px; display:none;">
+        </div>
+        <p class="small text-muted mt-2">Quét mã này để truy cập nhanh thông tin sản phẩm.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary btn-sm" id="printQrModalBtn">
+            <i class="fas fa-print me-1"></i> In Mã QR
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,10 +1,6 @@
 {# templates/admin/reports/product_report.html #}
 {% extends "admin/base.html" %}
 {% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
-{# Import filter format_price đã tạo trong app.py #}
-{# Bạn cần đảm bảo filter này được định nghĩa và inject vào context, ví dụ: #}
-{# {% filter format_price(amount) %} ... {% endfilter %} hoặc {{ amount|format_price }} #}
-{# Giả sử bạn đã inject filter format_price #}
 
 {% block title %}Báo cáo Sản phẩm - Quản trị viên{% endblock %}
 {% block page_header %}Báo cáo Hiệu suất Sản phẩm{% endblock %}
@@ -15,7 +11,6 @@
 {% endblock %}
 
 {% block content %}
-{# --- Card Bộ lọc và Chọn Loại Báo Cáo --- #}
 <div class="card card-report card-outline card-primary mb-4 shadow-sm">
     <div class="card-header">
         <h3 class="card-title"><i class="fas fa-filter me-1"></i> Bộ lọc & Tùy chọn Báo cáo</h3>
@@ -25,7 +20,6 @@
         </div>
     </div>
     <div class="card-body">
-        {# Nhóm nút chọn loại báo cáo #}
         <div class="mb-3">
             <label class="form-label form-label-sm d-block mb-1 fw-bold">Chọn Loại Báo Cáo:</label>
              <div class="btn-group btn-group-sm w-100 flex-wrap" role="group">
@@ -37,89 +31,94 @@
              </div>
         </div>
         <hr class="my-3">
-        {# Form lọc ngày tháng #}
         <form method="GET" action="{{ url_for('admin.reports') }}">
             <input type="hidden" name="type" value="products">
              <div class="row g-2 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-3 col-6">
                      <label for="start_date" class="form-label form-label-sm">Từ ngày:</label>
                      <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ start_date }}">
                  </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6">
                     <label for="end_date" class="form-label form-label-sm">Đến ngày:</label>
                     <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ end_date }}">
                 </div>
-                 <div class="col-md-3">
-                    <label class="form-label form-label-sm"> </label>
+                 <div class="col-md-3 col-12 mt-2 mt-md-0">
                     <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-filter me-1"></i> Lọc Theo Ngày</button>
                  </div>
-                 <div class="col-md-3">
-                    <label class="form-label form-label-sm d-block mb-1">Hoặc Chọn Nhanh:</label>
-                    <div class="btn-group d-block w-100" role="group">
-                        {% set no_specific_date = not request.args.get('start_date') and not request.args.get('end_date') %}
-                        <a href="{{ url_for('admin.reports', type='products', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' and no_specific_date %}active{% endif %}">Ngày</a>
-                        <a href="{{ url_for('admin.reports', type='products', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' and no_specific_date %}active{% endif %}">Tuần</a>
-                        <a href="{{ url_for('admin.reports', type='products', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' and no_specific_date %}active{% endif %}">Tháng</a>
-                        <a href="{{ url_for('admin.reports', type='products', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' and no_specific_date %}active{% endif %}">Năm</a>
-                    </div>
+                 <div class="col-md-3 col-12 mt-2 mt-md-0">
+                     <div class="btn-group d-flex w-100" role="group">
+                         {% set no_specific_date = not request.args.get('start_date') and not request.args.get('end_date') %}
+                         <a href="{{ url_for('admin.reports', type='products', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' and no_specific_date %}active{% endif %}">Ngày</a>
+                         <a href="{{ url_for('admin.reports', type='products', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' and no_specific_date %}active{% endif %}">Tuần</a>
+                         <a href="{{ url_for('admin.reports', type='products', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' and no_specific_date %}active{% endif %}">Tháng</a>
+                         <a href="{{ url_for('admin.reports', type='products', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' and no_specific_date %}active{% endif %}">Năm</a>
+                          <a href="{{ url_for('admin.reports', type='products', period='last7days') }}" class="btn btn-sm btn-outline-secondary {% if period=='last7days' and no_specific_date %}active{% endif %}" title="7 Ngày qua">7N</a>
+                     </div>
                  </div>
              </div>
         </form>
+         <p class="text-muted small mt-2 mb-0"><i>Hiển thị dữ liệu từ {{ start_date }} đến {{ end_date }}</i></p>
     </div>
 </div>
 
-{# --- Card Kết quả Báo cáo Sản phẩm --- #}
 <div class="card card-report shadow-sm">
     <div class="card-header bg-light">
-        <h3 class="card-title fw-bold">Kết quả báo cáo Sản phẩm <small class="text-muted">(Từ {{ start_date }} đến {{ end_date }})</small></h3>
+         <h3 class="card-title fw-bold">
+             <i class="fas fa-clipboard-list me-2 text-success"></i>Kết quả báo cáo Sản phẩm
+             <small class="text-muted fw-normal">({{ start_date }} đến {{ end_date }})</small>
+        </h3>
+         <div class="card-tools">
+              {# Thay thế link này nếu bạn tạo route riêng để xuất BÁO CÁO sản phẩm #}
+             <a href="{{ url_for('admin.export_products_csv') }}" class="btn btn-sm btn-outline-success" target="_blank">
+                <i class="fas fa-file-csv me-1"></i> Xuất DS Sản phẩm
+             </a>
+         </div>
     </div>
     <div class="card-body">
-        {# Thẻ thống kê sản phẩm #}
         <div class="row inventory-stats mb-4">
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-3">
                  <div class="stat-card stat-card-success h-100 shadow-sm">
                      <div class="stat-card-body">
                         <div class="stat-card-icon"><i class="fas fa-coins"></i></div>
                          <div class="stat-card-content">
                              <div class="stat-card-text">Tổng Doanh Thu SP</div>
-                             {# SỬ DỤNG total_revenue ở đây #}
-                             <div class="stat-card-number">{{ total_revenue | format_price if total_revenue is defined else '0₫' }}</div>
+                             <div class="stat-card-number">{{ total_revenue | format_price }}</div> {# Truyền total_revenue từ route #}
                         </div>
                      </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-3">
                  <div class="stat-card stat-card-info h-100 shadow-sm">
                     <div class="stat-card-body">
                          <div class="stat-card-icon"><i class="fas fa-shopping-basket"></i></div>
                         <div class="stat-card-content">
                             <div class="stat-card-text">Tổng SL SP bán ra</div>
-                            <div class="stat-card-number">{{ product_sales | sum(attribute='total_quantity') if product_sales is defined else '0' }}</div>
+                            <div class="stat-card-number">{{ product_sales | sum(attribute='total_quantity') if product_sales else '0' }}</div>
                         </div>
                      </div>
                 </div>
             </div>
-             <div class="col-lg-4 col-md-12 mb-4">
+             <div class="col-lg-4 col-md-12 mb-3">
                 <div class="stat-card stat-card-primary h-100 shadow-sm">
                     <div class="stat-card-body">
                          <div class="stat-card-icon"><i class="fas fa-tags"></i></div>
                          <div class="stat-card-content">
                             <div class="stat-card-text">Loại Sản phẩm Bán ra</div>
-                            <div class="stat-card-number">{{ product_sales | length if product_sales is defined else '0' }}</div>
+                            <div class="stat-card-number">{{ product_sales | length if product_sales else '0' }}</div>
                          </div>
                      </div>
                 </div>
             </div>
         </div>
 
-        {# Khu vực biểu đồ Top Sản phẩm #}
         {% if chart_data and chart_values_sum is defined and chart_values_sum > 0 %}
-         <div class="chart-container mb-4">
-            <h5>Top {{ chart_data.labels | length }} Sản phẩm theo Doanh thu</h5>
-            <div id="productChartContainer" style="position: relative; min-height: 400px;">
+        <div class="chart-container mb-4 border rounded p-3 bg-white">
+            <h5 class="mb-3 pb-2 border-bottom">
+                 <i class="fas fa-trophy me-2 text-warning"></i>Top {{ chart_data.labels | length }} Sản phẩm theo Doanh thu
+             </h5>
+            <div id="productChartContainer" style="position: relative; min-height: 300px; max-height: 450px;">
                 <canvas id="productReportChart" data-chart='{{ chart_data | tojson | safe }}'></canvas>
-                {# Message ẩn này vẫn giữ để JS dùng #}
-                <div id="productChartMessage" class="text-center text-muted py-5" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; width: 90%;">
+                <div id="productChartMessage" class="text-center text-muted py-5" style="position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); display: none; width: 90%;">
                      <i class="fas fa-chart-bar fa-2x mb-2 text-muted"></i><br>
                      Không có đủ dữ liệu để hiển thị biểu đồ.
                  </div>
@@ -131,126 +130,127 @@
             </div>
         {% endif %}
 
-        {# Bảng Chi tiết Sản phẩm #}
         <div class="mt-4">
-            <h5 class="mb-3">Chi tiết Doanh số theo Sản phẩm</h5>
+            <h5 class="mb-3">
+                <i class="fas fa-list-alt me-2 text-secondary"></i>Chi tiết Doanh số theo Sản phẩm
+            </h5>
              {% if product_sales %}
             <div class="table-responsive">
-                <table class="table table-bordered table-hover table-striped table-sm align-middle">
+                <table class="table table-bordered table-hover table-striped table-sm align-middle admin-table">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:5%">#</th>
+                            <th style="width:5%" class="text-center">#</th>
                             <th>Tên sản phẩm</th>
                             <th>Danh mục</th>
                              <th class="text-center" title="Số lượng bán ra">SL Bán</th>
                              <th class="text-end">Doanh thu</th>
-                             <th class="text-end" title="Doanh thu Trung bình / SP">Doanh thu TB/SP</th>
-                             <th class="text-center" title="Tỷ lệ đóng góp doanh thu">% Doanh thu</th>
+                             <th class="text-end" title="Doanh thu Trung bình / Sản phẩm">TB/SP</th>
+                             <th class="text-center" title="Tỷ lệ đóng góp doanh thu" style="min-width: 120px;">% Doanh thu</th>
+                             <th class="text-center">Xem SP</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in product_sales %}
                         <tr>
                             <td class="text-center small">{{ loop.index }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {# Placeholder ảnh nếu cần - Cần product object đầy đủ hoặc query riêng #}
-                                    {# <img src="..." width="30" height="30" class="rounded me-2"> #}
-                                    <a href="#">{{ product.name }}</a> {# Nên link tới edit_product nếu có ID #}
-                                 </div>
-                            </td>
+                            <td class="fw-medium">{{ product.name }}</td>
                             <td>{{ product.category_name or 'N/A' }}</td>
                             <td class="text-center">{{ product.total_quantity }}</td>
                              <td class="text-end fw-medium">{{ product.total_revenue | format_price }}</td>
                              <td class="text-end text-muted small">{{ (product.total_revenue / product.total_quantity) | format_price if product.total_quantity else '0₫' }}</td>
                              <td class="text-center">
-                                 {# SỬA Ở ĐÂY: Dùng biến total_revenue #}
-                                 {% set percentage = (product.total_revenue / total_revenue * 100) if total_revenue else 0 %}
-                                 <div class="progress" style="height: 12px; background-color: #e9ecef;" title="{{ percentage|round(1) }}%">
-                                    <div class="progress-bar bg-success bg-opacity-75" role="progressbar" style="width: {{ percentage|int }}%; font-size: 0.7em; color: #fff; line-height: 12px;" aria-valuenow="{{ percentage|int }}" aria-valuemin="0" aria-valuemax="100">
-                                        {# Hiện % bên trong nếu đủ lớn #}
-                                        {% if percentage >= 15 %}{{ percentage|round(0) }}%{% endif %}
+                                 {% set percentage = (product.total_revenue / total_revenue * 100) if total_revenue and total_revenue > 0 else 0 %}
+                                 <div class="progress" style="height: 14px; background-color: #e9ecef; font-size: 0.75em;" title="{{ percentage|round(1) }}%">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage|int }}%;" aria-valuenow="{{ percentage|int }}" aria-valuemin="0" aria-valuemax="100">
+                                         {% if percentage >= 10 %}{{ percentage|round(0) }}%{% endif %}
                                     </div>
                                 </div>
+                             </td>
+                             <td class="text-center">
+                                 <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-xs btn-outline-primary py-0 px-1" title="Xem/Sửa sản phẩm">
+                                     <i class="fas fa-eye fa-xs"></i>
+                                </a>
                              </td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                     {% if product_sales | length > 0 %}
+                    {% if product_sales %}
                      <tfoot class="table-light fw-bold">
-                         <tr>
-                             <td colspan="3" class="text-end">Tổng cộng:</td>
-                             <td class="text-center">{{ product_sales | sum(attribute='total_quantity') }}</td>
+                        <tr>
+                            <td colspan="3" class="text-end">Tổng cộng:</td>
+                            <td class="text-center">{{ product_sales | sum(attribute='total_quantity') }}</td>
                             <td class="text-end">{{ total_revenue | format_price }}</td>
-                            <td colspan="2"></td> {# Bỏ trống cột TB và % #}
+                            <td colspan="3"></td>
                         </tr>
                      </tfoot>
-                     {% endif %}
-                </table>
-            </div>
-            {% else %}
-                 <div class="alert alert-secondary text-center border-0">
-                     <i class="fas fa-info-circle me-1"></i> Không có dữ liệu bán hàng cho sản phẩm nào trong kỳ báo cáo này.
-                 </div>
+                    {% endif %}
+                 </table>
+             </div>
+             {% else %}
+                 <div class="alert alert-secondary text-center border-0 mt-3">
+                    <i class="fas fa-info-circle me-1"></i> Không có dữ liệu bán hàng cho sản phẩm nào trong kỳ báo cáo này.
+                </div>
              {% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-{{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-{# --- SCRIPT CHO BIỂU ĐỒ SẢN PHẨM (GIỮ NGUYÊN LOGIC) --- #}
-<script>
+{% block extra_js %}
+ {{ super() }}
+ <script>
     document.addEventListener('DOMContentLoaded', function () {
         const productChartCanvas = document.getElementById('productReportChart');
         const productChartMessage = document.getElementById('productChartMessage');
         const productChartContainer = document.getElementById('productChartContainer');
-    
+
         if (productChartCanvas && productChartMessage && productChartContainer) {
             const chartDataString = productChartCanvas.dataset.chart;
-            if (chartDataString) {
+             if (chartDataString) {
                 let productChartData = null;
                 try {
                     productChartData = JSON.parse(chartDataString);
-    
-                    // --- Sử dụng cùng logic kiểm tra với template ---
-                    const chartValues = productChartData.values || [];
-                    const hasValidData = productChartData.labels && productChartData.labels.length > 0 &&
-                                         chartValues.length > 0 && chartValues.reduce((a, b) => a + b, 0) > 0;
-                    // --- Kết thúc logic kiểm tra ---
-    
-                    if (hasValidData) {
+                    const chartValuesSumJs = {{ chart_values_sum | default(0)| tojson }};
+
+                    if (productChartData && productChartData.labels && productChartData.labels.length > 0 &&
+                        productChartData.values && productChartData.values.length > 0 && chartValuesSumJs > 0)
+                    {
+                        productChartMessage.style.display = 'none';
+                        productChartCanvas.style.display = 'block';
                         const ctx = productChartCanvas.getContext('2d');
                         if (ctx) {
                             try {
-                                 new Chart(ctx, { // Giữ nguyên cấu hình Chart.js
+                                new Chart(ctx, {
                                     type: 'bar',
                                     data: {
                                         labels: productChartData.labels,
                                         datasets: [{
-                                            label: 'Doanh thu', data: chartValues, // Dùng chartValues đã lấy
+                                            label: 'Doanh thu', data: productChartData.values,
                                             backgroundColor: '#A0522D', borderColor: '#834322', borderWidth: 1, borderRadius: 4 }]
                                     },
-                                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                                        scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + '₫'; }, color: '#555' }, grid: { color: '#e9ecef' } }, y: { ticks: { color: '#555', font: { size: 11 } }, grid: { display: false } } },
-                                        plugins: { tooltip: { callbacks: { label: function(c) { return `${c.dataset.label}: ${c.parsed.x.toLocaleString('vi-VN')}₫`; } }, backgroundColor: '#3B2F2F', titleFont: { size: 13 }, bodyFont: { size: 11 }, padding: 8 }, legend: { display: false } }
+                                    options: {
+                                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                                        plugins: {
+                                            tooltip: { callbacks: { label: function(c) { return `${c.dataset.label}: ${c.parsed.x.toLocaleString('vi-VN')}₫`; } }, backgroundColor: '#3B2F2F', titleFont: { size: 13 }, bodyFont: { size: 11 }, padding: 8 },
+                                            legend: { display: false }
+                                        },
+                                        scales: {
+                                            x: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + '₫'; }, color: '#555' }, grid: { color: '#e9ecef' } },
+                                            y: { ticks: { color: '#555', font: { size: 10 } }, grid: { display: false } }
+                                        }
                                     }
                                 });
-                                productChartMessage.style.display = 'none';
-                                productChartCanvas.style.display = 'block';
                              } catch (chartErr) { console.error("Product Chart.js Error:", chartErr); productChartMessage.textContent = "Lỗi vẽ biểu đồ SP."; productChartMessage.style.display = 'block'; productChartCanvas.style.display = 'none'; }
-                        } else { console.error("Failed to get 2D context"); /* ... xử lý lỗi ... */ }
+                         } else { console.error("Failed to get 2D context"); /* Xử lý lỗi */ }
                     } else {
-                        console.warn("No valid data points (> 0) for product chart.");
+                        console.warn("Không có dữ liệu hợp lệ (>0) cho biểu đồ sản phẩm.");
                         productChartMessage.innerHTML = '<i class="fas fa-chart-pie me-2"></i>Không có dữ liệu doanh thu để tạo biểu đồ.';
                         productChartMessage.style.display = 'block';
                         productChartCanvas.style.display = 'none';
-                    }
-                } catch (e) { console.error("Error parsing product chart data JSON:", e); /* ... xử lý lỗi ... */ }
-             } else { console.error("Product chart data attribute missing"); /* ... xử lý lỗi ... */ }
-        } else { console.warn("Product chart elements missing."); }
-    });
-    </script>
-    {% endblock %}
+                     }
+                 } catch (e) { console.error("Lỗi parse dữ liệu chart SP:", e); /* Xử lý lỗi */ }
+             } else { console.error("Thiếu data-chart attribute"); /* Xử lý lỗi */ }
+        } else { console.warn("Không tìm thấy phần tử canvas hoặc message cho chart SP."); }
+     });
+ </script>
+ {% endblock %}

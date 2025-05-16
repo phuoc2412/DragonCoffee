@@ -4,45 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dragon Coffee Shop{% endblock %}</title>
-
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐉</text></svg>">
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Animate.css (Nếu dùng hiệu ứng animateOnScroll) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Custom CSS Chung -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}"> <!-- Keep cart CSS if styles exist -->
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {% block extra_css %}
         <style>
-            /* Thêm style cho ảnh đại diện navbar */
-            .navbar-avatar {
-              width: 32px; /* Kích thước ảnh (có thể chỉnh) */
-              height: 32px;
-              object-fit: cover; /* Đảm bảo ảnh không bị méo */
-              border: 1px solid rgba(255, 255, 255, 0.2); /* Viền nhẹ */
+            .navbar-avatar { width: 32px; height: 32px; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.2); }
+            .order-history-offcanvas .offcanvas-header { background-color: var(--primary-color); color: var(--light-color); }
+            .order-history-offcanvas .offcanvas-header .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+            .order-history-offcanvas .offcanvas-body { padding: 1rem; background-color: var(--light-color); }
+            .history-order-item {
+                background-color: #fff; border: 1px solid var(--border-color-subtle);
+                border-radius: var(--border-radius-soft); margin-bottom: 1rem;
+                box-shadow: var(--box-shadow-soft); padding: 0.8rem 1rem;
             }
+            .history-order-item .order-meta { font-size: 0.8rem; color: var(--gray-color); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;}
+            .history-order-item .order-meta strong { color: var(--dark-color); }
+            .history-product-item { display: flex; align-items: center; padding: 0.5rem 0; border-top: 1px dashed #eee; }
+            .history-product-item:first-child { border-top: none; } /* Sửa ở đây để item đầu tiên không có gạch trên */
+            .history-product-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-right: 10px; border:1px solid #eee;}
+            .history-product-item .product-info { flex-grow: 1; }
+            .history-product-item .product-name { font-weight: 600; font-size: 0.9rem; color: var(--primary-color); }
+            .history-product-item .product-qty-price { font-size: 0.8rem; color: var(--gray-color); }
+            .history-product-item .btn-reorder { font-size: 0.75rem; padding: 0.2rem 0.5rem; white-space: nowrap; }
+            .no-history-message { text-align: center; padding: 2rem 1rem; color: var(--gray-color); }
         </style>
     {% endblock %}
-
-     {% block styles %}{% endblock %}
-
+    {% block styles %}{% endblock %}
 </head>
 <body style="padding-top: 70px;">
 
@@ -64,6 +61,7 @@
                     <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Liên hệ</a></li>
                  </ul>
                  <ul class="navbar-nav ms-auto align-items-center">
+                    {% if current_user.is_authenticated %}
                     <li class="nav-item me-2">
                          <a class="nav-link cart-icon position-relative {% if request.endpoint == 'order.cart' %}active{% endif %}" href="{{ url_for('order.cart') }}" title="Giỏ hàng">
                              <i class="fas fa-shopping-cart fs-5"></i>
@@ -73,17 +71,20 @@
                              </span>
                          </a>
                     </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link order-history-icon position-relative" href="#" data-bs-toggle="offcanvas" data-bs-target="#orderHistoryOffcanvas" aria-controls="orderHistoryOffcanvas" title="Lịch sử mua hàng">
+                            <i class="fas fa-history fs-5"></i> {# Thay icon thành fa-history #}
+                        </a>
+                    </li>
+                    {% endif %}
 
-                    {# === KHỐI ĐĂNG NHẬP/ĐĂNG XUẤT (ĐÃ SỬA) === #}
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
                          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                             {# -- Ảnh đại diện thay cho icon -- #}
                              <img src="{{ url_for('static', filename=current_user.avatar_url) if current_user.avatar_url else url_for('static', filename='images/default_avatar.png') }}"
                                   alt="Avatar"
                                   class="navbar-avatar rounded-circle me-2">
-                             {# -- Tên người dùng -- #}
-                             {{ current_user.username }}
+                             {{ current_user.first_name or current_user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
                             {% if current_user.is_admin or current_user.is_staff %}
@@ -98,14 +99,12 @@
                     </li>
                     {% else %}
                      <li class="nav-item ms-2">
-                         <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Đăng nhập</a>
+                         <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
                      </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-light btn-sm ms-2 {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Đăng ký</a>
+                        <button type="button" class="btn btn-outline-light btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký</button>
                      </li>
                     {% endif %}
-                    {# === KẾT THÚC KHỐI ĐĂNG NHẬP/ĐĂNG XUẤT === #}
-
                 </ul>
             </div>
         </div>
@@ -153,11 +152,172 @@
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"> <div id="cartToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"> <div class="d-flex"> <div class="toast-body"><i class="fas fa-check-circle me-2"></i> <span id="toastMessage">Sản phẩm đã thêm!</span></div> <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> </div> </div> <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000"> <div class="d-flex"> <div class="toast-body"><i class="fas fa-exclamation-triangle me-2"></i> <span id="errorToastMessage">Đã có lỗi!</span></div> <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> </div> </div> </div>
 
-    <div id="chatbot-container" class="chatbot-container collapsed"> <div class="chatbot-header"> <button id="chatbot-minimize-btn" class="chatbot-minimize-btn" aria-label="Đóng Chat"><i class="fas fa-times"></i></button> <span class="chatbot-title">Dragon Chatbot</span> </div> <div id="chat-messages" class="chat-messages"> <div class="message bot-message"><p>Xin chào! Dragon Coffee xin nghe, tôi có thể giúp gì cho bạn?</p></div> </div> <div class="chat-input-container"> <form id="chatForm" class="chat-form" action="javascript:void(0);"> <button type="button" id="chat-upload-btn" class="btn btn-light btn-sm me-2 flex-shrink-0" title="Tìm bằng hình ảnh" aria-label="Tải ảnh lên"> <i class="fas fa-image"></i> </button> <input type="file" id="chat-image-input" accept="image/*" style="display: none;"> <input type="text" id="chat-input" class="form-control form-control-sm flex-grow-1" placeholder="Nhập tin nhắn..." autocomplete="off" required > <button type="submit" class="btn btn-primary btn-sm ms-2 flex-shrink-0" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button> </form> </div> </div>
+    <div id="chatbot-container" class="chatbot-container collapsed">
+        <div class="chatbot-header">
+            <button id="chatbot-minimize-btn" class="chatbot-minimize-btn" aria-label="Đóng Chat"><i class="fas fa-times"></i></button>
+            <span class="chatbot-title">Dragon Chatbot</span>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot-message"><p>Xin chào! Dragon Coffee xin nghe, tôi có thể giúp gì cho bạn?</p></div>
+        </div>
+        <div class="chat-input-container">
+            <form id="chatForm" class="chat-form" action="javascript:void(0);">
+                <button type="button" id="chat-upload-btn" class="btn btn-light btn-sm me-2 flex-shrink-0" title="Tìm bằng hình ảnh" aria-label="Tải ảnh lên"> <i class="fas fa-image"></i> </button>
+                <input type="file" id="chat-image-input" accept="image/*" style="display: none;">
+                <input type="text" id="chat-input" class="form-control form-control-sm flex-grow-1" placeholder="Nhập tin nhắn..." autocomplete="off" required >
+                <button type="submit" class="btn btn-primary btn-sm ms-2 flex-shrink-0" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
 
-    <div class="floating-action-buttons-container"> <a href="https://www.facebook.com/share/1A4nj82yxd/" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-facebook" aria-label="Facebook của Dragon Coffee" data-bs-toggle="tooltip" title="Facebook"> <i class="fab fa-facebook-f"></i> </a> <a href="https://www.tiktok.com/@tran_buu_phuoc?_t=ZS-8vOmbtFsDTu&_r=1" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-tiktok" aria-label="TikTok của Dragon Coffee" data-bs-toggle="tooltip" title="TikTok"> <i class="fab fa-tiktok"></i> </a> <button id="chatbot-toggle-btn" class="floating-action-button chatbot-toggle-btn" aria-label="Mở Chatbot" data-bs-toggle="tooltip" title="Chat với chúng tôi"> <i class="fas fa-comment-dots"></i> </button> </div>
+    <div class="floating-action-buttons-container">
+        <a href="https://www.facebook.com/share/1A4nj82yxd/" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-facebook" aria-label="Facebook của Dragon Coffee" data-bs-toggle="tooltip" title="Facebook"> <i class="fab fa-facebook-f"></i> </a>
+        <a href="https://www.tiktok.com/@tran_buu_phuoc?_t=ZS-8vOmbtFsDTu&_r=1" target="_blank" rel="noopener noreferrer" class="floating-action-button fab-tiktok" aria-label="TikTok của Dragon Coffee" data-bs-toggle="tooltip" title="TikTok"> <i class="fab fa-tiktok"></i> </a>
+        <button id="chatbot-toggle-btn" class="floating-action-button chatbot-toggle-btn" aria-label="Mở Chatbot" data-bs-toggle="tooltip" title="Chat với chúng tôi"> <i class="fas fa-comment-dots"></i> </button>
+    </div>
+
+    <div id="custom-notification-overlay" class="custom-notification-overlay" style="display: none;">
+        <div id="custom-notification-box" class="custom-notification-box">
+            <i id="custom-notification-icon" class="fas fa-info-circle"></i>
+            <p id="custom-notification-message">Nội dung thông báo ở đây.</p>
+        </div>
+    </div>
 
     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true"> <div class="modal-dialog modal-lg modal-dialog-centered"> <div class="modal-content"> <div class="modal-header border-0"> <h5 class="modal-title" id="quickViewModalLabel">[Tên sản phẩm]</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <div id="quickViewLoading" class="text-center py-5"> <div class="spinner-border text-primary" role="status"> <span class="visually-hidden">Đang tải...</span> </div> </div> <div id="quickViewContent" class="d-none"> <div class="row"> <div class="col-md-5 mb-3 mb-md-0"> <img src="#" alt="Ảnh sản phẩm" id="quickViewImage" class="img-fluid rounded mb-2" style="max-height: 400px; width: 100%; object-fit: cover;"> </div> <div class="col-md-7"> <span class="badge bg-secondary mb-2" id="quickViewCategory">[Danh mục]</span> <p id="quickViewDescription" class="mb-3">[Mô tả sản phẩm]</p> <h3 class="mb-3 text-secondary" id="quickViewPrice">[Giá]</h3> <form id="quickViewAddToCartForm"> <input type="hidden" id="quickViewProductId" name="product_id"> <div class="row gx-2 mb-3"> <div class="col-auto"> <label for="quickViewQuantity" class="visually-hidden">Số lượng</label> <div class="input-group input-group-sm"> <button type="button" class="btn btn-outline-secondary quick-qty-btn" data-action="dec">-</button> <input type="number" class="form-control text-center" id="quickViewQuantity" name="quantity" value="1" min="1" max="20" style="max-width: 60px;" aria-label="Số lượng"> <button type="button" class="btn btn-outline-secondary quick-qty-btn" data-action="inc">+</button> </div> </div> <div class="col"> <label for="quickViewNotes" class="visually-hidden">Ghi chú</label> <input type="text" class="form-control form-control-sm" id="quickViewNotes" name="notes" placeholder="Ghi chú (ít đường,...)"> </div> </div> <button type="submit" class="btn btn-primary w-100"> <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ </button> </form> <a href="#" id="quickViewFullDetailLink" class="btn btn-outline-secondary w-100 mt-2 btn-sm"> Xem chi tiết đầy đủ </a> </div> </div> </div> </div> </div> </div> </div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="loginModalLabel">Đăng nhập</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginModalForm" method="POST" action="{{ url_for('auth.login') }}">
+                        {{ login_form.hidden_tag() }}
+                        <div id="login-modal-errors" class="alert alert-danger py-1 small d-none" role="alert"></div>
+                        <div class="mb-3">
+                            {{ login_form.email.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                {{ login_form.email(class="form-control", placeholder="Nhập địa chỉ email của bạn") }}
+                            </div>
+                            <div class="invalid-feedback d-block" data-field="email"></div>
+                        </div>
+                        <div class="mb-3">
+                            {{ login_form.password.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                 {{ login_form.password(class="form-control", placeholder="Nhập mật khẩu") }}
+                             </div>
+                            <div class="invalid-feedback d-block" data-field="password"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check mb-0">
+                                {{ login_form.remember_me(class="form-check-input") }}
+                                {{ login_form.remember_me.label(class="form-check-label small") }}
+                            </div>
+                            <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none small">Quên mật khẩu?</a>
+                         </div>
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                                Đăng nhập
+                            </button>
+                        </div>
+                         <div class="text-center small">
+                            Bạn chưa có tài khoản?
+                            <a href="#registerModal" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Đăng ký tại đây</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="registerModalLabel">Tạo tài khoản mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                     <form id="registerModalForm" method="POST" action="{{ url_for('auth.register') }}">
+                         {{ registration_form.hidden_tag() }}
+                        <div id="register-modal-errors" class="alert alert-danger py-1 small d-none" role="alert"></div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ registration_form.first_name.label(class="form-label") }}
+                                {{ registration_form.first_name(class="form-control", placeholder="Tên") }}
+                                <div class="invalid-feedback d-block" data-field="first_name"></div>
+                            </div>
+                             <div class="col-md-6 mb-3">
+                                 {{ registration_form.last_name.label(class="form-label") }}
+                                {{ registration_form.last_name(class="form-control", placeholder="Họ") }}
+                                 <div class="invalid-feedback d-block" data-field="last_name"></div>
+                            </div>
+                         </div>
+                        <div class="mb-3">
+                            {{ registration_form.username.label(class="form-label") }}
+                            {{ registration_form.username(class="form-control", placeholder="Tên đăng nhập (3-20 ký tự)") }}
+                            <div class="invalid-feedback d-block" data-field="username"></div>
+                        </div>
+                         <div class="mb-3">
+                            {{ registration_form.email.label(class="form-label") }}
+                            {{ registration_form.email(class="form-control", placeholder="Email") }}
+                             <div class="invalid-feedback d-block" data-field="email"></div>
+                         </div>
+                         <div class="mb-3">
+                             {{ registration_form.phone.label(class="form-label") }}
+                            {{ registration_form.phone(class="form-control", placeholder="Số điện thoại (tùy chọn)") }}
+                             <div class="invalid-feedback d-block" data-field="phone"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ registration_form.password.label(class="form-label") }}
+                                {{ registration_form.password(class="form-control", placeholder="Mật khẩu (>= 6 ký tự)") }}
+                                 <div class="invalid-feedback d-block" data-field="password"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                 {{ registration_form.password2.label(class="form-label") }}
+                                {{ registration_form.password2(class="form-control", placeholder="Xác nhận mật khẩu") }}
+                                 <div class="invalid-feedback d-block" data-field="password2"></div>
+                            </div>
+                         </div>
+                         <div class="d-grid mb-3">
+                             <button type="submit" class="btn btn-primary">
+                                 <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                                 Đăng ký
+                             </button>
+                         </div>
+                        <div class="text-center small">
+                            Bạn đã có tài khoản?
+                            <a href="#loginModal" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Đăng nhập tại đây</a>
+                         </div>
+                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end order-history-offcanvas" tabindex="-1" id="orderHistoryOffcanvas" aria-labelledby="orderHistoryOffcanvasLabel" style="width: 400px;">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="orderHistoryOffcanvasLabel"><i class="fas fa-history me-2"></i> Món đã đặt</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div id="orderHistoryContent">
+                <div class="text-center py-5" id="orderHistoryLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2 text-muted small">Đang tải lịch sử đặt hàng...</p>
+                </div>
+            </div>
+            <!-- Bỏ nút "Xem tất cả đơn hàng" -->
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

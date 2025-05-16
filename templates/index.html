@@ -4,118 +4,107 @@
 
 {% block extra_css %}
 {{ super() }}
-{# Thêm style cho nút play ảo nếu muốn #}
 <style>
-    .hero-section-split { padding: 5rem 0; min-height: 75vh; display: flex; align-items: center; position: relative; overflow: hidden; color: var(--light-color); }
-    .hero-section-split::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(30, 25, 25, 0.9), rgba(59, 47, 47, 0.75) 50%, rgba(59, 47, 47, 0.6) 80%); z-index: 1; }
-    .hero-section-split::after { content: ''; position: absolute; inset: 0; background-image: url("{{ url_for('static', filename='images/coffee_beans_artistic.jpg') }}"); background-size: cover; background-position: center right; z-index: 0; opacity: 0.6; }
+    /* Hero Section styles */
+    .hero-section-split { padding: 5rem 0; min-height: 70vh; display: flex; align-items: center; position: relative; overflow: hidden; color: var(--light-color); }
+    .hero-section-split::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(30, 25, 25, 0.92), rgba(59, 47, 47, 0.8) 50%, rgba(59, 47, 47, 0.65) 80%); z-index: 1; }
+    .hero-section-split::after { content: ''; position: absolute; inset: 0; background-image: url("{{ url_for('static', filename='images/coffee_beans_artistic.jpg') }}"); background-size: cover; background-position: center right; z-index: 0; opacity: 0.55; } /* Giảm nhẹ opacity để text nổi hơn */
     .hero-section-split .container { position: relative; z-index: 2; }
     .hero-greeting-col { text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6); }
-    .hero-welcome-title { font-size: 3.5rem; margin-bottom: 1rem; font-family: var(--font-heading); color: #fff; font-weight: 700; line-height: 1.2; }
+    .hero-welcome-title { font-size: 3.3rem; margin-bottom: 1.2rem; font-family: var(--font-heading); color: #fff; font-weight: 700; line-height: 1.25; }
     .hero-user-avatar-container { margin: 2rem 0; text-align: center; display: block; }
     @media (min-width: 768px) { .hero-user-avatar-container { text-align: left; } }
-    .hero-user-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255, 255, 255, 0.6); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease; }
+    .hero-user-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); transition: transform 0.3s ease; }
     .hero-user-avatar:hover { transform: scale(1.05); }
     .welcome-user-name { color: var(--accent-color); font-weight: 700; display: block; margin-top: 5px; }
-    .hero-welcome-subtitle { font-size: 1.3rem; color: rgba(250, 240, 230, 0.9); font-weight: 300; line-height: 1.7; margin-top: 0; margin-bottom: 2.5rem; max-width: 450px; }
-    .hero-promo-col { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; height: 100%; min-height: 300px; }
-    .hero-promo-col .promo-card { width: 100%; max-width: 400px; margin-bottom: 0; background-color: rgba(255, 255, 255, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); }
-    .hero-promo-col .promo-title { font-size: 1.3rem; }
-    .hero-promo-col .promo-description { font-size: 0.9rem; margin-bottom: 15px; }
-    .hero-promo-col .promo-code-section { padding-top: 10px; }
-    .hero-promo-col .promo-code { font-size: 1.1rem; padding: 6px 12px; }
-    .hero-promo-col .promo-validity { margin-top: 8px; }
-    .hero-promo-col .promo-countdown { margin-top: 12px; }
-    @media (max-width: 991px) { .hero-promo-col { padding-top: 2rem; } .hero-welcome-title { font-size: 3rem;} }
-    @media (max-width: 768px) { .hero-section-split { padding: 3rem 0; text-align: center;} .hero-welcome-title { font-size: 2.8rem; } .hero-welcome-subtitle { font-size: 1.1rem; max-width: 90%; margin-left: auto; margin-right: auto; } .hero-promo-col { margin-top: 3rem; } }
-    .promo-card { background-color: #fff; border-radius: var(--border-radius-soft); box-shadow: var(--box-shadow-medium); padding: 25px 30px; margin-bottom: 30px; border: 1px solid transparent; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; display: flex; flex-direction: column; }
-    .promo-card:hover { transform: translateY(-8px); box-shadow: var(--box-shadow-lifted); border-color: rgba(160, 82, 45, 0.3); }
-    .promo-header { display: flex; align-items: center; margin-bottom: 15px; gap: 12px; color: var(--secondary-color); }
-    .promo-icon { font-size: 1.8rem; flex-shrink: 0; }
-    .promo-card .promo-title { font-family: var(--font-heading); font-size: 1.4rem; color: var(--primary-color); margin: 0; line-height: 1.3; flex-grow: 1; }
-    .promo-description { font-size: 0.95rem; color: var(--gray-color); line-height: 1.6; margin-bottom: 18px; flex-grow: 1; }
-    .promo-code-section { margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--border-color-subtle); }
-    .promo-code-label { font-size: 0.85rem; font-weight: 600; color: var(--gray-color); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .promo-code { font-family: 'Courier New', Courier, monospace; background-color: var(--light-color); border: 1px dashed var(--primary-color); color: var(--primary-color); padding: 8px 15px; font-size: 1.3rem; font-weight: bold; border-radius: var(--border-radius-soft); display: inline-block; letter-spacing: 2px; user-select: all; text-transform: uppercase; cursor: pointer; }
-    .promo-code:hover { background-color: rgba(111, 78, 55, 0.15); }
-    .promo-no-code { font-style: italic; color: var(--gray-color); font-size: 0.95rem; }
-    .promo-validity { font-size: 0.85rem; color: var(--gray-color); margin-top: 12px; display: block; text-align: right; }
-    .promo-validity i { margin-right: 4px; opacity: 0.7;}
-    @property --gradient-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-    .promo-card.sparkle::before { content: ''; position: absolute; inset: -2px; z-index: -1; border-radius: calc(var(--border-radius-soft) + 2px); background: conic-gradient(from var(--gradient-angle, 0deg), rgba(255, 215, 0, 0.8), rgba(255, 193, 7, 0.6), rgba(232, 168, 124, 0.7), rgba(255, 225, 100, 0.6), rgba(255, 215, 0, 0.8) ); animation: rotateGradientBorder 4s linear infinite; }
-    @-moz-document url-prefix() { .promo-card.sparkle::before { background: linear-gradient(45deg, rgba(255,215,0,0.6), rgba(232, 168, 124, 0.5), rgba(255,215,0,0.6)); animation: none; } }
-    @keyframes rotateGradientBorder { 0% { --gradient-angle: 0deg; } 100% { --gradient-angle: 360deg; } }
-    .promo-countdown { font-size: 0.95rem; font-weight: 600; color: var(--danger-color); margin-top: 15px; padding-top: 10px; border-top: 1px solid #f0e5d8; text-align: center; letter-spacing: 0.5px; }
-    .promo-countdown i { margin-right: 5px; animation: pulse-clock 1.5s infinite ease-in-out; }
-    @keyframes pulse-clock { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-    .promo-countdown span { background-color: rgba(220, 53, 69, 0.08); padding: 2px 6px; border-radius: 4px; margin: 0 2px; }
-    .item-of-the-week-section { background: linear-gradient(135deg, rgba(111, 78, 55, 0.05), rgba(160, 82, 45, 0.08)); padding: 60px 0; border-top: 1px solid var(--border-color-subtle); border-bottom: 1px solid var(--border-color-subtle); }
+    .hero-welcome-subtitle { font-size: 1.2rem; color: rgba(250, 240, 230, 0.9); font-weight: 300; line-height: 1.65; margin-top: 0; margin-bottom: 2.2rem; max-width: 480px; }
+    @media (max-width: 991px) { .hero-welcome-title { font-size: 2.8rem;} }
+    @media (max-width: 768px) { .hero-section-split { padding: 2.5rem 0; text-align: center;} .hero-welcome-title { font-size: 2.5rem; } .hero-welcome-subtitle { font-size: 1.05rem; max-width: 90%; margin-left: auto; margin-right: auto; } .hero-promo-col { margin-top: 2.5rem; } }
+
+    /* STYLE CHO SLIDER ẢNH QUẢNG CÁO */
+    .hero-advertisement-slider {
+        width: 100%;
+        /* Bỏ max-width để slider chiếm hết cột */
+        margin: auto;
+        border-radius: var(--border-radius-soft, 10px); /* Bo góc nhẹ hơn */
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.15); /* Tăng nhẹ shadow */
+        border: 2px solid rgba(255,255,255,0.25); /* Viền rõ hơn chút */
+        background-color: rgba(0,0,0,0.15);
+    }
+    .hero-advertisement-slider .carousel-item img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4 / 3; /* Đổi aspect-ratio để ảnh cao hơn, "bự hơn" */
+        object-fit: cover;
+        border-radius: calc(var(--border-radius-soft, 10px) - 2px);
+    }
+    .hero-advertisement-slider .carousel-indicators [data-bs-target] {
+        background-color: rgba(255, 255, 255, 0.75);
+        width: 9px; height: 9px; /* Giảm nhẹ */
+        border-radius: 50%; border: none; margin: 0 4px;
+    }
+    .hero-advertisement-slider .carousel-indicators .active { background-color: var(--accent-color); }
+    .hero-advertisement-slider .carousel-control-prev-icon,
+    .hero-advertisement-slider .carousel-control-next-icon {
+        background-color: rgba(0,0,0,0.35); border-radius: 50%; padding: 8px;
+    }
+    .hero-advertisement-slider .carousel-caption {
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 60%, transparent 100%); /* Gradient mượt hơn */
+        padding: 12px 18px; /* Padding chuẩn hơn */
+        border-radius: 0 0 calc(var(--border-radius-soft, 10px) - 2px) calc(var(--border-radius-soft, 10px) - 2px);
+        bottom: 0; left: 0; right: 0; text-align: left; /* Căn trái caption */
+    }
+    .hero-advertisement-slider .carousel-caption h5 { font-size: 1.1rem; margin-bottom: 0.2rem; color: #fff; font-family: var(--font-body); font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.5);}
+    .hero-advertisement-slider .carousel-caption p { font-size: 0.8rem; margin-bottom: 0; color: rgba(255,255,255,0.9); }
+
+    /* Các style cũ */
+    .item-of-the-week-section { background: linear-gradient(135deg, rgba(111, 78, 55, 0.05), rgba(160, 82, 45, 0.08)); padding: 50px 0; border-top: 1px solid var(--border-color-subtle); border-bottom: 1px solid var(--border-color-subtle); }
     .item-of-the-week-card { background-color: #fff; border-radius: var(--border-radius-soft); box-shadow: var(--box-shadow-lifted); overflow: hidden; border: 1px solid var(--border-color-subtle); }
-    .item-of-the-week-img { max-height: 500px; width: 100%; object-fit: cover; }
-    .item-of-the-week-content { padding: 40px 50px; }
-    .item-of-the-week-badge { display: inline-block; padding: 6px 15px; background-color: var(--accent-color); color: var(--dark-color); font-weight: 700; border-radius: var(--border-radius-pill); font-size: 0.9rem; margin-bottom: 15px; letter-spacing: 0.5px; text-transform: uppercase; }
-    .item-of-the-week-title { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; margin-top: 0; }
-    .item-of-the-week-desc { font-size: 1.1rem; color: var(--gray-color); margin-bottom: 25px; line-height: 1.8; }
-    .item-of-the-week-price { display: block; font-size: 1.8rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 30px; }
-    .btn-order-week { font-size: 1.1rem; padding: 12px 30px; }
-    .random-reviews-section { padding: 60px 0; background-color: #fff; }
-    .review-snippet-card { background-color: var(--light-color); border-radius: var(--border-radius-soft); padding: 25px 30px; margin-bottom: 30px; box-shadow: var(--box-shadow-soft); border: 1px solid var(--border-color-subtle); height: 100%; display: flex; flex-direction: column; position: relative; }
-    .review-snippet-card::before { content: '\f4b4'; font-family: 'bootstrap-icons'; position: absolute; top: 10px; left: 15px; font-size: 2.5rem; color: var(--accent-color); opacity: 0.15; line-height: 1; z-index: 0; }
-    .review-snippet-content { font-size: 1rem; font-style: italic; color: var(--dark-color); margin-bottom: 15px; flex-grow: 1; position: relative; z-index: 1; }
-    .review-snippet-footer { margin-top: auto; text-align: right; position: relative; z-index: 1; }
-    .review-snippet-rating .fa-star { color: var(--warning-color); font-size: 0.9rem; margin-left: 2px; }
-    .review-snippet-product { font-size: 0.9rem; color: var(--gray-color); display: block; margin-top: 8px; }
-    .review-snippet-product a { color: var(--secondary-color); font-weight: 600; }
-    .review-snippet-product a:hover { color: var(--primary-color); }
+    .item-of-the-week-img { max-height: 450px; width: 100%; object-fit: cover; }
+    .item-of-the-week-content { padding: 30px 40px; }
+    .item-of-the-week-badge { display: inline-block; padding: 5px 12px; background-color: var(--accent-color); color: var(--dark-color); font-weight: 700; border-radius: var(--border-radius-pill); font-size: 0.8rem; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .item-of-the-week-title { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 12px; margin-top: 0; }
+    .item-of-the-week-desc { font-size: 1.05rem; color: var(--gray-color); margin-bottom: 20px; line-height: 1.7; }
+    .item-of-the-week-price { display: block; font-size: 1.6rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 25px; }
+    .btn-order-week { font-size: 1rem; padding: 10px 25px; }
     .category-card { transition: all 0.3s ease-in-out; border: 1px solid var(--border-color-subtle); background-color: #fff; overflow: hidden; }
-    .category-card:hover { transform: translateY(-10px); box-shadow: var(--box-shadow-medium); border-color: var(--secondary-color); }
+    .category-card:hover { transform: translateY(-8px); box-shadow: var(--box-shadow-medium); border-color: var(--secondary-color); }
     .category-card .card-body { position: relative; z-index: 1; background: linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85)); transition: background 0.3s ease; }
     .category-card:hover .card-body { background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.95)); }
     .category-icon { color: var(--primary-color); transition: transform 0.3s ease-in-out, color 0.3s ease; opacity: 0.8; }
     .category-card:hover .category-icon { transform: scale(1.15) rotate(-5deg); color: var(--secondary-color); opacity: 1; }
     .category-title { color: var(--primary-color); transition: color 0.3s ease; font-weight: 700; }
     .category-card:hover .category-title { color: var(--secondary-color); }
-    .poll-section { background-color: rgba(59, 47, 47, 0.03); }
-    .poll-option-btn { background-color: #fff; border: 2px solid var(--border-color-subtle); color: var(--dark-color); padding: 12px 20px; border-radius: var(--border-radius-pill); font-weight: 600; transition: all 0.2s ease-in-out; text-align: left; font-size: 1rem; display: flex; align-items: center; }
-    .poll-option-btn i { color: var(--secondary-color); transition: color 0.2s; }
-    .poll-option-btn:hover { background-color: var(--accent-color); border-color: var(--accent-color); color: var(--dark-color); transform: scale(1.03);}
-    .poll-option-btn:hover i { color: var(--dark-color);}
-    .poll-option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-     /* --- Style cho nút Play ảo --- */
-     .video-wrapper { position: relative; cursor: pointer; }
-    .play-button-overlay {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 5rem; /* Tăng kích thước icon */
-      color: rgba(255, 255, 255, 0.85);
-      pointer-events: none; /* Không bắt sự kiện chuột */
-      transition: opacity 0.3s ease, transform 0.3s ease; /* Thêm transition */
-      text-shadow: 0 3px 7px rgba(0,0,0,0.6); /* Tăng shadow */
+    /* Video Intro Section (Layout Mới) */
+    .video-intro-section { padding: 50px 0; background-color: rgba(59, 47, 47, 0.02); } /* Nền nhẹ cho section */
+    .video-intro-text-col h3 { /* Tiêu đề cột text */
+        font-size: 1.9rem; /* Kích thước tiêu đề cột */
+        color: var(--secondary-color);
+        margin-bottom: 1rem;
+        font-family: var(--font-heading);
     }
-     /* Ẩn nút play khi video đang chạy */
-    .video-wrapper.playing .play-button-overlay {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.7); /* Hiệu ứng thu nhỏ khi ẩn */
+    .video-intro-text-col p {
+        font-size: 1rem; /* Kích thước chữ mô tả */
+        line-height: 1.75;
+        color: var(--gray-color);
+        margin-bottom: 1.2rem;
     }
-     /* Style khi hover lên video */
-     .video-wrapper:hover .play-button-overlay {
-        color: rgba(255, 255, 255, 1); /* Sáng hơn khi hover */
-        transform: translate(-50%, -50%) scale(1.05); /* Phóng to nhẹ khi hover */
-    }
-
+    .video-wrapper { position: relative; cursor: pointer; border-radius: var(--border-radius-soft); overflow: hidden; box-shadow: var(--box-shadow-lifted); border: 3px solid white; }
+    .video-wrapper video { display: block; width: 100%; height: auto; }
+    .play-button-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4.5rem; color: rgba(255, 255, 255, 0.9); pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+    .video-wrapper.playing .play-button-overlay { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+    .video-wrapper:hover .play-button-overlay { color: rgba(255, 255, 255, 1); transform: translate(-50%, -50%) scale(1.03); }
+    .video-click-instruction { font-size: 0.9rem; font-weight: 500; color: var(--gray-color); } /* Chỉnh style text "click to play" */
 </style>
 {% endblock %}
 
 {% block content %}
-
-{# Hero Section và các section khác giữ nguyên #}
 <section class="hero-section-split">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 hero-greeting-col animate-on-scroll" data-animation="animate__fadeInLeft">
-                 {# Nội dung chào mừng/user #}
+            <div class="col-lg-7 hero-greeting-col animate-on-scroll" data-animation="animate__fadeInLeft">
                  {% if current_user.is_authenticated %}
                   <h1 class="hero-welcome-title"> Chào mừng trở lại, <br><span class="welcome-user-name">{{ current_user.first_name or current_user.username }}!</span> </h1>
                    <div class="hero-user-avatar-container"> <img src="{{ url_for('static', filename=current_user.avatar_url) if current_user.avatar_url else url_for('static', filename='images/default_avatar.png') }}" alt="Ảnh đại diện" class="hero-user-avatar"> </div>
@@ -126,122 +115,137 @@
                  {% endif %}
                  <div class="d-flex gap-3 justify-content-center justify-content-lg-start"> <a href="{{ url_for('main.menu') }}" class="btn btn-hero btn-accent">Khám phá Menu</a> <a href="{{ url_for('order.cart') }}" class="btn btn-hero btn-outline-light">Đặt hàng trực tuyến</a> </div>
             </div>
-            <div class="col-lg-6 hero-promo-col animate-on-scroll" data-animation="animate__fadeInRight" data-animation-delay="0.3s">
-                 {# Nội dung khuyến mãi #}
-                {% if active_promotions %} {% for promo in active_promotions %} {% set rnd_delay = (loop.index0 * 0.15 + random.random() * 0.1) | round(2) %} <div class="promo-card sparkle" style="--i: {{ loop.index0 }}; animation-delay: {{ 0.5 + rnd_delay }}s"> <div class="promo-header"> <i class="fas fa-tags promo-icon"></i> <h5 class="promo-title">{{ promo.name }}</h5> </div> {% if promo.description %} <p class="promo-description">{{ promo.description|truncate(70) }}</p> {% endif %} <div class="promo-code-section"> <span class="promo-code-label"> {% if promo.code %}Mã áp dụng:{% else %}Áp dụng tự động{% endif %} </span> {% if promo.code %} <span class="promo-code" title="Nhấn để copy" onclick="copyPromoCode(this)">{{ promo.code }}</span> {% else %} <p class="promo-no-code">Không cần nhập mã.</p> {% endif %} <div class="promo-discount-value small mt-2 text-success fw-bold"> {% if promo.discount_percent %} <i class="fas fa-percentage"></i> Giảm {{ promo.discount_percent|round(0) }}% {% elif promo.discount_amount %} <i class="fas fa-tag"></i> Giảm {{ format_currency(promo.discount_amount) }} {% endif %} </div> <div class="promo-countdown" data-end-date="{{ promo.end_date.isoformat() }}"> <i class="far fa-clock"></i> Đang tải... </div> <span class="promo-validity"> <i class="far fa-calendar-times"></i> HSD: {{ promo.end_date.strftime('%d/%m/%Y') }} </span> </div> </div> {% endfor %} <div class="text-center mt-2"> {# Cập nhật href ở đây nếu bạn có route /promotions #} <a href="{{ url_for('main.promotions_page') if false else '#' }}" class="btn btn-sm btn-outline-light">Xem tất cả ưu đãi</a> </div> {% else %} <div class="text-center p-4 rounded" style="background-color: rgba(255,255,255,0.1); backdrop-filter: blur(3px);"> <p class="mb-0 text-white-50">Hiện chưa có ưu đãi đặc biệt.<br>Hãy quay lại sau nhé!</p> </div> {% endif %}
+            <div class="col-lg-5 hero-promo-col animate-on-scroll" data-animation="animate__fadeInRight" data-animation-delay="0.3s">
+                <div id="heroAdvertisementCarousel" class="carousel slide hero-advertisement-slider" data-bs-ride="carousel" data-bs-interval="3500">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Quảng cáo 1"></button>
+                        <button type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide-to="1" aria-label="Quảng cáo 2"></button>
+                        <button type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide-to="2" aria-label="Quảng cáo 3"></button>
+                        <button type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide-to="3" aria-label="Quảng cáo 4"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="{{ url_for('static', filename='images/advertisements/ad1.jpg') }}" class="d-block w-100" alt="Ưu đãi đặc biệt Mùa Hè">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Món Mới Mùa Hè</h5>
+                                <p>Khám phá bộ sưu tập trà trái cây giải nhiệt!</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ url_for('static', filename='images/advertisements/ad2.jpg') }}" class="d-block w-100" alt="Giảm giá Combo">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Combo Tiết Kiệm</h5>
+                                <p>Mua nước kèm bánh, nhận ngay ưu đãi hấp dẫn.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ url_for('static', filename='images/advertisements/ad3.jpg') }}" class="d-block w-100" alt="Khám phá Cà Phê Đặc Biệt">
+                             <div class="carousel-caption d-none d-md-block">
+                                <h5>Cà Phê Ủ Lạnh</h5>
+                                <p>Trải nghiệm hương vị độc đáo, tỉnh táo cả ngày.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                             <img src="{{ url_for('static', filename='images/advertisements/ad4.jpg') }}" class="d-block w-100" alt="Dragon Coffee Loyalty Program">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Khách Hàng Thân Thiết</h5>
+                                <p>Tích điểm đổi quà, nhận ngàn ưu đãi.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Trước</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#heroAdvertisementCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sau</span>
+                    </button>
+                </div>
+                {% if active_promotions %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('main.promotions_page') }}" class="btn btn-sm btn-outline-light">Xem tất cả ưu đãi</a>
+                </div>
+                {% endif %}
              </div>
         </div>
     </div>
 </section>
 
-{# Section Món đặc biệt của tuần (Giữ nguyên) #}
 <div class="container">
     {% if item_of_the_week %}
     <section class="item-of-the-week-section"> <div class="content-container"> <div class="item-of-the-week-card animate-on-scroll" data-animation="animate__fadeInUp"> <div class="row g-0"> <div class="col-md-6"> <img src="{{ item_of_the_week.image_url or url_for('static', filename='images/default_product_large.png') }}" class="item-of-the-week-img" alt="{{ item_of_the_week.name }}"> </div> <div class="col-md-6 d-flex align-items-center"> <div class="item-of-the-week-content"> <span class="item-of-the-week-badge">Món Đặc Biệt Của Tuần</span> <h2 class="item-of-the-week-title">{{ item_of_the_week.name }}</h2> <p class="item-of-the-week-desc">{{ item_of_the_week.description|truncate(150) }}</p> <span class="item-of-the-week-price">{{ format_currency(item_of_the_week.price) }}</span> <a href="{{ url_for('main.product_detail', product_id=item_of_the_week.id) }}" class="btn btn-order-week btn-primary"> Khám phá & Đặt ngay <i class="fas fa-arrow-right ms-2"></i> </a> </div> </div> </div> </div> </div> </section>
     {% endif %}
 
-    {# Section Sản phẩm nổi bật (Giữ nguyên) #}
-     <section class="py-5"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Món ưa thích của rồng</h2> <div class="row"> {% for product in featured_products %} <div class="col-lg-4 col-md-6 mb-4"> <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp"> {% if product.is_featured %} <div class="featured-badge">Nổi bật</div> {% endif %} <div class="card-img-container"> <img src="{{ product.image_url or url_for('static', filename='images/default_product.png') }}" class="card-img-top" alt="{{ product.name }}"> </div> <div class="card-body d-flex flex-column"> <h5 class="card-title">{{ product.name }}</h5> <p class="card-text">{{ product.description|truncate(100) }}</p> <div class="mt-auto d-flex justify-content-between align-items-center"> <div class="card-price">{{ format_currency(product.price) }}</div> <div class="d-flex gap-2"> <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Chi tiết</a> <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ product.id }}"> <i class="fas fa-cart-plus"></i> Thêm </button> </div> </div> </div> </div> </div> {% endfor %} </div> <div class="text-center mt-4"> <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Xem Menu Đầy Đủ</a> </div> </div> </section>
+    <section class="py-5"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Món ưa thích của rồng</h2> <div class="row"> {% for product in featured_products %} <div class="col-lg-4 col-md-6 mb-4"> <div class="card h-100 animate-on-scroll" data-animation="animate__fadeInUp"> {% if product.is_featured %} <div class="featured-badge">Nổi bật</div> {% endif %} <div class="card-img-container"> <img src="{{ product.image_url or url_for('static', filename='images/default_product.png') }}" class="card-img-top" alt="{{ product.name }}"> </div> <div class="card-body d-flex flex-column"> <h5 class="card-title">{{ product.name }}</h5> <p class="card-text">{{ product.description|truncate(100) }}</p> <div class="mt-auto d-flex justify-content-between align-items-center"> <div class="card-price">{{ format_currency(product.price) }}</div> <div class="d-flex gap-2"> <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Chi tiết</a> <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="{{ product.id }}"> <i class="fas fa-cart-plus"></i> Thêm </button> </div> </div> </div> </div> </div> {% endfor %} </div> <div class="text-center mt-4"> <a href="{{ url_for('main.menu') }}" class="btn btn-outline-primary">Xem Menu Đầy Đủ</a> </div> </div> </section>
+    <section class="py-5"> <div class="content-container"> <div class="row align-items-center"> <div class="col-lg-6 mb-4 mb-lg-0"> <img src="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft"> </div> <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight"> <h2 class="section-title text-start">Câu chuyện Rồng của chúng tôi</h2> <p class="about-text">Dragon Coffee Shop ra đời từ niềm đam mê cháy bỏng với những hạt cà phê tinh túy và khát vọng tạo nên một không gian trải nghiệm độc đáo, nơi mỗi tách cà phê không chỉ là thức uống mà còn là một hành trình khám phá văn hóa và truyền thuyết.</p> <p class="about-text">Mỗi loại cà phê được pha chế tại Dragon Coffee đều mang trong mình một câu chuyện, một hương vị riêng biệt, được tuyển chọn từ những vùng trồng nổi tiếng và rang xay theo quy trình nghiêm ngặt, đánh thức mọi giác quan của bạn.</p> <a href="{{ url_for('main.about') }}" class="btn btn-primary mt-3">Tìm hiểu thêm</a> </div> </div> </div> </section>
+    <section class="py-5"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khám phá danh mục</h2> <div class="row"> {% for category in categories %} <div class="col-lg-3 col-md-6 mb-4"> <a href="{{ url_for('main.menu', category=category.id) }}" class="text-decoration-none"> <div class="card h-100 category-card animate-on-scroll" data-animation="animate__fadeInUp" style="animation-delay: {{ loop.index0 * 0.1 }}s;"> <div class="card-body text-center d-flex flex-column justify-content-center p-4"> <i class="category-icon fas {{ category_icons.get(category.name, 'fa-mug-hot') }} fa-3x mb-3"></i> <h5 class="card-title category-title mb-2">{{ category.name }}</h5> <p class="card-text small text-muted mb-0">{{ category.description | truncate(50) if category.description }}</p> </div> </div> </a> </div> {% else %} <div class="col-12"> <p class="text-muted text-center">Không có danh mục nào.</p> </div> {% endfor %} </div> </div> </section>
 
-    {# Section Giới thiệu (Giữ nguyên) #}
-     <section class="py-5"> <div class="content-container"> <div class="row align-items-center"> <div class="col-lg-6 mb-4 mb-lg-0"> <img src="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" alt="Coffee Shop Interior" class="img-fluid about-img animate-on-scroll" data-animation="animate__fadeInLeft"> </div> <div class="col-lg-6 animate-on-scroll" data-animation="animate__fadeInRight"> <h2 class="section-title text-start">Câu chuyện Rồng của chúng tôi</h2> <p class="about-text">Dragon Coffee Shop ra đời từ niềm đam mê...</p> <p class="about-text">Mỗi loại cà phê được pha chế...</p> <a href="{{ url_for('main.about') }}" class="btn btn-primary mt-3">Tìm hiểu thêm</a> </div> </div> </div> </section>
-
-     {# Section Danh mục (Giữ nguyên) #}
-     <section class="py-5"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khám phá danh mục</h2> <div class="row"> {% for category in categories %} <div class="col-lg-3 col-md-6 mb-4"> <a href="{{ url_for('main.menu', category=category.id) }}" class="text-decoration-none"> <div class="card h-100 category-card animate-on-scroll" data-animation="animate__fadeInUp" style="animation-delay: {{ loop.index0 * 0.1 }}s;"> <div class="card-body text-center d-flex flex-column justify-content-center p-4"> <i class="category-icon fas {{ category_icons.get(category.name, 'fa-mug-hot') }} fa-3x mb-3"></i> <h5 class="card-title category-title mb-2">{{ category.name }}</h5> <p class="card-text small text-muted mb-0">{{ category.description | truncate(50) if category.description }}</p> </div> </div> </a> </div> {% else %} <div class="col-12"> <p class="text-muted text-center">Không có danh mục nào.</p> </div> {% endfor %} </div> </div> </section>
-
-    {# Section Review (Giữ nguyên) #}
-     {% if random_reviews %} <section class="random-reviews-section"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Chia sẻ từ Khách hàng</h2> <div class="row"> {% for review in random_reviews %} {% set review_delay = (loop.index0 * 0.2 + random.random() * 0.1) | round(2) %} <div class="col-lg-4 col-md-6 mb-4"> <div class="review-snippet-card h-100 animate-on-scroll" data-animation="animate__fadeInUp" style="animation-delay: {{ review_delay }}s;"> <p class="review-snippet-content">"{{ review.content|truncate(120) }}"</p> <div class="review-snippet-footer"> <div class="review-snippet-rating"> {% for i in range(5) %} <i class="fas fa-star {% if i < review.rating %}text-warning{% else %}text-muted{% endif %}" style="opacity: {% if i < review.rating %}1{% else %}0.4{% endif %};"></i> {% endfor %} </div> {% if review.product %} <span class="review-snippet-product"> Cho: <a href="{{ url_for('main.product_detail', product_id=review.product_id) }}">{{ review.product.name }}</a> </span> {% endif %} </div> </div> </div> {% endfor %} </div> </div> </section> {% endif %}
-
-    {# ---- SECTION VIDEO ĐÃ SỬA ---- #}
     <section class="py-5 video-intro-section">
-      <div class="content-container">
-          <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khám phá Không gian Rồng</h2>
-          <div class="video-wrapper animate-on-scroll" data-animation="animate__zoomIn" style="box-shadow: var(--box-shadow-lifted); border-radius: var(--border-radius-soft); overflow: hidden; position: relative; cursor: pointer;">
-               <div class="ratio ratio-16x9">
-                   <video width="100%" height="auto" poster="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" preload="metadata" id="introVideo" muted playsinline loop>
-                      <source src="{{ url_for('static', filename='videos/my_type.mp4') }}" type="video/mp4">
-                      Trình duyệt của bạn không hỗ trợ video.
-                  </video>
-               </div>
-              <div class="play-button-overlay" id="playButtonOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.85); pointer-events: none; text-shadow: 0 3px 7px rgba(0,0,0,0.6); transition: opacity 0.3s ease, transform 0.3s ease;">
-                  <i class="fas fa-play-circle"></i>
-               </div>
-          </div>
+        <div class="content-container">
+            <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khám phá Không gian Rồng</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6 video-intro-text-col animate-on-scroll" data-animation="animate__fadeInLeft" data-animation-delay="0.2s">
+                    <h3>Không Gian Đậm Chất Rồng</h3>
+                    <p>Mỗi góc nhỏ tại Dragon Coffee đều được chăm chút tỉ mỉ, mang đậm dấu ấn văn hóa Rồng huyền bí. Từ những bức tranh tường nghệ thuật đến các vật phẩm trang trí tinh xảo, tất cả tạo nên một không gian độc đáo, khơi gợi sự tò mò và mang đến cảm hứng bất tận.</p>
+                    <p>Chúng tôi tin rằng không gian thưởng thức cà phê cũng quan trọng như chính hương vị của nó. Hãy đến, trải nghiệm và để Dragon Coffee đưa bạn vào một hành trình khám phá đầy mê hoặc, nơi bạn có thể thư giãn, làm việc hoặc gặp gỡ bạn bè trong một bầu không khí thực sự khác biệt.</p>
+                     <a href="{{ url_for('main.locations') }}" class="btn btn-outline-secondary mt-2">Tìm chi nhánh gần bạn</a>
+                </div>
+                <div class="col-lg-6 video-intro-video-col animate-on-scroll" data-animation="animate__zoomIn" data-animation-delay="0.4s">
+                    <div class="video-wrapper">
+                        <div class="ratio ratio-16x9">
+                            <video width="100%" height="auto" poster="{{ url_for('static', filename='images/cafe_interior_1.jpg') }}" preload="metadata" id="introVideo" muted playsinline loop>
+                                <source src="{{ url_for('static', filename='videos/my_type.mp4') }}" type="video/mp4">
+                                Trình duyệt của bạn không hỗ trợ video.
+                            </video>
+                        </div>
+                        <div class="play-button-overlay" id="playButtonOverlay">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                    </div>
+                    <p class="text-center mt-2 video-click-instruction">
+                        <i class="fas fa-mouse-pointer me-1"></i> Nhấn vào video để xem / tạm dừng.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-          {# ---- SỬA DÒNG CHỮ HƯỚNG DẪN Ở ĐÂY ---- #}
-          <p class="text-center mt-3" style="font-size: 3rem; font-weight: 500; color: var(--secondary-color);"> {# Tăng size, đổi màu, tăng weight #}
-              <i class="fas fa-mouse-pointer me-1"></i> {# Thêm icon con trỏ chuột #}
-              Nhấn vào video để xem / tạm dừng.
-          </p>
-          {# ---- KẾT THÚC SỬA DÒNG CHỮ ---- #}
-
-       </div>
-  </section>
-     {# ---- KẾT THÚC SECTION VIDEO ---- #}
-
-    {# Các section còn lại giữ nguyên (Poll, Testimonials, CTA) #}
-     <section class="py-5 poll-section" style="background-color: rgba(59, 47, 47, 0.03);"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Bạn Thích Gì Nhất?</h2> <div class="poll-container animate-on-scroll" data-animation="animate__fadeIn" data-animation-delay="0.3s"> <h5 class="poll-question text-center mb-4">Buổi sáng bạn thường chọn...?</h5> <div class="row justify-content-center g-3"> <div class="col-md-5 col-lg-4"> <button class="poll-option-btn w-100"> <i class="fas fa-coffee me-2"></i> Cà phê đậm đà </button> </div> <div class="col-md-5 col-lg-4"> <button class="poll-option-btn w-100"> <i class="fas fa-leaf me-2"></i> Trà thanh mát </button> </div> </div> <div class="poll-results mt-4 text-center text-muted" style="display: none;"> Cảm ơn bạn đã bình chọn! </div> </div> </div> </section>
-     <section class="py-5"> <div class="content-container"> <h2 class="section-title animate-on-scroll" data-animation="animate__fadeInUp">Khách hàng của chúng tôi nói gì</h2> <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel"> <div class="carousel-inner"> <div class="carousel-item active"> <div class="row justify-content-center"> <div class="col-lg-8"> <div class="text-center"> <div class="mb-3"> <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i> </div> <p class="lead fst-italic mb-4">"Latte Dragon's Breath..."</p> <h5 class="fw-bold">Phuoc Dragon-lover</h5> <p class="text-muted">Khách hàng thường xuyên</p> </div> </div> </div> </div> <div class="carousel-item"> <div class="row justify-content-center"> <div class="col-lg-8"> <div class="text-center"> <div class="mb-3"> <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i> </div> <p class="lead fst-italic mb-4">"Bầu không khí tại Dragon Coffee..."</p> <h5 class="fw-bold">Đào Fire-brewer</h5> <p class="text-muted">Người đam mê cà phê</p> </div> </div> </div> </div> <div class="carousel-item"> <div class="row justify-content-center"> <div class="col-lg-8"> <div class="text-center"> <div class="mb-3"> <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star-half-alt text-warning"></i> </div> <p class="lead fst-italic mb-4">"Tôi rất thích hệ thống đặt hàng trực tuyến..."</p> <h5 class="fw-bold">Dragon Scale-sipper</h5> <p class="text-muted">Chuyên gia bận rộn</p> </div> </div> </div> </div> </div> <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev"> <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Trước</span> </button> <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next"> <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Kế tiếp</span> </button> </div> </div> </section>
     <section class="py-5"> <div class="content-container text-center py-5 animate-on-scroll" data-animation="animate__fadeIn"> <h2 class="section-title">Bạn đã sẵn sàng trải nghiệm Dragon's Fire chưa?</h2> <p class="lead mb-4">Đặt hàng trực tuyến để nhận hàng hoặc giao hàng và cảm nhận sự khác biệt ngay hôm nay!</p> <div class="d-flex justify-content-center gap-3 flex-wrap"> <a href="{{ url_for('main.menu') }}" class="btn btn-lg btn-primary">Đặt hàng ngay</a> <a href="{{ url_for('main.locations') }}" class="btn btn-lg btn-outline-primary">Tìm vị trí gần nhất</a> </div> </div> </section>
-
 </div>
 {% endblock %}
 
 {% block extra_js %}
   {{ super() }}
-   {# Script cho countdown, copy mã, polls, etc. giữ nguyên #}
    <script>
-       function copyPromoCode(element) { const code = element.textContent || element.innerText; if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { showToast('Đã copy mã: ' + code, 'success'); const originalText = element.innerHTML; element.innerHTML = '<i class="fas fa-check me-1"></i> Copied!'; setTimeout(() => { element.innerHTML = originalText; }, 1500); }, function(err) { console.error('Không thể copy: ', err); showToast('Lỗi khi copy mã!', 'danger'); try { const textArea = document.createElement("textarea"); textArea.value = code; textArea.style.position="fixed"; textArea.style.opacity="0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('Đã copy mã (fallback): ' + code, 'success'); } catch(fallbackErr) { console.error('Fallback copy cũng lỗi: ', fallbackErr); alert('Vui lòng copy mã thủ công: ' + code); } }); } else { console.warn('Clipboard API không được hỗ trợ'); try { const textArea = document.createElement("textarea"); textArea.value = code; textArea.style.position="fixed"; textArea.style.opacity="0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); showToast('Đã copy mã (fallback): ' + code, 'success'); } catch (fallbackErr) { console.error('Fallback copy lỗi: ', fallbackErr); alert('Trình duyệt không hỗ trợ tự động copy. Vui lòng copy mã thủ công: ' + code); } } }
        function showToast(message, type = 'info') { const toastBgClasses = { success: 'text-bg-success', danger: 'text-bg-danger', error: 'text-bg-danger', warning: 'text-bg-warning', info: 'text-bg-info' }; const toastClass = toastBgClasses[type] || 'text-bg-secondary'; let container = document.querySelector('.toast-container'); if (!container) { container = document.createElement('div'); container.className = 'toast-container position-fixed bottom-0 end-0 p-3'; container.style.zIndex = "1100"; document.body.appendChild(container); } const toastId = 'toast-' + Date.now(); const icon = type === 'success' ? 'fa-check-circle' : (type === 'danger' || type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'); const html = `<div id="${toastId}" class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"><div class="d-flex"><div class="toast-body"><i class="fas ${icon} me-2"></i><span>${message}</span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`; container.insertAdjacentHTML('beforeend', html); const el = document.getElementById(toastId); if (el && typeof bootstrap !== 'undefined' && bootstrap.Toast) { const toast = bootstrap.Toast.getOrCreateInstance(el); el.addEventListener('hidden.bs.toast', () => el.remove()); toast.show(); } else { console.warn('Toast/Bootstrap not available'); alert(`${type}: ${message}`); if(el) el.remove(); } }
-        function initializeCountdownTimers() { const countdownElements = document.querySelectorAll('.promo-countdown'); if (countdownElements.length === 0) return; countdownElements.forEach(element => { const endDateStr = element.dataset.endDate; if (!endDateStr) { element.innerHTML = '<i class="far fa-clock"></i> Hết hạn?'; return; } try { const endDate = new Date(endDateStr); if (isNaN(endDate.getTime())) { throw new Error("Invalid date format"); } const timerInterval = setInterval(() => { const now = new Date().getTime(); const distance = endDate.getTime() - now; if (distance < 0) { clearInterval(timerInterval); element.innerHTML = '<i class="far fa-clock text-danger"></i> Đã hết hạn!'; element.style.color = 'var(--danger-color)'; return; } const days = Math.floor(distance / (1000 * 60 * 60 * 24)); const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((distance % (1000 * 60)) / 1000); let output = '<i class="far fa-clock"></i> Còn: '; if (days > 0) { output += `<span>${days}d</span> `; } output += `<span>${hours.toString().padStart(2, '0')}h</span> `; output += `<span>${minutes.toString().padStart(2, '0')}m</span> `; output += `<span>${seconds.toString().padStart(2, '0')}s</span>`; element.innerHTML = output; }, 1000); } catch (error) { console.error("Err countdown:", endDateStr, error); element.innerHTML = '<i class="far fa-clock"></i> Lỗi HSD'; } }); console.log("Countdown initialized."); }
-        function setupPolls() { const pollContainers = document.querySelectorAll('.poll-container'); pollContainers.forEach(container => { const options = container.querySelectorAll('.poll-option-btn'); const resultsDiv = container.querySelector('.poll-results'); const pollKey = container.dataset.pollKey || 'defaultPoll'; if (sessionStorage.getItem(`voted_${pollKey}`)) { options.forEach(btn => btn.disabled = true); if(resultsDiv) { resultsDiv.innerHTML = 'Cảm ơn bạn đã bình chọn trước đó!'; resultsDiv.style.display = 'block'; } return; } options.forEach(button => { button.addEventListener('click', function() { options.forEach(btn => btn.disabled = true); if(resultsDiv) { resultsDiv.innerHTML = 'Cảm ơn bạn đã bình chọn!'; resultsDiv.style.display = 'block'; } sessionStorage.setItem(`voted_${pollKey}`, 'true'); }); }); }); console.log("Polls setup complete."); }
-   </script>
-
-   {# ---- THÊM SCRIPT CHO VIDEO ---- #}
+    </script>
    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const video = document.getElementById('introVideo');
-        const videoWrapper = document.querySelector('.video-wrapper');
-        const playButtonOverlay = document.getElementById('playButtonOverlay');
-
-        if (video && videoWrapper && playButtonOverlay) {
-            function updatePlayButtonVisibility() {
-                if (video.paused || video.ended) {
-                    videoWrapper.classList.remove('playing');
-                    playButtonOverlay.style.opacity = '1';
-                    playButtonOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
-                } else {
-                    videoWrapper.classList.add('playing');
-                    playButtonOverlay.style.opacity = '0';
-                     playButtonOverlay.style.transform = 'translate(-50%, -50%) scale(0.7)';
+            const video = document.getElementById('introVideo');
+            const videoWrapper = document.querySelector('.video-wrapper');
+            const playButtonOverlay = document.getElementById('playButtonOverlay');
+            if (video && videoWrapper && playButtonOverlay) {
+                function updatePlayButtonVisibility() {
+                    if (video.paused || video.ended) {
+                        videoWrapper.classList.remove('playing');
+                        playButtonOverlay.style.opacity = '1';
+                        playButtonOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+                    } else {
+                        videoWrapper.classList.add('playing');
+                        playButtonOverlay.style.opacity = '0';
+                        playButtonOverlay.style.transform = 'translate(-50%, -50%) scale(0.7)';
+                    }
                 }
-            }
-
-            videoWrapper.addEventListener('click', function() {
-                if (video.paused || video.ended) { video.play(); }
-                else { video.pause(); }
-            });
-
-            video.addEventListener('play', updatePlayButtonVisibility);
-            video.addEventListener('pause', updatePlayButtonVisibility);
-            video.addEventListener('ended', updatePlayButtonVisibility);
-
-            video.addEventListener('contextmenu', function(event) {
-                event.preventDefault();
-                 showToast('Tải xuống video không được phép.', 'warning');
-            });
-
-            updatePlayButtonVisibility(); // Initial state
-
-        } else { console.warn("Intro video/wrapper/overlay not found."); }
-
-         // Gọi các hàm khởi tạo khác nếu bạn chuyển chúng vào đây
-         // initializeCountdownTimers();
-         // setupPolls();
-         // if (typeof initializeBootstrapComponents === 'function') initializeBootstrapComponents();
-         // if (typeof animateOnScroll === 'function') animateOnScroll();
-     });
+                videoWrapper.addEventListener('click', function() {
+                    if (video.paused || video.ended) { video.play(); } else { video.pause(); }
+                });
+                video.addEventListener('play', updatePlayButtonVisibility);
+                video.addEventListener('pause', updatePlayButtonVisibility);
+                video.addEventListener('ended', updatePlayButtonVisibility);
+                video.addEventListener('contextmenu', function(event) { event.preventDefault(); showToast('Tải xuống video không được phép.', 'warning'); });
+                updatePlayButtonVisibility();
+            } else { console.warn("Intro video/wrapper/overlay not found."); }
+         });
     </script>
-    {# ---- KẾT THÚC SCRIPT VIDEO ---- #}
-
 {% endblock %}

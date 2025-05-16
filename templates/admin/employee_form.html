@@ -15,117 +15,94 @@
         <div class="admin-form-card">
             <form class="admin-form" method="POST" action="{{ request.url }}">
                 {{ form.hidden_tag() }}
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        {{ form.first_name.label(class="form-label") }}
-                        {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
-                        {% if form.first_name.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.first_name.errors %}
-                            {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        <label for="first_name" class="form-label">Tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if request.form.first_name is defined and not request.form.first_name %}is-invalid{% endif %}" id="first_name" name="first_name" required value="{{ user.first_name if user else request.form.get('first_name', '') }}">
                     </div>
-                    
                     <div class="col-md-6 mb-3">
-                        {{ form.last_name.label(class="form-label") }}
-                        {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
-                        {% if form.last_name.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.last_name.errors %}
-                            {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        <label for="last_name" class="form-label">Họ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if request.form.last_name is defined and not request.form.last_name %}is-invalid{% endif %}" id="last_name" name="last_name" required value="{{ user.last_name if user else request.form.get('last_name', '') }}">
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
-                    {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                    {% if form.email.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.email.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control {% if request.form.email is defined and not request.form.email %}is-invalid{% endif %}" id="email" name="email" required value="{{ user.email if user else request.form.get('email', '') }}">
                     <div class="form-text">Email này sẽ được sử dụng để đăng nhập.</div>
                 </div>
-                
+
                 <div class="mb-3">
-                    {{ form.phone.label(class="form-label") }}
-                    {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
-                    {% if form.phone.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in form.phone.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                     <label for="phone" class="form-label">Điện thoại</label>
+                     <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone if user else request.form.get('phone', '') }}">
                 </div>
-                
+
+                <hr class="my-4">
+                <h5>Thông tin Công việc</h5>
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        {{ form.position.label(class="form-label") }}
+                        {{ form.position.label(class="form-label") }} <span class="text-danger">*</span>
                         {{ form.position(class="form-control" + (" is-invalid" if form.position.errors else "")) }}
                         {% if form.position.errors %}
                         <div class="invalid-feedback">
-                            {% for error in form.position.errors %}
-                            {{ error }}
-                            {% endfor %}
+                            {% for error in form.position.errors %} {{ error }} {% endfor %}
                         </div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
-                        {{ form.hire_date.label(class="form-label") }}
+                        {{ form.hire_date.label(class="form-label") }} <span class="text-danger">*</span>
                         {{ form.hire_date(class="form-control" + (" is-invalid" if form.hire_date.errors else ""), type="date") }}
                         {% if form.hire_date.errors %}
                         <div class="invalid-feedback">
-                            {% for error in form.hire_date.errors %}
-                            {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.salary.label(class="form-label") }}
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        {{ form.salary(class="form-control" + (" is-invalid" if form.salary.errors else "")) }}
-                        {% if form.salary.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.salary.errors %}
-                            {{ error }}
-                            {% endfor %}
+                            {% for error in form.hire_date.errors %} {{ error }} {% endfor %}
                         </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <div class="mb-3 form-check"> <div class="mb-3 form-check">
-                    {{ form.is_staff(class="form-check-input") }}
-                    {{ form.is_staff.label(class="form-check-label") }}
-                    {% if form.is_staff.errors %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.is_staff.errors %}
-                        {{ error }}
-                        {% endfor %}
+                <div class="mb-3">
+                    {{ form.salary.label(class="form-label") }}
+                    <div class="input-group">
+                        <span class="input-group-text">₫</span>
+                        {{ form.salary(class="form-control" + (" is-invalid" if form.salary.errors else ""), type="number", step="any") }}
+                        {% if form.salary.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.salary.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
-                
+
+                 <div class="mb-3 form-check">
+                      <input class="form-check-input" type="checkbox" id="is_staff" name="is_staff" {% if user and user.is_staff %}checked{% endif %} {% if not current_user.is_admin %}disabled{% endif %}>
+                      <label class="form-check-label" for="is_staff">Quyền Nhân viên (Staff)</label>
+                      <div class="form-text text-muted">Nhân viên được phép truy cập các chức năng cơ bản của trang quản trị.</div>
+                 </div>
+
+                 {% if employee %}
+                     <hr>
+                      <h5>Quyền & Trạng thái Tài khoản</h5>
+                     <div class="mb-3 form-check form-switch">
+                          <input class="form-check-input" type="checkbox" role="switch" id="is_admin" name="is_admin" {% if user.is_admin %}checked{% endif %} {% if not current_user.is_admin %}disabled title="Chỉ Super Admin mới được thay đổi quyền Admin"{% endif %}>
+                          <label class="form-check-label" for="is_admin">Quyền Quản trị viên (Admin)</label>
+                          <div class="form-text text-muted">Cho phép truy cập tất cả các chức năng quản trị.</div>
+                     </div>
+                     <div class="mb-3 form-check form-switch">
+                          <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if employee.is_active %}checked{% endif %}>
+                          <label class="form-check-label" for="is_active">Đang hoạt động</label>
+                          <div class="form-text text-muted">Bỏ chọn để vô hiệu hóa tài khoản này.</div>
+                      </div>
+                 {% endif %}
+
                 {% if not employee %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> Mật khẩu mặc định sẽ được tạo cho nhân viên này. Họ có thể thay đổi mật khẩu sau lần đăng nhập đầu tiên.
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i> Mật khẩu mặc định (<code>dragonstaff123</code>) sẽ được tạo cho nhân viên mới. Họ nên đổi mật khẩu sau lần đăng nhập đầu tiên.
                 </div>
                 {% endif %}
-                
+
                 <div class="d-grid mt-4">
                     {{ form.submit(class="btn btn-primary btn-lg") }}
                 </div>
@@ -137,60 +114,26 @@
 {% if employee %}
 <div class="row justify-content-center mt-4">
     <div class="col-lg-8">
-        <div class="card card-report border-0 shadow-sm"> {# Thêm card-report cho style đồng bộ #}
-            <div class="card-header bg-light border-bottom-0"> {# Bỏ border #}
+        <div class="card card-report border-0 shadow-sm">
+            <div class="card-header bg-light border-bottom-0">
                 <h4 class="mb-0 card-title">Quản lý Tài khoản Nhân viên</h4>
             </div>
             <div class="card-body">
-                {# Phần kích hoạt/vô hiệu hóa (đã có) #}
-                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom"> {# Thêm border bottom #}
-                    <div>
-                        <h5 class="mb-1">Trạng thái hoạt động</h5>
-                         <p class="mb-0 small">
-                            {# Sử dụng is_active từ employee thay vì user_data nếu chắc chắn employee đã load #}
-                            {% if employee.is_active %}
-                                <span class="badge bg-success">Đang hoạt động</span>
-                             {% else %}
-                                <span class="badge bg-secondary">Đã vô hiệu hóa</span>
-                            {% endif %}
-                            {% if user_data.is_staff %}<span class="badge bg-info ms-1">Có quyền Staff</span>{% endif %}
-                            {% if user_data.is_admin %}<span class="badge bg-danger ms-1">Có quyền Admin</span>{% endif %}
-                         </p>
-                    </div>
-                    {# Form toggle active status #}
-                     <form action="{{ url_for('admin.toggle_employee_active_status', employee_id=employee.id) }}" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn {{ 'vô hiệu hóa' if employee.is_active else 'kích hoạt' }} tài khoản này?');">
-                        {# --- Thêm CSRF token nếu hệ thống của bạn yêu cầu --- #}
-                        {% if csrf_token %}
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        {% endif %}
-                        <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if employee.is_active else 'success' }}"> {# Dùng màu warning/success #}
-                            <i class="fas {{ 'fa-user-slash' if employee.is_active else 'fa-user-check' }} me-1"></i>
-                            {{ 'Vô hiệu hóa' if employee.is_active else 'Kích hoạt' }}
-                        </button>
-                    </form>
-                 </div>
-
-                 {# --- Phần Reset Mật Khẩu --- #}
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-1">Đặt lại Mật khẩu</h5>
-                         <p class="mb-0 text-muted small">Gửi một email chứa link để nhân viên tự đặt lại mật khẩu mới.</p>
-                         <p class="mb-0 text-muted small">Email sẽ được gửi đến: <strong>{{ user_data.email if user_data.email else '[Chưa có email]'}}</strong></p>
+                         <p class="mb-0 text-muted small">Gửi email chứa link để nhân viên tự đặt lại mật khẩu.</p>
+                         <p class="mb-0 text-muted small">Email sẽ gửi đến: <strong>{{ user.email if user.email else '[Chưa có email]'}}</strong></p>
                     </div>
-                     {# --- Form để gửi yêu cầu reset --- #}
                     <form action="{{ url_for('admin.send_employee_reset_link', employee_id=employee.id) }}" method="POST" onsubmit="return confirm('Gửi link reset mật khẩu tới email nhân viên?');">
-                         {# --- Thêm CSRF token nếu hệ thống của bạn yêu cầu --- #}
-                        {% if csrf_token %}
+                         {% if csrf_token %}
                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                          {% endif %}
-                        <button type="submit" class="btn btn-sm btn-outline-primary" {% if not user_data.email %}disabled title="Nhân viên chưa có email"{% endif %}>
+                        <button type="submit" class="btn btn-sm btn-outline-primary" {% if not user.email %}disabled title="Nhân viên chưa có email"{% endif %}>
                             <i class="fas fa-key me-1"></i> Gửi Link Reset
                         </button>
                      </form>
-                    {# -------------------------------- #}
                 </div>
-                {# --- Kết thúc Phần Reset Mật Khẩu --- #}
-
             </div>
         </div>
     </div>

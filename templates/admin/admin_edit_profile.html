@@ -1,0 +1,128 @@
+{# templates/admin/admin_edit_profile.html #}
+{% extends "admin/base.html" %}
+{# {% from "macros/_form_helpers.html" import render_field %} #}
+
+{% block title %}{{ title }} - Trang Quản trị{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.profile') }}">Hồ sơ</a></li>
+    <li class="breadcrumb-item active">Chỉnh sửa</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card card-primary card-outline shadow-sm">
+            <form method="POST" action="{{ url_for('admin.edit_profile') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="card-body">
+                    {# Hiển thị thông báo nếu có lỗi validation (ví dụ từ request.method == 'POST' của chính route này) #}
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-hidden="true">×</button>
+                            <h5><i class="icon fas fa-ban"></i> Lỗi!</h5>
+                            Vui lòng kiểm tra lại các trường thông tin.
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4 text-center">
+                        <label class="form-label d-block mb-2">Ảnh đại diện</label>
+                        <img src="{{ url_for('static', filename=user.avatar_url) if user.avatar_url else url_for('static', filename='images/default_avatar.png') }}"
+                             alt="Ảnh đại diện" id="avatarEditPreview"
+                             class="rounded-circle img-thumbnail mb-2"
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                        
+                        {{ form.avatar.label(class="form-label sr-only visually-hidden") }} {# Ẩn label vì đã có ở trên #}
+                        {{ form.avatar(class="form-control form-control-sm" + (" is-invalid" if form.avatar.errors else ""), onchange="previewAdminAvatar(event)") }}
+                        {% if form.avatar.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.avatar.errors %}{{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text small">Chọn ảnh mới nếu bạn muốn thay đổi.</div>
+                    </div>
+
+                    <hr class="my-3">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.first_name.label(class="form-label") }}
+                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+                            {% if form.first_name.errors %}<div class="invalid-feedback">{% for error in form.first_name.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.last_name.label(class="form-label") }}
+                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+                            {% if form.last_name.errors %}<div class="invalid-feedback">{% for error in form.last_name.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                        {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {% if form.email.errors %}<div class="invalid-feedback">{% for error in form.email.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                        {% if form.phone.errors %}<div class="invalid-feedback">{% for error in form.phone.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                    </div>
+                    
+                    {# Admin/Staff không tự sửa địa chỉ qua form này #}
+                    {# <div class="mb-3">
+                        {{ form.address.label(class="form-label") }}
+                        {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else "")) }}
+                        {% if form.address.errors %}<div class="invalid-feedback">{% for error in form.address.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                    </div> #}
+
+                    <hr class="my-3">
+                    <h5>Thay đổi mật khẩu (Tùy chọn)</h5>
+                    <p class="text-muted small mb-2">Để trống nếu không muốn đổi.</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Mật khẩu mới") }}
+                            {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.password2.label(class="form-label") }}
+                            {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else ""), placeholder="Xác nhận mật khẩu mới") }}
+                            {% if form.password2.errors %}<div class="invalid-feedback">{% for error in form.password2.errors %}{{ error }}{% endfor %}</div>{% endif %}
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('admin.profile') }}" class="btn btn-secondary">Hủy</a>
+                    {{ form.submit(class="btn btn-primary float-end") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+function previewAdminAvatar(event) {
+    const reader = new FileReader();
+    reader.onload = function(){
+        const output = document.getElementById('avatarEditPreview');
+        if(output) output.src = reader.result;
+    };
+    if(event.target.files[0]){
+        reader.readAsDataURL(event.target.files[0]);
+    }
+}
+</script>
+{% endblock %}

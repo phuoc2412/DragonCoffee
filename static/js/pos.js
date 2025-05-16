@@ -34,6 +34,26 @@ function setupPOS() {
     const guestInputGroup = document.getElementById('pos-guest-input-group');
     const guestPhoneInput = document.getElementById('pos-guest-phone');
 
+    const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
+    orderTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                selectedOrderType = this.value; // Lấy giá trị từ radio được chọn
+                console.log("Selected Order Type:", selectedOrderType);
+            }
+        });
+    });
+
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    paymentMethodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                selectedPaymentMethod = this.value; // Lấy giá trị từ radio được chọn
+                console.log("Selected Payment Method:", selectedPaymentMethod);
+            }
+        });
+    });
+
     // ----- State -----
     let cart = []; // Mảng chứa các sản phẩm trong giỏ hàng { product_id, name, price, quantity, notes }
     let selectedOrderType = 'dine-in';
@@ -249,9 +269,12 @@ function setupPOS() {
     }
 
     // Định dạng tiền tệ đơn giản cho POS
-     function formatCurrencyForPOS(amount) {
-        return amount ? amount.toLocaleString('vi-VN') + '₫' : '0₫';
+    function formatCurrencyForPOS(amount) {
+        if (amount === null || amount === undefined) return '0₫';
+        // Sử dụng toLocaleString('vi-VN') để format chuẩn VN
+        return Math.round(amount).toLocaleString('vi-VN') + '₫';
     }
+    
 
     // Thêm SP vào giỏ hàng (Giống code cũ)
     function addToCart(product) {
@@ -303,41 +326,68 @@ function setupPOS() {
 
     // Render giỏ hàng (Giống code cũ, thêm data-index)
     function renderCart() {
-        if (!cartItemsContainer) return;
-        cartItemsContainer.innerHTML = ''; // Xóa nội dung cũ
-        let currentTotal = 0;
-
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = '<div class="text-center py-4 text-muted">Giỏ hàng trống</div>';
-        } else {
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                currentTotal += itemTotal;
-                const cartItemDiv = document.createElement('div');
-                cartItemDiv.className = 'pos-cart-item';
-                cartItemDiv.dataset.index = index; // <<< Thêm data-index
-
-                cartItemDiv.innerHTML = `
-                    <div class="pos-cart-product">
-                        <div class="pos-cart-product-name">${item.name}</div>
-                        <div class="pos-cart-product-price">${formatCurrencyForPOS(item.price)}</div>
-                    </div>
-                    <div class="pos-cart-quantity">
-                        <button type="button" class="pos-cart-quantity-btn decrease-qty" data-action="decrease">-</button>
-                        <input type="number" class="pos-cart-quantity-input" value="${item.quantity}" min="1" max="99">
-                        <button type="button" class="pos-cart-quantity-btn increase-qty" data-action="increase">+</button>
-                    </div>
-                    <div class="pos-cart-subtotal">${formatCurrencyForPOS(itemTotal)}</div>
-                    <button type="button" class="pos-cart-remove btn-close small p-1" aria-label="Remove item"></button>
-                `;
-                cartItemsContainer.appendChild(cartItemDiv);
-            });
+        // === LẤY CÁC ELEMENT HTML ===
+        const cartItemsContainer = document.querySelector('.pos-cart-items');
+        const cartTotalElement = document.querySelector('.pos-cart-total-amount');
+        const checkoutButton = document.querySelector('.pos-checkout-btn');
+        const clearCartButton = document.querySelector('.pos-clear-btn');
+    
+        // Kiểm tra xem các element có tồn tại không
+        if (!cartItemsContainer || !cartTotalElement || !checkoutButton || !clearCartButton) {
+            console.error("POS Cart elements missing from the DOM.");
+            return;
         }
-        // Cập nhật tổng tiền
+    
+        // === XÓA NỘI DUNG CŨ VÀ TÍNH TOÁN LẠI ===
+        cartItemsContainer.innerHTML = ''; // Xóa các item cũ
+        let currentTotal = 0;
+    
+        // === KIỂM TRA GIỎ HÀNG RỖNG ===
+        if (cart.length === 0) {
+            // Hiển thị thông báo giỏ hàng trống
+            cartItemsContainer.innerHTML = '<div class="text-center py-4 text-muted small"><i>Chưa có sản phẩm nào</i></div>';
+            cartTotalElement.textContent = formatCurrencyForPOS(0); // Format về 0đ
+            checkoutButton.disabled = true; // Vô hiệu hóa nút
+            clearCartButton.disabled = true;  // Vô hiệu hóa nút
+            return; // Dừng hàm ở đây nếu giỏ hàng rỗng
+        }
+    
+        // === TẠO HTML CHO TỪNG SẢN PHẨM TRONG GIỎ ===
+        cart.forEach((item, index) => {
+            // Tính toán tổng tiền cho item này
+            const itemTotal = (item.price || 0) * (item.quantity || 0); // Xử lý nếu price/quantity bị thiếu
+            currentTotal += itemTotal;
+    
+            // Tạo thẻ div cho cart item
+            const cartItemDiv = document.createElement('div');
+            cartItemDiv.className = 'pos-cart-item';
+            cartItemDiv.dataset.index = index; // Quan trọng để biết update/remove item nào
+    
+            // === TẠO HTML NỘI DUNG CHO ITEM (PHẦN QUAN TRỌNG NHẤT) ===
+            cartItemDiv.innerHTML = `
+                <div class="pos-cart-product">
+                    <div class="pos-cart-product-name">${item.name || 'Sản phẩm lỗi'}</div>
+                    <div class="pos-cart-product-price">${formatCurrencyForPOS(item.price || 0)}</div>
+                     ${item.notes ? `<small class="pos-cart-item-notes text-muted fst-italic d-block">- ${item.notes.substring(0, 30)}${item.notes.length > 30 ? '...' : ''}</small>` : ''}
+                </div>
+                <div class="pos-cart-quantity">
+                    <button type="button" class="pos-cart-quantity-btn decrease-qty" data-action="decrease" aria-label="Giảm số lượng">-</button>
+                    <input type="number" class="pos-cart-quantity-input" value="${item.quantity}" min="1" max="99" aria-label="Số lượng">
+                    <button type="button" class="pos-cart-quantity-btn increase-qty" data-action="increase" aria-label="Tăng số lượng">+</button>
+                </div>
+                <div class="pos-cart-subtotal">${formatCurrencyForPOS(itemTotal)}</div>
+                <button type="button" class="pos-cart-remove btn-close small p-1 ms-1" aria-label="Xóa sản phẩm"></button>
+            `;
+            // === KẾT THÚC TẠO HTML NỘI DUNG ===
+    
+            // Thêm item vào container
+            cartItemsContainer.appendChild(cartItemDiv);
+        });
+    
+        // === CẬP NHẬT TỔNG TIỀN VÀ TRẠNG THÁI NÚT ===
         cartTotalElement.textContent = formatCurrencyForPOS(currentTotal);
-        // Bật/tắt nút checkout và clear
-        checkoutButton.disabled = cart.length === 0;
-        clearCartButton.disabled = cart.length === 0;
+        checkoutButton.disabled = false; // Bật nút khi có hàng
+        clearCartButton.disabled = false;  // Bật nút khi có hàng
     }
 
      // ---- Tìm kiếm khách hàng bằng API ----

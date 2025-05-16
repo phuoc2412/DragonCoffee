@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from models import Product, Order, OrderDetail, db, InventoryItem, Promotion # Đảm bảo db được import
 from datetime import datetime
-import uuid
+import uuid # << --- THÊM IMPORT UUID ---
 from utils import generate_order_number, format_currency, send_order_status_email
 import logging
 from sqlalchemy import func
@@ -15,167 +15,240 @@ order_bp = Blueprint('order', __name__, url_prefix='/order') # <-- Thêm prefix
 
 @order_bp.route('/cart')
 def cart():
-    # ... (logic hiển thị giỏ hàng giữ nguyên) ...
     cart_items_data = session.get('cart', [])
     total = 0
     products = []
-    product_ids = [item['product_id'] for item in cart_items_data]
+    product_ids = [item['product_id'] for item in cart_items_data if 'product_id' in item] # An toàn hơn
+    logger = current_app.logger if current_app else logging.getLogger(__name__)
 
     if product_ids:
-        # Query tất cả sản phẩm một lần
         products_in_db = Product.query.filter(Product.id.in_(product_ids)).all()
         products_map = {p.id: p for p in products_in_db}
 
+        valid_cart_items_session = []
         for item_data in cart_items_data:
-            product = products_map.get(item_data['product_id'])
-            if product:
-                quantity = item_data.get('quantity', 1) # Lấy số lượng từ session
-                subtotal = product.price * quantity
-                total += subtotal
-                products.append({
-                    'id': product.id,
-                    'name': product.name,
-                    'price': product.price,
-                    'quantity': quantity,
-                    'subtotal': subtotal,
-                    'image_url': product.image_url,
-                    'notes': item_data.get('notes', '')
-                })
-            else:
-                 # Nếu sản phẩm không còn tồn tại, nên có cơ chế xóa khỏi giỏ hàng session
-                 logger = current_app.logger if current_app else logging.getLogger()
-                 logger.warning(f"Product ID {item_data['product_id']} found in cart session but not in DB. Skipping.")
-                 # Nên thêm logic xóa item lỗi khỏi session['cart'] ở đây
+            product_id_from_session = item_data.get('product_id')
+            if not product_id_from_session: continue # Bỏ qua item thiếu product_id
 
-    return render_template('cart.html', cart_items=products, total=total)
+            product = products_map.get(product_id_from_session)
+            if product:
+                quantity = item_data.get('quantity', 1)
+                if not isinstance(quantity, int) or quantity <= 0: quantity = 1 # Đảm bảo số lượng hợp lệ
+                
+                price = item_data.get('price') # Lấy giá đã lưu trong session khi add to cart
+                if price is None: # Nếu vì lý do nào đó giá không có trong session, query lại
+                    price = product.price
+                if price is None: # Nếu vẫn không có giá (ví dụ sp chưa set giá), bỏ qua
+                    logger.warning(f"Product ID {product_id_from_session} has no price. Skipping from cart display.")
+                    continue
+
+                try:
+                    price_float = float(price)
+                    subtotal = price_float * quantity
+                    total += subtotal
+                    products.append({
+                        'id': product.id,
+                        'name': product.name,
+                        'price': price_float, # Đảm bảo là float
+                        'quantity': quantity,
+                        'subtotal': subtotal,
+                        'image_url': product.image_url or url_for('static',filename='images/default_product_thumb.png'), # Thêm fallback
+                        'notes': item_data.get('notes', '')
+                    })
+                    valid_cart_items_session.append(item_data)
+                except ValueError:
+                    logger.warning(f"Could not convert price to float for product {product_id_from_session}. Price in session: {price}")
+                    continue # Bỏ qua sản phẩm có giá không hợp lệ
+            else:
+                 logger.warning(f"Product ID {product_id_from_session} found in cart session but not in DB or unavailable. Removing from cart.")
+        
+        if len(valid_cart_items_session) < len(cart_items_data):
+            session['cart'] = valid_cart_items_session
+            session.modified = True
+            if any(item_data not in valid_cart_items_session for item_data in cart_items_data):
+                 flash("Một vài sản phẩm không hợp lệ đã được tự động xóa khỏi giỏ hàng.", "info")
+
+
+    return render_template('cart.html', cart_items=products, total=total, format_price=format_currency)
 
 
 @order_bp.route('/add-to-cart', methods=['POST'])
-@login_required # <-- ĐẢM BẢO DECORATOR NÀY ĐANG HOẠT ĐỘNG
+@login_required  # << --- THÊM LẠI DECORATOR NÀY
 def add_to_cart():
     logger = current_app.logger
-    # --- **SỬA Ở ĐÂY: Nhận dữ liệu từ JSON thay vì Form** ---
-    if not request.is_json:
-        logger.warning("'/add-to-cart' received non-JSON request.")
-        return jsonify({'success': False, 'message': 'Yêu cầu không hợp lệ (Invalid Request)'}), 400
-
-    data = request.get_json()
-    product_id = data.get('product_id')
-    # Ép kiểu an toàn, mặc định là 1
     try:
-        quantity = int(data.get('quantity', 1))
-        if quantity <= 0: quantity = 1 # Số lượng tối thiểu là 1
-    except (ValueError, TypeError):
-        quantity = 1
-    notes = data.get('notes', '').strip() # Lấy notes và xóa khoảng trắng thừa
+        if not request.is_json:
+            logger.warning("'/add-to-cart' received non-JSON request.")
+            return jsonify({'success': False, 'message': 'Yêu cầu không hợp lệ (Invalid Request)'}), 400
 
-    logger.info(f"Add to cart request: ProductID={product_id}, Quantity={quantity}, User={current_user.id}")
+        data = request.get_json()
+        product_id = data.get('product_id')
+        try:
+            quantity = int(data.get('quantity', 1))
+            if quantity <= 0: quantity = 1
+        except (ValueError, TypeError):
+            quantity = 1
+        notes = data.get('notes', '').strip()
 
-    if not isinstance(product_id, int):
-        logger.warning(f"Invalid product_id type received: {product_id}")
-        return jsonify({'success': False, 'message': 'ID Sản phẩm không hợp lệ.'}), 400
+        # user_log_id không cần thay đổi vì @login_required sẽ đảm bảo current_user tồn tại
+        user_log_id = current_user.id
+        logger.info(f"Add to cart request: ProductID={product_id}, Quantity={quantity}, User={user_log_id}")
 
-    # --- Logic xử lý sản phẩm và giỏ hàng giữ nguyên ---
-    product = Product.query.get(product_id) # Dùng get() để trả None nếu không tìm thấy
-    if not product:
-        logger.warning(f"Product ID {product_id} not found.")
-        return jsonify({'success': False, 'message': 'Sản phẩm không tồn tại.'}), 404
+        if not isinstance(product_id, int):
+            logger.warning(f"Invalid product_id type received: {product_id}")
+            return jsonify({'success': False, 'message': 'ID Sản phẩm không hợp lệ.'}), 400
 
-    if not product.is_available:
-        logger.warning(f"Attempted to add unavailable product ID {product_id} to cart.")
-        return jsonify({'success': False, 'message': f"'{product.name}' hiện đang tạm hết hàng."}), 400
+        product = Product.query.get(product_id)
+        if not product:
+            logger.warning(f"Product ID {product_id} not found.")
+            return jsonify({'success': False, 'message': 'Sản phẩm không tồn tại.'}), 404
 
-    cart = session.get('cart', [])
+        if not product.is_available:
+            logger.warning(f"Attempted to add unavailable product ID {product_id} to cart.")
+            return jsonify({'success': False, 'message': f"'{product.name}' hiện đang tạm hết hàng."}), 400
 
-    updated = False
-    for item in cart:
-        if item['product_id'] == product_id:
-            item['quantity'] = item.get('quantity', 0) + quantity # Cộng dồn số lượng
-            if notes: item['notes'] = notes # Cập nhật ghi chú mới nhất (hoặc nối?)
-            updated = True
-            logger.info(f"Updated quantity for product {product_id} in cart. New quantity: {item['quantity']}")
-            break
+        cart = session.get('cart', [])
+        updated = False
+        for item in cart:
+            if item.get('product_id') == product_id:
+                item['quantity'] = item.get('quantity', 0) + quantity
+                if notes: item['notes'] = notes
+                updated = True
+                logger.info(f"Updated quantity for product {product_id} in cart. New quantity: {item['quantity']}")
+                break
+        
+        if not updated:
+            cart.append({
+                'product_id': product_id,
+                'name': product.name,
+                'price': float(product.price),
+                'image_url': product.image_url or url_for('static', filename='images/default_product_thumb.png'),
+                'quantity': quantity,
+                'notes': notes
+            })
+            logger.info(f"Added new product {product_id} to cart.")
 
-    if not updated:
-        cart.append({
-            'product_id': product_id,
-            'quantity': quantity,
-            'notes': notes
-        })
-        logger.info(f"Added new product {product_id} to cart.")
+        session['cart'] = cart
+        session.modified = True
+        
+        logger.info(f"Product '{product.name}' successfully added/updated in cart for User={user_log_id}")
+        return jsonify({'success': True, 'message': f"Đã thêm '{product.name}' vào giỏ hàng!", 'cart_count': len(cart)})
 
-    session['cart'] = cart
-    session.modified = True # Quan trọng!
-
-    # --- **SỬA Ở ĐÂY: Trả về JSON thay vì Flash/Redirect** ---
-    logger.info(f"Product '{product.name}' successfully added/updated in cart for user {current_user.id}")
-    return jsonify({'success': True, 'message': f"Đã thêm '{product.name}' vào giỏ hàng!"})
-    # -------------------------------------------------------
+    except Exception as e:
+        logger.error(f"Error in add_to_cart: {e}", exc_info=True)
+        if db and hasattr(db.session, 'is_active') and db.session.is_active:
+            try: db.session.rollback()
+            except Exception as dbe: logger.error(f"Error rolling back session: {dbe}")
+        return jsonify({'success': False, 'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'}), 500
 
 
 @order_bp.route('/update-cart', methods=['POST'])
 def update_cart():
-    # --- **SỬA: Nhận JSON** ---
-    if not request.is_json:
-         return jsonify({'success': False, 'message': 'Yêu cầu không hợp lệ'}), 400
-    data = request.get_json()
-    product_id = data.get('product_id')
-    quantity = data.get('quantity')
-    # --- Kết thúc sửa ---
+    if not request.is_json: return jsonify({'success': False, 'message': 'Yêu cầu không hợp lệ'}), 400
+    data = request.get_json(); logger = current_app.logger
+    product_id = data.get('product_id'); quantity = data.get('quantity')
 
-    if not isinstance(product_id, int): return jsonify({'success': False, 'message': 'ID Sản phẩm không hợp lệ'}), 400
+    if not isinstance(product_id, int) and (isinstance(product_id, str) and not product_id.isdigit()):
+        logger.warning(f"Update cart: Invalid product_id type or value '{product_id}'")
+        return jsonify({'success': False, 'message': 'ID Sản phẩm không hợp lệ.'}), 400
+    if isinstance(product_id, str): product_id = int(product_id) # Chuyển thành int nếu là chuỗi số
+
     try: quantity = int(quantity)
-    except (ValueError, TypeError): return jsonify({'success': False, 'message': 'Số lượng không hợp lệ'}), 400
-
-    if quantity < 0: return jsonify({'success': False, 'message': 'Số lượng không hợp lệ'}), 400
+    except (ValueError, TypeError): logger.warning(f"Update cart: Invalid quantity '{quantity}'"); return jsonify({'success': False, 'message': 'Số lượng không hợp lệ'}), 400
+    if quantity < 0: logger.warning(f"Update cart: Negative quantity '{quantity}'"); return jsonify({'success': False, 'message': 'Số lượng không hợp lệ'}), 400
 
     cart = session.get('cart', [])
-    item_subtotal = 0.0
-    item_found_and_updated = False
-
-    # Dùng list comprehension để cập nhật/xóa hiệu quả hơn
-    new_cart = []
+    item_subtotal = 0.0; item_updated = False; new_cart = []
+    
     for item in cart:
-        if item['product_id'] == product_id:
-            if quantity > 0: # Update quantity
+        if item.get('product_id') == product_id:
+            if quantity > 0:
                  item['quantity'] = quantity
-                 product = Product.query.get(product_id)
-                 if product: item_subtotal = product.price * quantity
-                 new_cart.append(item) # Giữ lại item đã update
-                 item_found_and_updated = True
-            # else: quantity == 0 -> Xóa item (không cần làm gì, chỉ cần không append vào new_cart)
-            else:
-                 item_found_and_updated = True # Đánh dấu là đã xử lý (xóa)
-        else:
-            new_cart.append(item) # Giữ lại các item khác
+                 current_price = float(item.get('price', 0)) # Lấy giá đã lưu trong item
+                 item_subtotal = current_price * quantity
+                 # Không cần cập nhật 'subtotal' vào item session, vì calculate_cart_totals sẽ tính lại
+                 new_cart.append(item); item_updated = True
+            else: item_updated = True # Item bị xóa (quantity = 0)
+        else: new_cart.append(item)
 
-    # Nếu không tìm thấy item để update và quantity > 0 -> đây là lỗi?
-    if not item_found_and_updated and quantity > 0:
-         # Nên báo lỗi hay thêm mới? Tùy logic mong muốn. Hiện tại báo lỗi.
-         return jsonify({'success': False, 'message': 'Sản phẩm không tìm thấy trong giỏ để cập nhật.'}), 404
+    if not item_updated and quantity > 0:
+        logger.warning(f"Update cart: Product ID {product_id} not found in cart to update.")
+        return jsonify({'success': False, 'message': 'Sản phẩm không có trong giỏ.'}), 404
 
+    session['cart'] = new_cart; session.modified = True
+    
+    totals = calculate_cart_totals_for_session_display() # Sử dụng hàm mới này
+    resp_data = { 'success': True, 'item_subtotal': f"{item_subtotal:.2f}" if quantity > 0 else "0.00", 'message': "Cập nhật giỏ hàng thành công."}
+    resp_data.update(totals) # Gộp dicts
+    if quantity == 0 : resp_data['item_removed'] = True; resp_data['message']="Đã xóa sản phẩm."
+    
+    return jsonify(resp_data)
 
-    session['cart'] = new_cart
-    session.modified = True
+def calculate_cart_totals_for_session_display():
+    """
+    Tính toán tổng giỏ hàng dựa trên dữ liệu đã có trong session.
+    Hàm này sẽ đọc 'applied_promotion' từ session và tính toán discount.
+    Cũng sẽ đọc 'current_order_type_for_total_calc' từ session để tính phí ship nếu có.
+    """
+    cart_session_list = session.get('cart', [])
+    logger = current_app.logger
+    cart_subtotal_float = 0.0
+        
+    for item in cart_session_list:
+        price_item = float(item.get('price', 0)) # Giá đã được lưu dạng float khi thêm vào giỏ
+        try:
+            cart_subtotal_float += price_item * int(item.get('quantity', 1))
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid item data in cart session: {item}, error: {e}")
 
-    # Tính toán lại tổng giỏ hàng SAU KHI cập nhật session
-    cart_subtotal_calc, cart_tax_calc, cart_total_calc = calculate_cart_totals(new_cart)
+    promo_in_session = session.get('applied_promotion')
+    discount_amount_float = 0.0
+    if promo_in_session:
+        code_in_session = promo_in_session.get('code')
+        if code_in_session:
+            now = datetime.utcnow()
+            valid_promo = Promotion.query.filter(
+                func.upper(Promotion.code) == func.upper(code_in_session), # Case-insensitive search
+                Promotion.is_active == True, Promotion.start_date <= now, Promotion.end_date >= now
+            ).first()
+            if valid_promo:
+                if valid_promo.discount_percent:
+                    discount_amount_float = cart_subtotal_float * (valid_promo.discount_percent / 100.0)
+                elif valid_promo.discount_amount:
+                    discount_amount_float = min(float(valid_promo.discount_amount), cart_subtotal_float)
+                session['applied_promotion']['calculated_discount'] = round(discount_amount_float, 2)
+                session.modified = True
+                logger.debug(f"calculate_cart_totals: Recalculated discount for '{code_in_session}': {discount_amount_float}")
+            else: # Mã trong session không còn hợp lệ
+                logger.warning(f"calculate_cart_totals: Promo code '{code_in_session}' from session is no longer valid. Removing it.")
+                session.pop('applied_promotion', None)
+                session.modified = True
+    
+    subtotal_after_discount_float = cart_subtotal_float - discount_amount_float
+    if subtotal_after_discount_float < 0: subtotal_after_discount_float = 0.0
 
-    response_data = {
-        'success': True,
-        'item_subtotal': "{:.2f}".format(item_subtotal) if quantity > 0 else "0.00",
-        'cart_subtotal': "{:.2f}".format(cart_subtotal_calc),
-        'cart_tax': "{:.2f}".format(cart_tax_calc),
-        'cart_total': "{:.2f}".format(cart_total_calc),
-        'cart_count': len(session['cart'])
+    tax_rate_from_config = current_app.config.get('TAX_RATE', 0.1) # Mặc định 10%
+    cart_tax_float = subtotal_after_discount_float * tax_rate_from_config
+    
+    shipping_fee_float = 0.0
+    # Sử dụng 'current_order_type_for_total_calc' từ session mà JS đã set
+    if session.get('current_order_type_for_total_calc') == 'delivery':
+         shipping_fee_float = float(current_app.config.get('DEFAULT_SHIPPING_FEE', 20000.0))
+
+    cart_total_float = subtotal_after_discount_float + cart_tax_float + shipping_fee_float
+    
+    logger.debug(f"Calculated totals for display: Sub={cart_subtotal_float}, Disc={discount_amount_float}, SubAfterDisc={subtotal_after_discount_float}, Tax={cart_tax_float}, Ship={shipping_fee_float}, Total={cart_total_float}")
+
+    return {
+        "cart_subtotal": f"{cart_subtotal_float:.2f}", 
+        "discount_amount": f"{discount_amount_float:.2f}",
+        # "subtotal_after_discount": f"{subtotal_after_discount_float:.2f}", # Thường không cần hiển thị trực tiếp
+        "cart_tax": f"{cart_tax_float:.2f}", 
+        "shipping_fee": f"{shipping_fee_float:.2f}", # Thêm phí ship vào response
+        "cart_total": f"{cart_total_float:.2f}",
+        "cart_count": len(cart_session_list)
     }
-    if quantity == 0:
-         response_data['item_removed'] = True
-         response_data['message'] = "Đã xóa sản phẩm khỏi giỏ."
-    else:
-         response_data['message'] = "Đã cập nhật giỏ hàng."
 
-    return jsonify(response_data)
 
 # Hàm helper để tính tổng giỏ hàng (tránh lặp code)
 def calculate_cart_totals(cart_list):
@@ -196,44 +269,31 @@ def calculate_cart_totals(cart_list):
 
 
 @order_bp.route('/remove-from-cart/<int:product_id>', methods=['POST'])
-@login_required # Giữ lại nếu cần đăng nhập để xóa
 def remove_from_cart(product_id):
     cart = session.get('cart', [])
     original_length = len(cart)
     new_cart = [item for item in cart if item.get('product_id') != product_id]
-
     if len(new_cart) < original_length:
         session['cart'] = new_cart
         session.modified = True
-        subtotal, tax, total = calculate_cart_totals(new_cart)
-        # *** LUÔN TRẢ VỀ JSON THÀNH CÔNG ***
-        return jsonify({
-            'success': True,
-            'message': 'Đã xóa sản phẩm.',
-            'cart_count': len(new_cart),
-            'cart_subtotal': "{:.2f}".format(subtotal),
-            'cart_tax': "{:.2f}".format(tax),
-            'cart_total': "{:.2f}".format(total)
-        })
+        totals = calculate_cart_totals_for_session_display()
+        return jsonify({**{'success': True, 'message': 'Đã xóa sản phẩm.'}, **totals})
     else:
-        # Sản phẩm không có trong giỏ để xóa
-        subtotal, tax, total = calculate_cart_totals(new_cart)
-        # *** LUÔN TRẢ VỀ JSON LỖI ***
-        return jsonify({
-            'success': False,
-            'message': 'Sản phẩm không có trong giỏ.',
-            'cart_count': len(new_cart),
-            'cart_subtotal': "{:.2f}".format(subtotal),
-            'cart_tax': "{:.2f}".format(tax),
-            'cart_total': "{:.2f}".format(total)
-            }), 404 # Trả về status code 404 Not Found hợp lý
+        totals = calculate_cart_totals_for_session_display() 
+        return jsonify({**{'success': False, 'message': 'Sản phẩm không có trong giỏ.'}, **totals}), 404
+
 
 @order_bp.route('/clear-cart', methods=['POST'])
 def clear_cart():
     session.pop('cart', None)
-    # Trả về JSON nếu là AJAX
+    session.pop('applied_promotion', None)
+    session.modified = True
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-         return jsonify({'success': True, 'message': 'Giỏ hàng đã được xóa.', 'cart_count': 0})
+         return jsonify({
+             'success': True, 'message': 'Giỏ hàng đã được xóa.', 
+             'cart_count': 0, 'cart_subtotal': "0.00", 'discount_amount': "0.00",
+             'cart_tax': "0.00", 'shipping_fee': "0.00", 'cart_total': "0.00"
+             })
     else:
         flash('Đã xóa toàn bộ giỏ hàng.', 'success')
         return redirect(url_for('order.cart'))
@@ -242,76 +302,108 @@ def clear_cart():
 @order_bp.route('/checkout', methods=['GET', 'POST'])
 @login_required
 def checkout():
-    # ... (toàn bộ code của hàm checkout giữ nguyên như bạn đã cung cấp ở lần trước)
-    # Chỗ sử dụng format_currency trong render_template bây giờ sẽ hợp lệ
-    # Ví dụ ở phần xử lý lỗi và render lại form:
-    # return render_template('checkout.html',
-    #                        cart_items=products_in_cart_display,
-    #                        total=total_base_amount,
-    #                        promo_applied=promo_applied_data,
-    #                        form_data=form_data_on_error,
-    #                        format_price=format_currency, # <<< OKAY
-    #                        error_message="Lỗi hệ thống, vui lòng thử lại.")
-
-    # Và ở phần render cho GET request
-    # return render_template('checkout.html',
-    #                        cart_items=products_in_cart_display,
-    #                        total=total_base_amount,
-    #                        promo_applied=promo_applied_data,
-    #                        format_price=format_currency) # <<< OKAY
-
-    # === Bắt đầu logic hàm checkout ===
     logger = current_app.logger
     cart_list = session.get('cart', [])
     if not cart_list:
         flash('Giỏ hàng trống, không thể thanh toán.', 'warning')
         return redirect(url_for('main.menu'))
 
+    # === Lấy giá trị config để truyền vào template ===
+    tax_rate_config = current_app.config.get('TAX_RATE', 0.1)
+    default_shipping_fee_config = float(current_app.config.get('DEFAULT_SHIPPING_FEE', 20000.0)) # Đảm bảo là float
+    shop_hotline_config = current_app.config.get('SHOP_HOTLINE', '1900-DRAGON')
+    shop_feedback_email_config = current_app.config.get('SHOP_FEEDBACK_EMAIL', 'feedback@dragoncoffee.com')
+    # === Kết thúc lấy config ===
+
     products_in_cart_display = []
     valid_cart_items_for_order = []
-    total_base_amount = 0.0
-    product_ids = [item.get('product_id') for item in cart_list if item.get('product_id')]
+    total_base_amount_float = 0.0
 
+    product_ids = [item.get('product_id') for item in cart_list if item.get('product_id')]
     if product_ids:
+        # Lấy thông tin product mới nhất từ DB
         products_map = {p.id: p for p in Product.query.filter(Product.id.in_(product_ids)).all()}
-        for item_data in cart_list:
-            product_id = item_data.get('product_id')
-            if not isinstance(product_id, int): continue
-            product = products_map.get(product_id)
-            if product and product.is_available:
+        updated_session_cart = []
+        for item_data_from_session in cart_list:
+            product_id_from_session = item_data_from_session.get('product_id')
+            if not isinstance(product_id_from_session, int): continue
+            
+            product_from_db = products_map.get(product_id_from_session)
+            if product_from_db and product_from_db.is_available:
                 try:
-                     qty = int(item_data.get('quantity', 1))
+                     qty = int(item_data_from_session.get('quantity', 1))
                      if qty <= 0: continue
-                     sub = float(product.price) * qty
-                     total_base_amount += sub
-                     display_details = {
-                        'id': product.id, 'name': product.name, 'price': float(product.price),
-                        'quantity': qty, 'subtotal': sub,
-                        'image_url': product.image_url, 'notes': item_data.get('notes', '')
+                     
+                     # QUAN TRỌNG: Luôn dùng giá từ DB cho đơn hàng
+                     current_product_price_float = float(product_from_db.price)
+                     sub_float = current_product_price_float * qty
+                     total_base_amount_float += sub_float
+                     
+                     # Item để hiển thị và lưu vào OrderDetail
+                     item_info_for_order = {
+                        'product_id': product_from_db.id, 'name': product_from_db.name, 
+                        'price': current_product_price_float, # Giá đơn vị thực tế từ DB
+                        'quantity': qty, 'subtotal': sub_float,
+                        'image_url': product_from_db.image_url, 'notes': item_data_from_session.get('notes', '')
                      }
-                     products_in_cart_display.append(display_details)
-                     valid_cart_items_for_order.append({
-                        'product_id': product.id, 'quantity': qty,
-                        'unit_price': float(product.price), 'subtotal': sub,
-                        'notes': item_data.get('notes', '')
+                     products_in_cart_display.append(item_info_for_order)
+                     valid_cart_items_for_order.append({**item_info_for_order, 'unit_price': current_product_price_float})
+                     
+                     # Item để cập nhật lại session (giá từ DB, các thông tin khác giữ nguyên từ session nếu có)
+                     updated_session_cart.append({
+                        'product_id': product_from_db.id, 'quantity': qty, 
+                        'notes': item_data_from_session.get('notes',''),
+                        'name': product_from_db.name, 
+                        'price': current_product_price_float, # Cập nhật giá từ DB vào session
+                        'image_url': product_from_db.image_url or url_for('static', filename='images/default_product_thumb.png')
                      })
-                except (ValueError, TypeError):
-                     logger.warning(f"Invalid quantity or price for product ID {product_id} in cart.")
+                except (ValueError, TypeError) as e:
+                     logger.warning(f"Invalid quantity or price for product ID {product_id_from_session} in cart during checkout prep: {e}")
                      continue
-            else:
-                logger.warning(f"Checkout: Skipping invalid/unavailable product ID {product_id} from cart.")
+            else: # Sản phẩm không tồn tại hoặc không available nữa
+                logger.warning(f"Checkout: Product ID {product_id_from_session} from cart session is invalid/unavailable. Removing from current checkout process.")
+        
+        # Cập nhật lại session nếu có thay đổi giá hoặc sản phẩm bị loại bỏ
+        if len(updated_session_cart) != len(cart_list) or \
+           any(sc_item['price'] != dict((i['product_id'],i['price']) for i in cart_list).get(sc_item['product_id']) for sc_item in updated_session_cart):
+            session['cart'] = updated_session_cart
+            session.modified = True
+            if len(updated_session_cart) < len(cart_list):
+                 flash("Một vài sản phẩm trong giỏ không còn hợp lệ và đã được tự động cập nhật/xóa.", "info")
+            elif any(sc_item['price'] != dict((i['product_id'],i['price']) for i in cart_list).get(sc_item['product_id']) for sc_item in updated_session_cart):
+                 flash("Giá của một số sản phẩm trong giỏ đã được cập nhật theo giá hiện tại.", "info")
+
 
     if not valid_cart_items_for_order:
-        flash('Các sản phẩm trong giỏ không hợp lệ hoặc đã hết hàng.', 'danger')
-        session.pop('cart', None)
+        flash('Các sản phẩm trong giỏ không hợp lệ hoặc đã hết hàng. Vui lòng chọn lại.', 'danger')
+        session.pop('cart', None); session.pop('applied_promotion', None); session.modified = True
         return redirect(url_for('main.menu'))
 
     form_data_on_error = None
+    available_promotions = []
+    now_utc = datetime.utcnow()
+    try:
+        available_promotions = Promotion.query.filter(
+            Promotion.is_active == True, Promotion.start_date <= now_utc, Promotion.end_date >= now_utc
+        ).order_by(Promotion.name).all()
+    except Exception as e:
+        logger.error(f"Error fetching promotions: {e}", exc_info=True)
+
+    render_context_base = {
+        'cart_items': products_in_cart_display,
+        'total': total_base_amount_float, # Tổng tiền hàng gốc (chưa KM, chưa thuế, chưa ship)
+        'available_promotions': available_promotions,
+        'format_price': format_currency,
+        'CONFIG_TAX_RATE': tax_rate_config,
+        'CONFIG_DEFAULT_SHIPPING_FEE': default_shipping_fee_config,
+        'CONFIG_SHOP_HOTLINE': shop_hotline_config,
+        'CONFIG_SHOP_FEEDBACK_EMAIL': shop_feedback_email_config
+    }
 
     if request.method == 'POST':
         form_data_on_error = request.form.to_dict()
         logger.info("Processing checkout POST request...")
-
+        # ... (logic validation form như cũ) ...
         order_type = request.form.get('order_type', 'takeaway')
         payment_method = request.form.get('payment_method', 'cash')
         notes = request.form.get('notes', '').strip()
@@ -319,475 +411,354 @@ def checkout():
         contact_phone = request.form.get('phone', '').strip()
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
-
         errors = {}
         if not name: errors['name'] = 'Vui lòng nhập tên.'
         if not email: errors['email'] = 'Vui lòng nhập địa chỉ email.'
         if order_type == 'delivery' and not address: errors['address'] = 'Vui lòng nhập địa chỉ giao hàng.'
         if not contact_phone: errors['phone'] = 'Vui lòng nhập số điện thoại liên hệ.'
+        
+        # Recalculate totals before saving order, always trust server-side calculation
+        # total_base_amount_float is already the sum of latest prices * quantities from cart
 
-        if errors:
-            for field, msg in errors.items(): flash(msg, 'danger')
-            promo_applied_data = session.get('applied_promotion')
-            if promo_applied_data:
-                 current_discount = promo_applied_data.get('calculated_discount', 0)
-                 subtotal_after_discount = total_base_amount - current_discount
-                 current_tax = subtotal_after_discount * 0.1
-                 is_delivery_on_error = request.form.get('order_type') == 'delivery'
-                 shipping_fee_on_error = 20000 if is_delivery_on_error else 0
-                 current_total = subtotal_after_discount + current_tax + shipping_fee_on_error
-                 promo_applied_data['current_total'] = round(current_total,2)
-                 promo_applied_data['current_tax'] = round(current_tax,2)
-            return render_template('checkout.html',
-                                   cart_items=products_in_cart_display,
-                                   total=total_base_amount,
-                                   promo_applied=promo_applied_data,
-                                   form_data=form_data_on_error,
-                                   format_price=format_currency)
-
-        applied_promo_details = None
-        calculated_discount = 0.0
+        calculated_discount_float = 0.0
         promotion_id_to_save = None
         promotion_code_to_save = None
-
-        if 'applied_promotion' in session:
-            promo_in_session = session['applied_promotion']
+        
+        promo_in_session = session.get('applied_promotion')
+        if promo_in_session:
             code_in_session = promo_in_session.get('code')
             if code_in_session:
-                now = datetime.utcnow()
                 valid_promo = Promotion.query.filter(
-                    func.upper(Promotion.code) == code_in_session,
-                    Promotion.is_active == True,
-                    Promotion.start_date <= now,
-                    Promotion.end_date >= now
+                    func.upper(Promotion.code) == func.upper(code_in_session),
+                    Promotion.is_active == True, Promotion.start_date <= now_utc, Promotion.end_date >= now_utc
                 ).first()
                 if valid_promo:
-                    calculated_discount = promo_in_session.get('calculated_discount', 0)
+                    if valid_promo.discount_percent:
+                        calculated_discount_float = total_base_amount_float * (valid_promo.discount_percent / 100.0)
+                    elif valid_promo.discount_amount:
+                        calculated_discount_float = min(float(valid_promo.discount_amount), total_base_amount_float)
+                    
+                    calculated_discount_float = round(calculated_discount_float, 2)
                     promotion_id_to_save = valid_promo.id
                     promotion_code_to_save = valid_promo.code
-                    logger.info(f"Checkout: Applying valid promo code '{code_in_session}'.")
-                else:
-                    logger.warning(f"Checkout: Promo code '{code_in_session}' from session was invalid/expired. Removing.")
-                    session.pop('applied_promotion', None)
-                    session.modified = True
-                    flash('Mã giảm giá bạn áp dụng đã hết hạn hoặc không còn hợp lệ. Đơn hàng được tính theo giá gốc.', 'warning')
+                    logger.info(f"Checkout POST: Promo '{code_in_session}' still valid. Discount: {calculated_discount_float}")
+                else: # Mã trong session không còn hợp lệ
+                    logger.warning(f"Checkout POST: Promo code '{code_in_session}' from session no longer valid. Discarding.")
+                    session.pop('applied_promotion', None); session.modified = True
+        
+        if errors:
+            for field, msg in errors.items(): flash(msg, 'danger')
+            render_context_error = {**render_context_base, 'promo_applied': promo_in_session, 'form_data': form_data_on_error}
+            return render_template('checkout.html', **render_context_error)
 
 
-        tax_rate = 0.10
-        shipping_fee = 20000.0 if order_type == 'delivery' else 0.0 # Ensure float
-        subtotal_after_discount = total_base_amount - calculated_discount
-        tax_amount = subtotal_after_discount * tax_rate
-        final_amount_calculated = subtotal_after_discount + tax_amount + shipping_fee
-        logger.info(f"Checkout totals: Base={total_base_amount}, Discount={calculated_discount}, SubtotalAfter={subtotal_after_discount}, Tax={tax_amount}, Ship={shipping_fee}, Final={final_amount_calculated}")
+        subtotal_after_discount_float = total_base_amount_float - calculated_discount_float
+        if subtotal_after_discount_float < 0 : subtotal_after_discount_float = 0.0
+        
+        tax_amount_float = subtotal_after_discount_float * tax_rate_config
+        shipping_fee_float = default_shipping_fee_config if order_type == 'delivery' else 0.0
+        final_amount_calculated_float = subtotal_after_discount_float + tax_amount_float + shipping_fee_float
 
+        logger.info(f"Checkout Final Save Calculation: Base={total_base_amount_float}, Disc={calculated_discount_float}, SubAfterDisc={subtotal_after_discount_float}, Tax={tax_amount_float}, Ship={shipping_fee_float}, Final={final_amount_calculated_float}")
 
         try:
-            with db.session.begin_nested():
-                new_order = Order(
-                    user_id=current_user.id,
-                    order_number=generate_order_number(),
-                    status='pending',
-                    total_amount=round(total_base_amount, 2),
-                    final_amount=round(final_amount_calculated, 2),
-                    order_type=order_type,
-                    payment_method=payment_method,
-                    payment_status='pending',
-                    notes=notes if notes else None,
-                    address=address,
-                    contact_phone=contact_phone,
-                    promotion_id=promotion_id_to_save,
-                    promotion_code_used=promotion_code_to_save,
-                    discount_applied=round(calculated_discount, 2) if calculated_discount > 0 else None,
-                    # Assign explicit float value to shipping_fee and tax_amount if they are in the model
-                    # shipping_fee = shipping_fee,
-                    # tax_amount = round(tax_amount, 2)
-                )
-                db.session.add(new_order)
-                db.session.flush()
-
-
-                for item_detail_data in valid_cart_items_for_order:
-                    detail = OrderDetail(
-                         order_id=new_order.id,
-                         product_id=item_detail_data['product_id'],
-                         quantity=item_detail_data['quantity'],
-                         unit_price=item_detail_data['unit_price'],
-                         subtotal=item_detail_data['subtotal'],
-                         notes=item_detail_data['notes'] if item_detail_data['notes'] else None
-                    )
-                    db.session.add(detail)
-
-                    try:
-                        inventory_item = db.session.query(InventoryItem)\
-                                                  .filter_by(product_id=item_detail_data['product_id'])\
-                                                  .with_for_update().first()
-                        if inventory_item:
-                            if inventory_item.quantity >= item_detail_data['quantity']:
-                                inventory_item.quantity -= item_detail_data['quantity']
-                                inventory_item.last_updated = datetime.utcnow()
-                            else:
-                                logger.error(f"CRITICAL STOCK INCONSISTENCY during checkout commit for product {item_detail_data['product_id']} in order {new_order.id}. Required: {item_detail_data['quantity']}, Available: {inventory_item.quantity}")
-                                raise Exception(f"Không đủ hàng tồn kho cho sản phẩm ID {item_detail_data['product_id']} khi xác nhận đơn hàng.")
-                        else:
-                             logger.warning(f"No InventoryItem found for product {item_detail_data['product_id']} during checkout stock decrement.")
-                    except Exception as stock_err:
-                        logger.error(f"Stock decrement failed during checkout transaction: {stock_err}", exc_info=True)
-                        raise stock_err
-
+            # db.session.begin_nested() không cần thiết nếu không có try...except bên trong,
+            # Flask-SQLAlchemy tự quản lý transaction cho mỗi request.
+            # Nếu có lỗi, db.session.rollback() ở cuối là đủ.
+            
+            new_order = Order(
+                user_id=current_user.id, order_number=generate_order_number(), status='pending',
+                total_amount=round(total_base_amount_float,2), 
+                final_amount=round(final_amount_calculated_float,2),
+                order_type=order_type, payment_method=payment_method, payment_status='pending',
+                notes=notes or None, address=address, contact_phone=contact_phone,
+                promotion_id=promotion_id_to_save, promotion_code_used=promotion_code_to_save,
+                discount_applied=calculated_discount_float if calculated_discount_float > 0 else None,
+                shipping_fee=round(shipping_fee_float,2) if shipping_fee_float > 0 else None,
+                tax_amount=round(tax_amount_float,2) if tax_amount_float > 0 else None
+            )
+            db.session.add(new_order); db.session.flush()
+            
+            for item_data in valid_cart_items_for_order: # Dùng valid_cart_items_for_order chứa giá đúng
+                detail = OrderDetail(order_id=new_order.id, product_id=item_data['product_id'],
+                                     quantity=item_data['quantity'], unit_price=item_data['unit_price'], # unit_price từ valid_cart_items...
+                                     subtotal=item_data['subtotal'], notes=item_data['notes'] or None)
+                db.session.add(detail)
+                inv_item = db.session.query(InventoryItem).filter_by(product_id=item_data['product_id']).with_for_update().first()
+                if inv_item:
+                    if inv_item.quantity >= item_data['quantity']: 
+                        inv_item.quantity -= item_data['quantity']; inv_item.last_updated = datetime.utcnow()
+                    else: 
+                        # Lỗi này KHÔNG nên xảy ra nếu đã check is_available và tồn kho khi add to cart
+                        # và check lại khi chuẩn bị valid_cart_items_for_order
+                        logger.error(f"CRITICAL STOCK INCONSISTENCY at order commit. Product ID {item_data['product_id']}, Order {new_order.order_number}. Req: {item_data['quantity']}, Avail: {inv_item.quantity}")
+                        raise Exception(f"Hết hàng đột ngột cho '{item_data['name']}'.") # Ném lỗi để rollback
+                else: logger.warning(f"No InventoryItem found for product {item_data['product_id']} at stock decrement for order {new_order.order_number}.")
+            
             db.session.commit()
-            logger.info(f"Order {new_order.order_number} (Promo: {promotion_code_to_save}, Discount: {calculated_discount}) created successfully for user {current_user.id}.")
-            session.pop('cart', None)
-            session.pop('applied_promotion', None)
-            flash('Đặt hàng thành công!', 'success')
+            logger.info(f"Order {new_order.order_number} (UID: {current_user.id}) CREATED. Promo: {promotion_code_to_save}, Disc: {calculated_discount_float}")
+            session.pop('cart', None); session.pop('applied_promotion', None); session.pop('current_order_type_for_total_calc',None); session.modified = True
+            flash('Đặt hàng thành công!', 'success'); 
+            # send_order_status_email(new_order) # Có thể gửi email ở đây
             return redirect(url_for('order.order_confirmation', order_id=new_order.id))
-
+            
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Checkout failed: {e}", exc_info=True)
-            flash(f'Lỗi khi xử lý đơn hàng: {str(e)}. Vui lòng thử lại.', 'danger')
-            promo_applied_data = session.get('applied_promotion')
-            if promo_applied_data:
-                current_discount = promo_applied_data.get('calculated_discount', 0)
-                subtotal_after_discount = total_base_amount - current_discount
-                current_tax = subtotal_after_discount * 0.1
-                is_delivery_on_error = request.form.get('order_type') == 'delivery'
-                shipping_fee_on_error = 20000.0 if is_delivery_on_error else 0.0
-                current_total = subtotal_after_discount + current_tax + shipping_fee_on_error
-                promo_applied_data['current_total'] = round(current_total,2)
-                promo_applied_data['current_tax'] = round(current_tax,2)
-            return render_template('checkout.html',
-                                   cart_items=products_in_cart_display,
-                                   total=total_base_amount,
-                                   promo_applied=promo_applied_data,
-                                   form_data=form_data_on_error,
-                                   format_price=format_currency,
-                                   error_message="Lỗi hệ thống, vui lòng thử lại.")
+            logger.error(f"Checkout final commit failed for user {current_user.id}: {e}", exc_info=True)
+            flash(f'Lỗi nghiêm trọng khi xử lý đơn hàng: {str(e)}. Vui lòng thử lại sau.', 'danger')
+            render_context_exception = {**render_context_base, 'promo_applied': session.get('applied_promotion'), 'form_data': form_data_on_error}
+            return render_template('checkout.html', **render_context_exception)
 
-    # GET Request Handling
-    logger.info("Displaying checkout page.")
-    promo_applied_data = session.get('applied_promotion')
-    current_tax = total_base_amount * 0.1
-    current_discount = 0.0
-    current_shipping = 0.0
+    # GET Request Logic
+    logger.info(f"User {current_user.id} accessing checkout page (GET).")
+    
+    # Xử lý promo_applied cho GET request (phải tính lại discount dựa trên total_base_amount_float)
+    promo_applied_for_get = None
+    if session.get('applied_promotion'):
+        code_in_session_get = session['applied_promotion'].get('code')
+        valid_promo_get = Promotion.query.filter(func.upper(Promotion.code)==func.upper(code_in_session_get),Promotion.is_active==True,Promotion.start_date<=now_utc,Promotion.end_date>=now_utc).first()
+        if valid_promo_get:
+            promo_applied_for_get = {'id':valid_promo_get.id, 'code':valid_promo_get.code, 'name': valid_promo_get.name, 'calculated_discount': 0}
+            discount_for_get = 0.0
+            if valid_promo_get.discount_percent: discount_for_get = total_base_amount_float * (valid_promo_get.discount_percent / 100.0)
+            elif valid_promo_get.discount_amount: discount_for_get = min(float(valid_promo_get.discount_amount), total_base_amount_float)
+            promo_applied_for_get['calculated_discount'] = round(discount_for_get,2)
+            session['applied_promotion'] = promo_applied_for_get # Cập nhật lại session với discount đúng
+            session.modified = True
+        else: # Mã không còn hợp lệ
+            session.pop('applied_promotion', None); session.modified = True
 
-    if promo_applied_data:
-         current_discount = promo_applied_data.get('calculated_discount', 0)
-         subtotal_after_discount = total_base_amount - current_discount
-         current_tax = subtotal_after_discount * 0.1
+    # Lưu trữ order_type đã chọn từ trước vào session storage để JS đọc khi tải lại trang
+    session['current_order_type_for_total_calc'] = request.form.get('order_type', session.get('current_order_type_for_total_calc', 'takeaway'))
+    
+    render_context_get = {**render_context_base, 'promo_applied': session.get('applied_promotion')} # Lấy lại từ session sau khi có thể đã update
+    return render_template('checkout.html', **render_context_get)
 
-    default_order_type = 'takeaway'
-    if request.args.get('order_type') == 'delivery' or (form_data_on_error and form_data_on_error.get('order_type') == 'delivery'):
-         current_shipping = 20000.0
-
-    current_total = total_base_amount - current_discount + current_tax + current_shipping
-    if promo_applied_data:
-        promo_applied_data['current_total'] = round(current_total, 2)
-        promo_applied_data['current_tax'] = round(current_tax, 2)
-
-    return render_template('checkout.html',
-                           cart_items=products_in_cart_display,
-                           total=total_base_amount,
-                           promo_applied=promo_applied_data,
-                           format_price=format_currency)
 
 
 # Route này nên được tạo để chuyển hướng sau khi checkout thành công
 @order_bp.route('/confirmation/<int:order_id>')
 @login_required
 def order_confirmation(order_id):
-     logger = current_app.logger if current_app else logging.getLogger(__name__)
-     order = db.session.get(Order, order_id)
+    logger = current_app.logger
+    order = db.session.get(Order, order_id) 
+    if not order: logger.warning(f"Confirmation: Order ID {order_id} not found."); flash('Không tìm thấy đơn hàng.', 'danger'); return redirect(url_for('order.my_orders'))
+    is_admin_or_staff = (hasattr(current_user, 'is_admin') and current_user.is_admin) or (hasattr(current_user, 'is_staff') and current_user.is_staff)
+    if order.user_id != current_user.id and not is_admin_or_staff:
+        logger.warning(f"Confirmation: User {current_user.id} unauthorized for order {order_id}."); flash('Bạn không có quyền xem xác nhận đơn hàng này.', 'danger'); return redirect(url_for('order.my_orders'))
+    
+    order_details_list = OrderDetail.query.options(joinedload(OrderDetail.ordered_product)).filter(OrderDetail.order_id == order_id).all()
+    products_for_display = []
+    for detail in order_details_list:
+        if detail.ordered_product:
+            subtotal = float(detail.unit_price or 0) * int(detail.quantity or 0)
+            products_for_display.append({'name': detail.ordered_product.name,'quantity': detail.quantity,'price': detail.unit_price,'subtotal': subtotal,'notes': detail.notes})
+        else: logger.warning(f"Confirmation Order {order_id}: Product ID {detail.product_id} on detail {detail.id} missing.")
+            
+    return render_template('order_confirmation.html', order=order, products=products_for_display, format_price=format_currency)
 
-     if not order:
-         logger.warning(f"Order confirmation requested for non-existent order ID: {order_id}")
-         flash('Không tìm thấy đơn hàng.', 'danger')
-         return redirect(url_for('order.my_orders'))
-
-     # Check if the order belongs to the current user (or if user is admin/staff)
-     if order.user_id != current_user.id and not (current_user.is_admin or current_user.is_staff):
-          logger.warning(f"Unauthorized access attempt for order confirmation ID {order_id} by user {current_user.id}")
-          flash('Bạn không có quyền xem xác nhận đơn hàng này.', 'danger')
-          return redirect(url_for('order.my_orders'))
-
-     try:
-        # Eager load details and product info in one go
-        order_details_with_product = db.session.query(OrderDetail).options(
-            joinedload(OrderDetail.ordered_product)
-        ).filter(OrderDetail.order_id == order_id).all()
-
-        # Prepare display list
-        products_for_display = []
-        calculated_subtotal = 0.0
-        for detail in order_details_with_product:
-             if detail.ordered_product: # Check if product exists
-                 subtotal = detail.unit_price * detail.quantity if detail.unit_price is not None and detail.quantity is not None else 0.0
-                 calculated_subtotal += subtotal
-                 products_for_display.append({
-                    'name': detail.ordered_product.name,
-                    'quantity': detail.quantity,
-                    'price': detail.unit_price,
-                    'subtotal': subtotal,
-                    'notes': detail.notes
-                })
-             else: logger.warning(f"Order Confirmation {order_id}: Product ID {detail.product_id} associated with detail ID {detail.id} no longer exists.")
-
-        # Tính toán lại giá trị để hiển thị trên confirmation
-        tax_amount = (order.final_amount if order.final_amount is not None else order.total_amount) - \
-                      (order.total_amount if order.total_amount is not None else 0.0) + \
-                      (order.discount_applied if order.discount_applied is not None else 0.0) - \
-                      (order.shipping_fee if hasattr(order,'shipping_fee') and order.shipping_fee is not None else 0.0)
-
-
-        return render_template('order_confirmation.html',
-                           order=order,
-                           products=products_for_display,
-                           # Tính lại total tiền hàng gốc từ OrderDetails (an toàn hơn)
-                           total=calculated_subtotal,
-                           # Pass các giá trị đã tính/lưu trong order
-                           discount_amount=order.discount_applied,
-                           tax_amount=tax_amount,
-                           shipping_fee=getattr(order, 'shipping_fee', 0), # Lấy an toàn
-                           final_total=order.final_amount if order.final_amount is not None else order.total_amount,
-                           format_price=format_currency)
-     except Exception as e:
-          logger.error(f"Error fetching data for order confirmation {order_id}: {e}", exc_info=True)
-          flash('Lỗi khi hiển thị xác nhận đơn hàng.', 'danger')
-          return redirect(url_for('order.order_detail', order_id=order_id))
-
-@order_bp.route('/orders')
+@order_bp.route('/orders') # <-- Đường dẫn URL
 @login_required
-def my_orders():
-    logger = current_app.logger if current_app else logging.getLogger()
-    logger.info(f"Fetching orders for user {current_user.id}")
+def my_orders(): # <-- Tên hàm này sẽ tạo ra endpoint 'order.my_orders'
+    logger = current_app.logger
+    logger.info(f"User {current_user.id} accessing their orders page.")
+    page = request.args.get('page', 1, type=int)
+    per_page = 10 
+    
+    orders_pagination = None # Khởi tạo trước khi try
     try:
-        orders = Order.query.filter_by(user_id=current_user.id)\
-                            .order_by(Order.created_at.desc())\
-                            .all()
+        orders_pagination = Order.query.filter_by(user_id=current_user.id)\
+                                     .order_by(Order.created_at.desc())\
+                                     .paginate(page=page, per_page=per_page, error_out=False)
+        
     except Exception as e:
-         logger.error(f"Error fetching orders for user {current_user.id}: {e}", exc_info=True)
-         orders = []
-         flash("Lỗi khi tải danh sách đơn hàng.", "danger")
-    return render_template('my_orders.html', orders=orders)
+        logger.error(f"Error fetching orders for user {current_user.id}: {e}", exc_info=True)
+        # orders_pagination vẫn là None nếu lỗi
+        flash("Lỗi khi tải danh sách đơn hàng. Vui lòng thử lại.", "danger")
+
+    return render_template('my_orders.html', 
+                           orders=orders_pagination.items if orders_pagination else [], 
+                           pagination=orders_pagination, # Truyền đối tượng pagination
+                           format_price=format_currency)
 
 @order_bp.route('/orders/<int:order_id>')
 @login_required
 def order_detail(order_id):
-    logger = current_app.logger if current_app else logging.getLogger()
-    logger.info(f"Fetching detail for order {order_id}")
-    order = Order.query.get_or_404(order_id)
-    # Check permissions (cho người dùng)
-    if order.user_id != current_user.id and not (hasattr(current_user, 'is_admin') and current_user.is_admin) and not (hasattr(current_user, 'is_staff') and current_user.is_staff):
-        logger.warning(f"User {current_user.id} attempting to access unauthorized order {order_id}")
+    # ... (logic hiện tại của bạn)
+    # Đảm bảo `order_details_list` và `order` được truyền đúng
+    logger = current_app.logger
+    order = db.session.get(Order, order_id)
+    if not order:
+        logger.warning(f"Order detail: Order ID {order_id} not found.")
+        flash('Không tìm thấy đơn hàng.', 'danger')
+        return redirect(url_for('order.my_orders'))
+    is_admin_or_staff = (hasattr(current_user, 'is_admin') and current_user.is_admin) or \
+                        (hasattr(current_user, 'is_staff') and current_user.is_staff)
+    if order.user_id != current_user.id and not is_admin_or_staff:
+        logger.warning(f"Order detail: User {current_user.id} unauthorized access to order {order_id}.")
         flash('Bạn không có quyền xem đơn hàng này.', 'danger')
         return redirect(url_for('order.my_orders'))
-    try:
-        # Eager load Product cùng OrderDetail
-        order_details = OrderDetail.query.options(joinedload(OrderDetail.ordered_product)).filter_by(order_id=order_id).all()
-    except Exception as e:
-        logger.error(f"Error fetching order details for order {order_id}: {e}", exc_info=True)
-        order_details = []
-        flash("Lỗi khi tải chi tiết đơn hàng.", "danger")
+    order_details_list = OrderDetail.query.options(joinedload(OrderDetail.ordered_product))\
+                              .filter_by(order_id=order_id).all()
+    return render_template('order_detail.html', order=order, order_details=order_details_list, format_price=format_currency)
 
-    # Render template của NGƯỜI DÙNG
-    return render_template('order_detail.html', # <<< Đảm bảo render file này
-                           order=order,
-                           order_details=order_details,
-                           format_currency=format_currency # <-- Cần truyền format_currency
-                           )
-
-@order_bp.route('/api/order-status/<string:order_number>') # Đảm bảo type là string
+@order_bp.route('/api/order-status/<string:order_number>')
 def api_order_status(order_number):
-    """
-    API Endpoint để kiểm tra trạng thái đơn hàng dựa trên mã đơn hàng.
-    Trả về JSON với trạng thái và thông tin cơ bản.
-    """
-    logger = current_app.logger if current_app else logging.getLogger()
-    logger.info(f"API request for order status: {order_number}")
+    # ... (logic hiện tại của bạn) ...
+    # Không cần thay đổi
+    logger = current_app.logger
     try:
-        # Tìm đơn hàng theo order_number (không phân biệt hoa thường nếu cần)
-        # Sử dụng func.upper() để đảm bảo khớp nếu order_number trong DB là uppercase
         order = Order.query.filter(func.upper(Order.order_number) == func.upper(order_number)).first()
-
         if order:
-            logger.info(f"Order {order_number} found. Status: {order.status}")
-            # Trả về thông tin cần thiết
             return jsonify({
-                'success': True,
-                'order_number': order.order_number,
-                'status': order.status, # Trạng thái mã hóa (pending, processing,...)
-                'status_display': order.get_status_display(), # Trạng thái dạng text tiếng Việt
+                'success': True, 'order_number': order.order_number,
+                'status': order.status, 'status_display': order.get_status_display(),
                 'payment_status': order.payment_status,
                 'order_date': order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else None,
-                'total_amount': order.final_amount if order.final_amount else order.total_amount # Nên trả về final_amount
+                'total_amount': order.final_amount if order.final_amount is not None else order.total_amount
             })
         else:
-            logger.warning(f"Order {order_number} not found via API.")
-            # Không tìm thấy đơn hàng
             return jsonify({'success': False, 'message': 'Không tìm thấy đơn hàng.'}), 404
-
     except Exception as e:
         logger.error(f"Error fetching order status for {order_number}: {e}", exc_info=True)
-        # Lỗi server
         return jsonify({'success': False, 'message': 'Lỗi hệ thống khi kiểm tra đơn hàng.'}), 500
 
 @order_bp.route('/cart-count')
 def cart_count():
-    # ... (Giữ nguyên logic) ...
-    count = len(session.get('cart', []))
-    return jsonify({'count': count})
+    # Sử dụng hàm helper tính totals để lấy count (an toàn hơn là chỉ len)
+    totals = calculate_cart_totals_for_session_display()
+    return jsonify({'count': totals.get('cart_count', 0)})
 
 
 @order_bp.route('/orders/<int:order_id>/cancel', methods=['POST'])
 @login_required
 def cancel_order(order_id):
-    # ... (Giữ nguyên logic hủy đơn, nhưng nên thêm rollback và logging tốt hơn) ...
-    logger = current_app.logger if current_app else logging.getLogger()
+    # ... (logic hiện tại của bạn)
+    logger = current_app.logger
     order = Order.query.get_or_404(order_id)
-
-    if order.user_id != current_user.id and not (hasattr(current_user, 'is_admin') and current_user.is_admin): # Cho phép admin hủy
-        logger.warning(f"User {current_user.id} unauthorized cancel attempt on order {order_id}")
+    if order.user_id != current_user.id and not (hasattr(current_user, 'is_admin') and current_user.is_admin):
         flash("Bạn không có quyền hủy đơn hàng này.", "danger")
         return redirect(url_for('order.my_orders'))
-
-    allowed_statuses = ['pending', 'processing'] # Trạng thái cho phép hủy
-    if order.status not in allowed_statuses:
-        flash(f"Đơn hàng #{order.order_number} không thể hủy (trạng thái: {order.get_status_display()}).", "warning")
+    if order.status not in ['pending', 'processing']:
+        flash(f"Đơn hàng #{order.order_number} không thể hủy.", "warning")
         return redirect(url_for('order.order_detail', order_id=order_id))
-
     try:
-        order.status = 'cancelled'
-        order.updated_at = datetime.utcnow()
-        # --- Logic Hoàn trả Tồn kho (QUAN TRỌNG) ---
-        details_to_refund = OrderDetail.query.filter_by(order_id=order.id).all()
-        for detail in details_to_refund:
-             inventory_item = db.session.query(InventoryItem)\
-                                        .filter_by(product_id=detail.product_id)\
-                                        .with_for_update().first()
-             if inventory_item:
-                 inventory_item.quantity += detail.quantity
-                 logger.info(f"Restored stock for product {detail.product_id} by {detail.quantity} due to cancellation.")
-             else:
-                 logger.warning(f"Could not find inventory item for product {detail.product_id} to restore stock on cancellation.")
-        # --- Kết thúc hoàn trả tồn kho ---
-        # Logic hoàn tiền nếu cần
-        # if order.payment_status == 'completed': ...
-
+        with db.session.begin_nested(): # Đảm bảo transaction an toàn cho stock
+            order.status = 'cancelled'
+            order.updated_at = datetime.utcnow()
+            for detail in order.details:
+                if detail.product_id: 
+                    inventory_item = db.session.query(InventoryItem).filter_by(product_id=detail.product_id).with_for_update().first()
+                    if inventory_item:
+                        inventory_item.quantity += detail.quantity
+                        inventory_item.last_updated = datetime.utcnow()
+                    else: logger.warning(f"Inv item not found for product {detail.product_id} (Order {order_id} cancel).")
+            if order.payment_status == 'completed' or order.payment_status == 'paid':
+                 order.payment_status = 'refunded'
         db.session.commit()
-        flash(f"Đã hủy thành công đơn hàng #{order.order_number}.", "success")
-        logger.info(f"Order {order_id} cancelled successfully by user {current_user.id}")
-        send_order_status_email(order)
-
+        flash(f"Đã hủy đơn hàng #{order.order_number}.", "success")
+        send_order_status_email(order) 
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error cancelling order {order_id}: {e}", exc_info=True)
-        flash("Có lỗi xảy ra khi hủy đơn hàng.", "danger")
-
+        flash("Lỗi hủy đơn hàng.", "danger")
     return redirect(url_for('order.order_detail', order_id=order_id))
 
+
 @order_bp.route('/apply-promo', methods=['POST'])
-@login_required
-def apply_promo_code():
-    """API Endpoint để áp dụng mã khuyến mãi vào giỏ hàng."""
-    logger = current_app.logger
-    cart_list = session.get('cart', [])
-    data = request.get_json()
+def apply_promo_code(): # Bỏ @login_required để khách có thể thử KM, chỉ check login khi checkout
+    logger = current_app.logger; data = request.get_json(); cart_list = session.get('cart', [])
+    if not data or 'promo_code' not in data: return jsonify({'success': False, 'message': 'Thiếu mã KM.'}), 400
+    code_input = data['promo_code'].strip().upper()
+    user_log = current_user.id if current_user.is_authenticated else session.get('guest_session_id', 'Guest')
+    logger.info(f"User/Session {user_log} applying promo: {code_input}")
+    if not cart_list: return jsonify({'success': False, 'message': 'Giỏ hàng trống.'}), 400
 
-    if not data or 'promo_code' not in data:
-        return jsonify({'success': False, 'message': 'Thiếu mã khuyến mãi.'}), 400
-
-    code = data['promo_code'].strip().upper()
-    logger.info(f"User {current_user.id} attempting to apply promo code: {code}")
-
-    if not cart_list:
-        return jsonify({'success': False, 'message': 'Giỏ hàng trống.'}), 400
-
-    # === Logic kiểm tra mã hợp lệ ===
     now = datetime.utcnow()
-    promo = Promotion.query.filter(
-        func.upper(Promotion.code) == code, # Không phân biệt hoa thường
-        Promotion.is_active == True,
-        Promotion.start_date <= now,
-        Promotion.end_date >= now
-    ).first()
+    promo = Promotion.query.filter(Promotion.code == code_input, Promotion.is_active == True, 
+                                  Promotion.start_date <= now, Promotion.end_date >= now).first()
+    
+    # Luôn tính totals mới nhất, bất kể KM có hợp lệ hay không để trả về UI
+    # Gọi hàm này sau khi đã POP KM cũ (nếu có và không hợp lệ) ra khỏi session
+    if not promo: # Mã không hợp lệ hoặc hết hạn
+        if 'applied_promotion' in session: # Nếu có KM cũ đang áp dụng thì bỏ nó đi
+             old_promo_code = session.pop('applied_promotion', {}).get('code')
+             session.modified = True
+             logger.info(f"Invalid promo '{code_input}' applied, removed old promo '{old_promo_code}' from session.")
+        else:
+             logger.warning(f"Invalid promo code '{code_input}' applied.")
+        
+        totals_no_promo = calculate_cart_totals_for_session_display() # Tính lại total khi không có KM
+        return jsonify({**{'success': False, 'message': 'Mã khuyến mãi không hợp lệ hoặc đã hết hạn.'}, **totals_no_promo}), 400
 
-    if not promo:
-        logger.warning(f"Promo code '{code}' is invalid or expired.")
-        # Xóa KM khỏi session nếu có và trả về lỗi
-        session.pop('applied_promotion', None); session.modified = True
-        subtotal, tax, total_no_promo = calculate_cart_totals(cart_list)
-        return jsonify({
-            'success': False,
-            'message': 'Mã khuyến mãi không hợp lệ hoặc đã hết hạn.',
-            'new_total': total_no_promo, # Trả về giá không KM
-            'new_tax': tax # Thuế chưa giảm
-        }), 400
-
-    # === Mã hợp lệ, tính toán giảm giá ===
-    subtotal, tax_original, _ = calculate_cart_totals(cart_list) # Lấy tiền hàng gốc và thuế gốc
-    discount_amount = 0
-    if promo.discount_percent:
-        discount_amount = subtotal * (promo.discount_percent / 100.0)
-        discount_type = 'percent'
-    elif promo.discount_amount:
-        discount_amount = min(promo.discount_amount, subtotal) # Không giảm nhiều hơn tiền hàng
-        discount_type = 'amount'
-    else: # Trường hợp hiếm gặp: promo hợp lệ nhưng không có % hay số tiền
-        logger.error(f"Valid promotion {promo.id} has no discount value!")
-        return jsonify({'success': False, 'message': 'Lỗi cấu hình khuyến mãi.'}), 500
-
-    # Cập nhật session với KM đã áp dụng
-    session['applied_promotion'] = {
-        'id': promo.id,
-        'code': promo.code,
-        'name': promo.name,
-        'discount_type': discount_type,
-        'discount_value': promo.discount_percent if discount_type == 'percent' else promo.discount_amount,
-        'calculated_discount': round(discount_amount, 2) # Lưu số tiền đã tính
-    }
+    # Mã hợp lệ, lấy tổng tiền hàng gốc để tính discount
+    subtotal_base_float = 0.0
+    for item_in_cart_session in cart_list:
+        try: subtotal_base_float += float(item_in_cart_session.get('price',0)) * int(item_in_cart_session.get('quantity',1))
+        except: pass # Bỏ qua lỗi nếu item trong session không đúng format
+    
+    discount_amount_calculated = 0.0
+    if promo.discount_percent: discount_amount_calculated = subtotal_base_float * (promo.discount_percent / 100.0)
+    elif promo.discount_amount: discount_amount_calculated = min(float(promo.discount_amount), subtotal_base_float)
+    
+    session['applied_promotion'] = { 'id': promo.id, 'code': promo.code, 'name': promo.name, 
+                                     'calculated_discount': round(discount_amount_calculated, 2) }
     session.modified = True
+    totals_with_promo = calculate_cart_totals_for_session_display() # Hàm này sẽ đọc session KM
+    
+    logger.info(f"Promo '{promo.code}' applied. Discount: {discount_amount_calculated}. New Cart Total: {totals_with_promo.get('cart_total')}")
+    return jsonify({**{'success': True, 'message': f'Đã áp dụng "{promo.name}"!', 
+                      'promo_code': promo.code, 'promo_name': promo.name }, **totals_with_promo})
 
-    # Tính lại tổng cuối cùng (thuế tính trên giá gốc hay sau giảm?)
-    # Giả sử thuế tính trên giá *sau khi* giảm giá (phổ biến hơn)
-    subtotal_after_discount = subtotal - discount_amount
-    new_tax = subtotal_after_discount * 0.1 # Tính thuế trên giá mới
-    new_total = subtotal_after_discount + new_tax # Giả sử chưa có phí ship
-
-    logger.info(f"Promo code '{code}' applied. Discount: {discount_amount}, New Total: {new_total}")
-    return jsonify({
-        'success': True,
-        'message': f'Đã áp dụng mã "{promo.name}"!',
-        'promo_code': promo.code,
-        'promo_name': promo.name,
-        'discount_amount': round(discount_amount, 2),
-        'new_total': round(new_total, 2),
-        'new_tax': round(new_tax, 2), # Trả về thuế mới
-        'cart_subtotal': round(subtotal, 2) # Vẫn trả về subtotal gốc
-    })
 
 @order_bp.route('/remove-promo', methods=['POST'])
-@login_required
-def remove_promo_code():
-    """API Endpoint để gỡ bỏ mã khuyến mãi khỏi giỏ hàng."""
-    logger = current_app.logger
+def remove_promo_code(): # Bỏ @login_required
+    logger = current_app.logger; removed = False
     if 'applied_promotion' in session:
-        removed_code = session['applied_promotion'].get('code', 'N/A')
-        session.pop('applied_promotion', None)
+        removed_code = session.pop('applied_promotion', {}).get('code','N/A')
         session.modified = True
-        logger.info(f"User {current_user.id} removed promo code '{removed_code}'.")
+        user_log = current_user.id if current_user.is_authenticated else session.get('guest_session_id', 'Guest')
+        logger.info(f"User/Session {user_log} removed promo: {removed_code}"); removed = True
+    
+    totals_after_remove = calculate_cart_totals_for_session_display() # Tính lại khi không còn KM
+    message = 'Đã gỡ bỏ mã giảm giá.' if removed else 'Không có mã giảm giá nào đang được áp dụng.'
+    return jsonify({**{'success': True, 'message': message}, **totals_after_remove})
 
-        # Tính lại tổng khi không có KM
-        cart_list = session.get('cart', [])
-        subtotal, tax, total = calculate_cart_totals(cart_list)
+@order_bp.route('/api/recent-orders') # URL prefix /order sẽ được tự động thêm vào đây
+@login_required
+def api_recent_orders():
+    logger = current_app.logger
+    logger.info(f"API: User {current_user.id} requesting recent orders.")
+    try:
+        recent_orders = Order.query.filter_by(user_id=current_user.id)\
+                                 .order_by(Order.created_at.desc())\
+                                 .limit(5).all() # Giới hạn 5 đơn hàng gần nhất
 
-        return jsonify({
-            'success': True,
-            'message': 'Đã gỡ bỏ mã giảm giá.',
-            'new_total': round(total, 2),
-            'new_tax': round(tax, 2) # Trả về thuế gốc
-        })
-    else:
-        logger.warning(f"User {current_user.id} attempted to remove promo, but none was applied.")
-        # Vẫn trả về success và giá hiện tại (không có KM)
-        cart_list = session.get('cart', [])
-        subtotal, tax, total = calculate_cart_totals(cart_list)
-        return jsonify({'success': True, 'new_total': round(total, 2), 'new_tax': round(tax, 2) })
+        orders_data = []
+        if recent_orders:
+            for order in recent_orders:
+                details_data = []
+                order_details = OrderDetail.query.options(joinedload(OrderDetail.ordered_product))\
+                                            .filter_by(order_id=order.id).all()
+                for detail in order_details:
+                    if detail.ordered_product:
+                        details_data.append({
+                            'product_id': detail.product_id,
+                            'name': detail.ordered_product.name,
+                            'quantity': detail.quantity, # Số lượng đã mua lần đó
+                            'price_at_purchase': detail.unit_price,
+                            'image_url': detail.ordered_product.image_url or url_for('static', filename='images/default_product_thumb.png')
+                        })
+
+                orders_data.append({
+                    'id': order.id, # Vẫn giữ id đơn hàng cho mục đích khác nếu cần
+                    'order_number': order.order_number,
+                    'created_at': order.created_at.strftime('%H:%M %d/%m/%Y') if order.created_at else 'N/A', # Định dạng giờ:phút ngày/tháng/năm
+                    # 'total_amount_formatted': format_currency(order.final_amount or order.total_amount), # Bỏ vì không hiển thị
+                    # 'status_display': order.get_status_display(), # Bỏ vì không hiển thị
+                    'items': details_data
+                })
+        return jsonify({'success': True, 'orders': orders_data})
+    except Exception as e:
+        logger.error(f"API: Error fetching recent orders for user {current_user.id}: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Không thể tải lịch sử đơn hàng.'}), 500

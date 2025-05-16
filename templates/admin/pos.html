@@ -1,130 +1,153 @@
+{# templates/admin/pos.html #}
 {% extends "admin/base.html" %}
 
-{% block title %}Dragon Coffee Shop - POS System{% endblock %}
+{% block title %}Hệ thống POS - Dragon Coffee{% endblock %}
+{# Không cần block page_header/breadcrumb cho trang POS layout riêng #}
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Hệ thống POS</h1>
-    <div class="d-flex align-items-center">
-        <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-primary">
-            <i class="fas fa-list me-1"></i> Xem đơn hàng
-        </a>
+<div class="pos-container d-flex flex-column flex-lg-row"> {# Thêm class Bootstrap #}
+
+    {# ----- Cột Menu Sản Phẩm ----- #}
+    <div class="pos-menu order-lg-1"> {# Order 1 trên LG trở lên #}
+        <div class="card shadow-sm mb-3"> {# Card cho tìm kiếm và danh mục #}
+            <div class="card-body p-3">
+                <div class="pos-search mb-3">
+                    <div class="input-group input-group-sm"> {# Size sm cho gọn #}
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="pos-search" placeholder="Tìm sản phẩm...">
+                    </div>
+                </div>
+                <div class="pos-category-nav">
+                     {# Chuyển thành btn-group cho đẹp hơn #}
+                    <div class="btn-group w-100 flex-wrap" role="group" aria-label="Lọc danh mục">
+                         <button type="button" class="btn btn-sm btn-outline-secondary pos-category-btn active" data-category-id="">Tất cả</button>
+                        {% for category in categories %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary pos-category-btn" data-category-id="{{ category.id }}">{{ category.name }}</button>
+                        {% endfor %}
+                     </div>
+                </div>
+            </div>
+        </div>
+
+         {# Phần lưới sản phẩm dùng card riêng #}
+         <div class="card shadow-sm flex-grow-1 pos-product-section">
+            <div class="card-header bg-light py-2 px-3">
+                <h5 class="card-title mb-0 fs-6">Danh sách sản phẩm</h5>
+             </div>
+             <div class="card-body pos-product-grid p-3 overflow-auto"> {# Cho phép cuộn #}
+                 {# Nội dung sẽ được JS render vào đây, **ĐÚNG CẤU TRÚC GRID BOOTSTRAP** #}
+                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 pos-product-list">
+                     {# Spinner Loading sẽ đặt chồng lên bởi CSS hoặc JS #}
+                 </div>
+                 <div class="text-center py-5 pos-product-loading" style="display: none;"> {# Ban đầu ẩn đi #}
+                    <div class="spinner-border text-primary spinner-border-sm" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2 text-muted small">Đang tải...</p>
+                </div>
+                <div class="text-center py-5 pos-product-empty" style="display: none;"> {# Thông báo trống #}
+                     <p class="text-muted mb-0">Không tìm thấy sản phẩm.</p>
+                 </div>
+             </div>
+         </div>
+    </div>
+
+    {# ----- Cột Giỏ Hàng và Thanh Toán ----- #}
+    <div class="pos-cart order-lg-2"> {# Order 2 trên LG trở lên #}
+        <div class="card shadow-sm h-100"> {# Thêm card và h-100 #}
+             <div class="card-body d-flex flex-column p-3"> {# Padding và flex column #}
+
+                {# Phần Khách hàng (giữ nguyên HTML) #}
+                 <div class="pos-customer-section mb-3 pb-3 border-bottom">
+                     <h6 class="mb-2 fw-bold text-primary"><i class="fas fa-user-tag me-1"></i>Khách hàng</h6>
+                     <div class="input-group input-group-sm mb-2 position-relative"> {# Thêm position-relative #}
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                         <input type="text" class="form-control" id="pos-customer-search" placeholder="Tìm KH (Tên, SĐT, Email)..." autocomplete="off">
+                         {# Dropdown kết quả tìm kiếm KH #}
+                         <div id="pos-customer-results" class="list-group list-group-sm shadow-sm pos-customer-results-dropdown">
+                         </div>
+                    </div>
+                     <div id="pos-selected-customer-info" class="mt-1" style="display: none;">
+                        <div class="alert alert-light border alert-dismissible fade show p-2 ps-3" role="alert" style="font-size: 0.85rem;">
+                            <i class="fas fa-user-check me-2 text-success"></i> <strong id="pos-selected-customer-name"></strong> <small id="pos-selected-customer-details" class="text-muted ms-1"></small>
+                            <button type="button" class="btn-close p-2" aria-label="Đóng" id="pos-clear-customer-btn"></button>
+                         </div>
+                         <input type="hidden" id="pos-selected-customer-id" value="">
+                     </div>
+                    <div id="pos-guest-input-group" class="mt-2">
+                        <label for="pos-guest-phone" class="form-label form-label-sm mb-1">SĐT Khách vãng lai (nếu có):</label>
+                        <input type="tel" class="form-control form-control-sm" id="pos-guest-phone" placeholder="Nhập SĐT...">
+                    </div>
+                </div>
+
+                 <h6 class="mb-1 fw-bold text-success"><i class="fas fa-shopping-cart me-1"></i>Đơn hàng hiện tại</h6>
+                <div class="pos-cart-items flex-grow-1 overflow-auto mb-3 border rounded bg-light p-2" style="min-height: 150px;">
+                    <div class="text-center py-4 text-muted small pos-cart-empty"><i>Chưa có sản phẩm nào</i></div>
+                </div>
+
+                <div class="pos-cart-summary mt-auto border-top pt-2">
+                    <div class="pos-cart-total d-flex justify-content-between align-items-center mb-2">
+                         <span class="pos-cart-total-label fs-6 fw-bold">Tổng cộng:</span>
+                         <span class="pos-cart-total-amount fs-5 fw-bolder text-primary">0₫</span>
+                     </div>
+                     <div class="mb-2">
+                         <label for="pos-order-notes" class="form-label form-label-sm">Ghi chú đơn hàng:</label>
+                        <textarea class="form-control form-control-sm" id="pos-order-notes" rows="1" placeholder="Ít đường..."></textarea> {# Rows=1 #}
+                     </div>
+                     <label class="form-label form-label-sm fw-bold mb-1">Loại đơn hàng:</label>
+                     <div class="btn-group w-100 mb-2 pos-order-type" role="group">
+                         <input type="radio" class="btn-check" name="order_type" id="type-dine-in" value="dine-in" autocomplete="off" checked>
+                        <label class="btn btn-sm btn-outline-secondary" for="type-dine-in"><i class="fas fa-utensils"></i></label>
+
+                        <input type="radio" class="btn-check" name="order_type" id="type-takeaway" value="takeaway" autocomplete="off">
+                         <label class="btn btn-sm btn-outline-secondary" for="type-takeaway"><i class="fas fa-shopping-bag"></i></label>
+
+                        <input type="radio" class="btn-check" name="order_type" id="type-delivery" value="delivery" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-secondary" for="type-delivery"><i class="fas fa-motorcycle"></i></label>
+                     </div>
+                     <label class="form-label form-label-sm fw-bold mb-1">Thanh toán:</label>
+                      <div class="btn-group w-100 mb-2 pos-payment-methods" role="group">
+                        <input type="radio" class="btn-check" name="payment_method" id="pay-cash" value="cash" autocomplete="off" checked>
+                        <label class="btn btn-sm btn-outline-secondary" for="pay-cash"><i class="fas fa-money-bill-wave"></i></label>
+
+                        <input type="radio" class="btn-check" name="payment_method" id="pay-card" value="card" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-secondary" for="pay-card"><i class="fas fa-credit-card"></i></label>
+
+                        <input type="radio" class="btn-check" name="payment_method" id="pay-mobile" value="mobile" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-secondary" for="pay-mobile"><i class="fas fa-qrcode"></i></label> {# Đổi thành QR #}
+                    </div>
+                    <div class="pos-cart-actions d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-danger flex-grow-1 pos-clear-btn" disabled>
+                            <i class="fas fa-trash"></i> Dọn
+                         </button>
+                         <button class="btn btn-sm btn-primary flex-grow-1 fw-bold pos-checkout-btn" disabled>
+                            <i class="fas fa-check-circle"></i> Thanh toán
+                         </button>
+                    </div>
+                </div>
+            </div>
+         </div>
     </div>
 </div>
 
-<div class="pos-container">
-    <div class="pos-menu">
-        <div class="pos-search">
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="pos-search" placeholder="Tìm kiếm sản phẩm...">
-            </div>
-        </div>
-
-        <div class="pos-category-nav">
-            <button class="pos-category-btn active" data-category-id="">Tất cả các danh mục</button>
-            {% for category in categories %}
-            <button class="pos-category-btn" data-category-id="{{ category.id }}">{{ category.name }}</button>
-            {% endfor %}
-        </div>
-
-        <div class="pos-product-grid">
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Đang tải sản phẩm...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="pos-cart">
-        <div class="pos-customer-section mb-4 pb-3 border-bottom">
-            <h5 class="mb-2">Khách hàng</h5>
-            <div class="input-group input-group-sm mb-2">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="pos-customer-search" placeholder="Tìm kiếm KH (Tên, SĐT, Email)..." autocomplete="off">
-            </div>
-            <div id="pos-customer-results" class="list-group list-group-sm" style="max-height: 150px; overflow-y: auto; display: none; position: absolute; background: white; width: calc(100% - 1.5rem); z-index: 100; border: 1px solid #ccc; border-top: none; margin-top: -1px; border-radius: 0 0 var(--admin-border-radius, 6px) var(--admin-border-radius, 6px); box-shadow: 0 3px 5px rgba(0,0,0,0.1);">
-                <span class="list-group-item list-group-item-action disabled text-muted py-1">Đang tìm...</span>
-            </div>
-            <div id="pos-selected-customer-info" class="mt-2" style="display: none;">
-                <div class="alert alert-info alert-dismissible fade show p-2 ps-3" role="alert" style="font-size: 0.9rem;">
-                    <i class="fas fa-user-check me-2"></i> <strong id="pos-selected-customer-name"></strong> <small id="pos-selected-customer-details" class="text-muted ms-1"></small>
-                    <button type="button" class="btn-close p-2" aria-label="Close" id="pos-clear-customer-btn"></button>
-                </div>
-                 <input type="hidden" id="pos-selected-customer-id" value="">
-            </div>
-            <div id="pos-guest-input-group" class="mt-2">
-                 <label for="pos-guest-phone" class="form-label form-label-sm mb-1">SĐT Khách vãng lai (nếu có):</label>
-                <input type="tel" class="form-control form-control-sm" id="pos-guest-phone" placeholder="Nhập SĐT...">
-             </div>
-        </div>
-
-        <h5 class="mb-2">Đơn hàng hiện tại</h5>
-        <div class="pos-cart-items">
-            <div class="text-center py-4 text-muted">Giỏ hàng trống</div>
-        </div>
-        <div class="pos-cart-summary mt-auto">
-            <div class="pos-cart-total">
-                <span class="pos-cart-total-label">Tổng cộng</span>
-                <span class="pos-cart-total-amount">0₫</span>
-            </div>
-            <div class="mb-3">
-                 <label for="pos-order-notes" class="form-label form-label-sm">Ghi chú đơn hàng</label>
-                 <textarea class="form-control form-control-sm" id="pos-order-notes" rows="2" placeholder="Thêm ghi chú (VD: ít đường...)"></textarea>
-             </div>
-            <h6 class="mb-2">Loại đơn hàng</h6>
-            <div class="pos-order-type mb-3">
-                <div class="pos-order-type-option active" data-type="dine-in">
-                    <i class="fas fa-utensils me-1"></i> Tại chỗ
-                </div>
-                <div class="pos-order-type-option" data-type="takeaway">
-                    <i class="fas fa-shopping-bag me-1"></i> Mang về
-                </div>
-                <div class="pos-order-type-option" data-type="delivery">
-                    <i class="fas fa-motorcycle me-1"></i> Giao đi
-                </div>
-            </div>
-            <h6 class="mb-2">Thanh toán</h6>
-            <div class="pos-payment-methods mb-3">
-                <div class="pos-payment-method active" data-method="cash">
-                    <i class="fas fa-money-bill-wave me-1"></i> Tiền mặt
-                </div>
-                <div class="pos-payment-method" data-method="card">
-                    <i class="fas fa-credit-card me-1"></i> Thẻ
-                </div>
-                <div class="pos-payment-method" data-method="mobile">
-                    <i class="fas fa-mobile-alt me-1"></i> Ví/QR
-                </div>
-            </div>
-            <div class="pos-cart-actions">
-                <button class="btn btn-lg btn-outline-danger pos-clear-btn" disabled>
-                    <i class="fas fa-trash me-1"></i> Dọn sạch
-                </button>
-                <button class="btn btn-lg btn-primary pos-checkout-btn" disabled>
-                    <i class="fas fa-check me-1"></i> Hoàn thành
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
+{# Modal Xác nhận Thành công (Giữ nguyên) #}
 <div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="orderSuccessModalLabel">Đơn hàng đã hoàn thành</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                <h4>Đặt hàng #<span id="successOrderNumber"></span></h4>
-                <p class="lead">Đơn hàng đã được xử lý thành công!</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" id="printReceiptBtn">
-                    <i class="fas fa-print me-1"></i> In Biên lai
-                </button>
+                <h5 class="modal-title" id="orderSuccessModalLabel">Đơn hàng thành công</h5>
+                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+             </div>
+             <div class="modal-body text-center py-4">
+                 <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                 <h5>Đơn hàng #<span id="successOrderNumber"></span></h5>
+                 <p class="mb-0">Đã được tạo thành công!</p>
+             </div>
+             <div class="modal-footer justify-content-center border-0">
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                 <a href="#" id="printReceiptLink" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-print me-1"></i> In Hóa Đơn
+                </a>
             </div>
         </div>
     </div>
@@ -133,5 +156,23 @@
 
 {% block extra_js %}
     {{ super() if super }}
-    <script src="{{ url_for('static', filename='js/pos.js') }}"></script>
-{% endblock %}
+     <script src="{{ url_for('static', filename='js/pos.js') }}"></script>
+     <script>
+         document.addEventListener('DOMContentLoaded', function() {
+             const successModalElement = document.getElementById('orderSuccessModal');
+             const printLink = document.getElementById('printReceiptLink');
+             if(successModalElement && printLink) {
+                 successModalElement.addEventListener('show.bs.modal', function (event) {
+                    const lastOrderId = window.lastSuccessfulOrderId || null;
+                     const orderNumber = document.getElementById('successOrderNumber').textContent || '';
+                    if(lastOrderId) {
+                         printLink.href = `/admin/orders/invoice/${lastOrderId}`; // Tạo link động
+                    } else { printLink.href = "#"; }
+                 });
+             }
+             // Luôn khởi tạo tooltip cho toàn bộ trang POS
+             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
+         });
+     </script>
+ {% endblock %}

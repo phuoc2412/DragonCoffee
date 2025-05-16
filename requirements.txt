@@ -25,3 +25,6 @@ numpy
 pandas
 tensorflow-cpu
 email-validator
+
+qrcode[pil]
+Pillow

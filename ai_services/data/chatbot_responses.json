@@ -1,3 +1,4 @@
+
 {
     "greeting": [
         "Xin chào! Tôi là Dragon Bot của Dragon Coffee, tôi có thể giúp gì cho bạn hôm nay? 😊",
@@ -26,217 +27,238 @@
         "Bạn có thể ghé quán trong khung giờ: **T2-T6 từ 7h-22h, T7-CN từ 8h-23h** nhé."
     ],
     "menu_inquiry": [
-        "Menu của Dragon Coffee rất đa dạng từ cà phê pha máy, pha phin, trà trái cây, đá xay đến các loại bánh ngọt và đồ ăn nhẹ đó ạ. Bạn xem chi tiết tại {menu_url} nhé. {suggestions}",
+        "Menu của Dragon Coffee rất đa dạng từ cà phê, trà, đá xay đến các loại bánh ngọt và đồ ăn nhẹ. Bạn có thể {menu_url} nhé. {suggestions}",
         "Bạn có thể tham khảo menu đầy đủ của quán tại {menu_url}. Đủ món ngon cho bạn lựa chọn! {suggestions}",
-        "Toàn bộ các món ngon của quán đều có ở đây nè bạn: {menu_url}. {suggestions} Bạn muốn tôi giới thiệu món nào đặc biệt không?"
+        "Toàn bộ các món ngon của quán đều có ở {menu_url}. {suggestions} Bạn muốn tôi giới thiệu món nào đặc biệt không?"
     ],
     "category_inquiry_result": [
-        "Trong nhóm **'{category_name}'**, Dragon Coffee có các món như: {product_list}... Bạn xem thêm menu để khám phá hết nhé! {menu_url}",
-        "Dạ, với **'{category_name}'**, bạn có thể thử {product_list}. Rất được ưa chuộng đó ạ! {menu_url}",
-        "Các món thuộc nhóm **'{category_name}'** đây ạ: {product_list}... Bạn thích món nào trong số này không? {menu_url}"
+        "Trong nhóm **'{category_name}'**, Dragon Coffee có các món ngon như: {product_list}. ({product_count} món). Bạn có thể {category_menu_link} trên menu hoặc hỏi chi tiết về món nào đó nhé!",
+        "Dạ, với **'{category_name}'**, bạn có thể thử {product_list}. Những món này rất được ưa chuộng đó ạ! ({product_count} món). {category_menu_link}",
+        "Các món thuộc nhóm **'{category_name}'** tại Dragon Coffee bao gồm: {product_list}... ({product_count} món). Bạn thích món nào nhất trong số này không, hay muốn {category_menu_link}?"
+    ],
+    "category_inquiry_noproduct": [
+        "Bạn muốn hỏi về nhóm món nào cụ thể ạ (ví dụ: cà phê, trà, bánh ngọt,...)? Mời bạn xem qua {menu_url} của quán."
     ],
     "category_not_found": [
-        "Xin lỗi, tôi chưa tìm thấy danh mục '{category_name}'. Bạn thử tìm theo 'Cà phê', 'Trà', 'Bánh ngọt', 'Đá xay' xem sao?",
-        "Hmm, hình như quán chưa có nhóm món '{category_name}'. Bạn có thể xem menu đầy đủ tại {menu_url} để chọn món khác nhé."
+        "Xin lỗi, Dragon Coffee hiện chưa có nhóm món '{category_name}'. Bạn thử tìm theo các nhóm phổ biến như 'Cà phê', 'Trà', 'Bánh ngọt', hoặc xem {menu_url} nhé.",
+        "Hmm, hình như quán chưa phục vụ nhóm món '{category_name}'. Bạn có thể xem {menu_url} để khám phá các lựa chọn khác."
     ],
     "location_inquiry": [
-        "Hiện tại Dragon Coffee có các chi nhánh tại:\n[Danh sách địa chỉ chi nhánh lấy từ CSDL hoặc config]\nBạn xem bản đồ và địa chỉ chi tiết tại {locations_url} nha.",
-        "Bạn có thể tìm địa chỉ chi nhánh Dragon Coffee gần nhất trên trang web: {locations_url} ạ."
-    ],
-    "order_intent": [ 
-        "Bạn muốn đặt '{product_name}' ({price_str}) phải không ạ? Cho tôi biết bạn muốn size nào (Nhỏ/Vừa/Lớn) và số lượng bao nhiêu nhé?",
-        "Dạ vâng, '{product_name}' ạ. Bạn lấy size và số lượng như thế nào ạ?",
-        "Ok bạn! Để đặt '{product_name}', bạn cần cho tôi biết size và số lượng nữa nha."
+        "Dragon Coffee hiện có các chi nhánh sau bạn nhé:\n{location_list}\nĐể xem bản đồ và tìm chi nhánh gần nhất, bạn vui lòng truy cập {locations_url} nha.",
+        "Bạn có thể tìm địa chỉ các chi nhánh Dragon Coffee và hướng dẫn đường đi chi tiết tại {locations_url} ạ."
     ],
     "order_intent_noproduct": [
-        "Bạn muốn đặt món nào của Dragon Coffee ạ? Bạn có thể gọi tên món cụ thể (ví dụ: đặt cà phê sữa đá).",
-        "Cho tôi xin tên món bạn muốn đặt nhé. Menu tham khảo tại đây: {menu_url}"
+        "Bạn muốn đặt món nào của Dragon Coffee ạ? Bạn có thể gọi tên món cụ thể (ví dụ: 'cho mình 1 cà phê sữa đá'). Mời bạn xem {menu_url} nếu cần.",
+        "Cho tôi xin tên món bạn muốn đặt nhé. Bạn có thể tham khảo {menu_url} của quán."
     ],
-    "product_info": [ 
-        "Thông tin về món **'{product_name}'** đây ạ:\n- **Loại:** {category}\n- **Giá:** {price_str}\n- **Mô tả:** {description}\n- **Tình trạng:** {availability}\n{product_link}",
-        "Đây bạn ơi: **'{product_name}'** ({category}, {price_str}) là {description}. Hiện {availability} tại quán.{product_link}",
-        "**'{product_name}'** ({category}) có giá {price_str}. Mô tả sơ qua là {description}. Hiện món này {availability}.{product_link}"
+    "order_intent_ask_qty_notes": [
+        "Dạ, món **{product_name}**. Bạn muốn đặt bao nhiêu phần/ly và có ghi chú gì đặc biệt không ạ (ví dụ: size M, ít đường, thêm trân châu...)?",
+        "Ok bạn, món **{product_name}**. Bạn lấy số lượng mấy và có yêu cầu gì thêm không (size, topping, độ ngọt, đá...)?"
     ],
-    "product_info_no_price": [ 
-        "Thông tin món **'{product_name}'** ({category}): {description}. Hiện tại {availability} bạn nhé. Bạn có muốn biết giá món này không?{product_link}",
-        "**'{product_name}'** thuộc nhóm {category}. Mô tả: {description}. Hiện món này {availability}. Bạn quan tâm về giá hay muốn đặt luôn?{product_link}"
+    "product_info": [
+    "Thông tin về món **'{product_name}'** đây ạ:\n- **Loại:** {category}\n- **Giá:** {price_str}\n- **Mô tả:** {description}\n- **Tình trạng:** {availability}{explicit_price_query}{explicit_availability_query}\nBạn có thể {product_link} trên website.",
+    "Đây bạn ơi: **'{product_name}'** (thuộc nhóm {category}) có giá là {price_str}. Món này được mô tả là: \"{description}\". Hiện tại, món này {availability} tại quán.{explicit_price_query}{explicit_availability_query} Nhấn vào đây để {product_link}.",
+    "**'{product_name}'** là một lựa chọn {category} tuyệt vời, với giá {price_str}. Sơ qua thì đây là {description}. Và tin vui là món này {availability} nhé.{explicit_price_query}{explicit_availability_query} Nếu bạn muốn xem thêm, mời {product_link}."
+    ],
+    "product_info_no_product_entity": [ 
+        "Bạn muốn biết thông tin về món nào cụ thể ạ? Bạn có thể {menu_url} của quán nhé.",
+        "Dạ, để tôi tra cứu thông tin sản phẩm, bạn vui lòng cho tôi biết tên món bạn quan tâm được không? (Bạn có thể xem qua {menu_url} để dễ chọn hơn)"
+    ],
+    "product_info_no_price": [
+        "Thông tin món **'{product_name}'** (thuộc nhóm {category}): {description}. Hiện tại món này {availability} bạn nhé.{explicit_availability_query} Bạn có muốn biết giá của món này không? {product_link}",
+        "**'{product_name}'** thuộc nhóm {category}. Đây là một món {description}. Hiện tại món này {availability} tại Dragon Coffee.{explicit_availability_query} Bạn có muốn tôi báo giá hay đặt luôn món này không? {product_link}"
     ],
     "product_not_found": [
-        "Xin lỗi, tôi chưa tìm thấy món nào tên giống '{product_name}'. Bạn kiểm tra lại tên hoặc xem thử {menu_url} nhé.",
-        "Hmm, món '{product_name}' này có vẻ chưa có trong menu của Dragon Coffee. Bạn xem lại {menu_url} hoặc thử tìm tên khác xem sao?"
+        "Xin lỗi, tôi chưa tìm thấy món nào tên là '{product_name}' trong thực đơn. Bạn kiểm tra lại tên hoặc thử tìm một món khác trên {menu_url} nhé.",
+        "Hmm, món '{product_name}' này có vẻ chưa có tại Dragon Coffee. Bạn có thể xem qua {menu_url} hoặc thử mô tả món bạn muốn tìm để tôi hỗ trợ nhé."
+    ],
+    "product_not_found_suggestion":[
+        "Có thể tên món chưa đúng hoặc bạn muốn tôi gợi ý món tương tự không?",
+        "Bạn thử tìm tên món khác hoặc xem qua các món bán chạy của quán nha.",
+        "Trong lúc đó, bạn muốn xem thử {menu_url} không?"
     ],
     "product_price_inquiry_result": [
-        "Dạ, '{product_name}' có giá **{price_str}** ạ. Bạn muốn đặt mấy ly?",
-        "Giá của '{product_name}' là **{price_str}** bạn nha.",
-        "Ok ạ, **{price_str}** cho món '{product_name}' nhé. Bạn muốn thêm vào đơn hàng không?"
+        "Dạ, món '{product_name}' có giá là **{price_str}** ạ.",
+        "Giá của '{product_name}' hiện tại là **{price_str}** bạn nha.",
+        "Ok ạ, **{price_str}** cho một phần '{product_name}' nhé."
     ],
     "check_availability_result": [
-        "Món '{product_name}' hiện đang **{status}** ạ. Bạn muốn đặt món này chứ?",
-        "Dạ, '{product_name}' **{status}** tại quán. Bạn có muốn gọi món này không?",
-        "Tôi kiểm tra thì '{product_name}' **{status}** ạ."
+        "Món '{product_name}' hiện đang **{status}** tại Dragon Coffee ạ.",
+        "Dạ, '{product_name}' của quán đang **{status}** bạn nhé.",
+        "Tôi kiểm tra thì '{product_name}' hiện **{status}** ạ."
     ],
     "check_availability_not_found": [
         "Xin lỗi, tôi không tìm thấy món '{product_name}' trong menu để kiểm tra tình trạng.",
-        "Hmm, tôi không có thông tin về tình trạng món '{product_name}' này."
+        "Hmm, tôi không có thông tin về tình trạng của món '{product_name}' này."
     ],
     "promotion_inquiry": [
-        "Hiện Dragon Coffee đang có các chương trình ưu đãi hấp dẫn sau:\n{promotion_list}\nChi tiết xem thêm tại {promotions_url} bạn nha!",
-        "Tin vui đây! Đang có các khuyến mãi này nè:\n{promotion_list}\nXem kỹ hơn tại {promotions_url} bạn nhé."
+        "Dragon Coffee đang có các chương trình ưu đãi hấp dẫn sau:\n{promotion_list}\nChi tiết các chương trình, bạn vui lòng {promotions_url} nhé!",
+        "Tin vui đây! Các khuyến mãi hiện tại của quán gồm:\n{promotion_list}\nĐể biết thêm thông tin và điều kiện áp dụng, mời bạn {promotions_url}."
     ],
     "promotion_inquiry_none": [
-        "Tiếc quá, hiện tại quán chưa có chương trình khuyến mãi nào đặc biệt đang diễn ra. Bạn ghé lại sau hoặc theo dõi Fanpage nhé!",
-        "Dạ, hôm nay chưa có chương trình giảm giá nào mới ạ. Khi nào có quán sẽ thông báo ngay!"
+        "Rất tiếc, hiện tại Dragon Coffee chưa có chương trình khuyến mãi nào mới đang diễn ra. Bạn vui lòng quay lại sau hoặc theo dõi thông báo trên website và Fanpage của quán nhé!",
+        "Dạ, hôm nay các chương trình khuyến mãi đặc biệt đã tạm kết thúc. Khi nào có ưu đãi mới, Dragon Coffee sẽ thông báo ngay đến bạn!"
     ],
     "combo_inquiry": [
-        "Dạ có ạ! Dragon Coffee có một số combo kết hợp đồ uống và bánh/đồ ăn nhẹ rất hợp lý. Bạn muốn tôi gợi ý một vài combo không?",
-        "Có combo bạn ơi, thường sẽ tiết kiệm hơn mua lẻ đó ạ. Bạn thích dùng kèm món gì đặc biệt không để tôi tìm combo phù hợp?"
+        "Dạ có ạ! Dragon Coffee có một số combo kết hợp đồ uống và bánh/đồ ăn nhẹ rất hợp lý, giúp bạn tiết kiệm hơn đó. Bạn muốn tôi gợi ý một vài combo không?",
+        "Dragon Coffee có phục vụ combo bạn nhé! Combo thường sẽ là sự kết hợp một món nước và một món ăn nhẹ hoặc bánh với giá ưu đãi. Bạn thích dùng kèm món gì đặc biệt không để tôi tìm combo phù hợp?"
     ],
     "suggest_combo_result": [
-        "Bạn tham khảo thử combo **'{combo_name}'** xem: gồm có **{combo_items}**. Giá combo chỉ khoảng **{combo_price}** thôi.",
-        "Nếu bạn thích **{preference}**, thì combo **'{combo_name}'** gồm **{combo_items}** (giá khoảng **{combo_price}**) là một lựa chọn rất ổn áp đó ạ.",
-        "Gợi ý cho bạn nè: Combo **'{combo_name}'**, bao gồm **{combo_items}**, giá cực tốt chỉ tầm **{combo_price}** thôi ạ."
+        "Dragon Coffee gợi ý bạn combo **'{combo_name}'**{preference} nhé! Gồm có {combo_items_desc}. Giá combo siêu hấp dẫn chỉ khoảng **{combo_price_str}** (tiết kiệm được {saved_amount_str} so với mua lẻ). Bạn thấy combo này thế nào?",
+        "Nếu bạn {preference}, thì combo **'{combo_name}'** gồm {combo_items_desc} (giá chỉ tầm **{combo_price_str}**, rẻ hơn {saved_amount_str} so với gọi riêng) là một lựa chọn rất tuyệt đó ạ. Bạn có muốn thử không?",
+        "Gợi ý cho bạn nè: Combo **'{combo_name}'**{preference}, bao gồm {combo_items_desc}, giá cực tốt chỉ khoảng **{combo_price_str}** (giúp bạn tiết kiệm {saved_amount_str}). Hợp lý quá phải không nào?"
     ],
     "suggest_combo_no_pref": [
-        "Bạn thích uống loại nào (cà phê đậm, trà thanh mát, đá xay...) hay muốn ăn kèm bánh ngọt hoặc đồ ăn nhẹ không? Cho tôi biết sở thích để tôi gợi ý combo nhé!",
-        "Để gợi ý combo phù hợp nhất, bạn cho tôi biết bạn thích uống/ăn gì, hoặc đi mấy người được không?"
+        "Bạn thích uống loại nào (cà phê đậm đà, trà thanh mát, đá xay béo ngậy...) hay muốn ăn kèm bánh ngọt, bánh mặn, hay đồ ăn vặt nào không? Cho tôi biết sở thích của bạn để tôi tìm combo phù hợp nhất nhé!",
+        "Để tôi gợi ý combo chính xác hơn, bạn có thể cho biết bạn thích hương vị nào (ví dụ: ngọt, chua, đắng nhẹ), hay bạn đi một mình hay cùng bạn bè không? Hoặc đơn giản là bạn muốn thử món bán chạy nhất?"
     ],
     "wifi_inquiry": [
-        "Dạ, Wifi của quán tên là 'DragonCoffee_Free', mật khẩu là `dragoncoffee123` ạ. Bạn kết nối thử xem sao!",
-        "Pass wifi là `dragoncoffee123` bạn nhé. Nếu khó kết nối bạn báo nhân viên hỗ trợ ạ!",
-        "Có wifi miễn phí ạ. Tên mạng: 'DragonCoffee_Free', Pass: `dragoncoffee123`."
+        "Dạ, Wifi của Dragon Coffee có tên là 'DragonCoffee_Free', mật khẩu là `dragoncoffee123` ạ. Bạn hãy kết nối và trải nghiệm nhé!",
+        "Pass wifi tại quán là `dragoncoffee123` (mạng 'DragonCoffee_Free') bạn nha. Nếu gặp khó khăn khi kết nối, bạn đừng ngần ngại báo nhân viên hỗ trợ ạ!",
+        "Quán có wifi miễn phí ạ. Tên mạng (SSID): 'DragonCoffee_Free', Mật khẩu (Password): `dragoncoffee123`."
     ],
     "payment_inquiry": [
-        "Bạn có thể thanh toán tại Dragon Coffee bằng: Tiền mặt, Thẻ ngân hàng (ATM, Visa, Master...), Ví điện tử (Momo, ZaloPay, VNPay QR), và Chuyển khoản ngân hàng.",
-        "Dạ, quán chấp nhận nhiều hình thức thanh toán lắm: tiền mặt, quẹt thẻ các loại, quét mã QR ví điện tử, hoặc chuyển khoản đều được ạ.",
-        "Bạn trả tiền mặt, thẻ hay quét QR đều được hết nha."
+        "Bạn có thể thanh toán tại Dragon Coffee bằng nhiều hình thức tiện lợi: Tiền mặt, Thẻ ngân hàng (ATM, Visa, Mastercard, JCB...), Ví điện tử (Momo, ZaloPay, VNPay QR...), và Chuyển khoản ngân hàng trực tiếp tại quầy.",
+        "Dạ, quán Dragon Coffee chấp nhận thanh toán bằng tiền mặt, các loại thẻ ngân hàng phổ biến, các ví điện tử thông dụng qua quét mã QR, hoặc bạn có thể chuyển khoản nếu cần ạ.",
+        "Các phương thức thanh toán được chấp nhận bao gồm: tiền mặt, thẻ (Visa/Master/ATM), Momo, ZaloPay, VNPay QR và cả chuyển khoản nữa bạn nhé."
     ],
     "visual_product_search_result": [
-        "Dựa vào mô tả '{keywords}', tôi thấy có những món này khá giống:",
-        "Hmm, với '{keywords}', có thể là những món này bạn nhỉ:",
-        "Đây là một vài hình ảnh món ăn/đồ uống khớp với '{keywords}' nè bạn:"
+        "Dựa vào mô tả '{keywords}', tôi thấy có những món này trong menu có vẻ khá giống:",
+        "Hmm, với các đặc điểm '{keywords}', có thể bạn đang tìm những món này:",
+        "Đây là một vài hình ảnh món ăn/đồ uống tại Dragon Coffee mà tôi tìm thấy khớp với '{keywords}' nè bạn:"
     ],
     "visual_product_search_notfound": [
-        "Xin lỗi, tôi chưa tìm được món nào có hình ảnh giống '{keywords}'. Bạn thử mô tả khác chi tiết hơn xem sao? Ví dụ: màu sắc, có lớp gì, đựng trong ly gì...",
-        "Rất tiếc, chưa có món nào trong menu khớp với mô tả '{keywords}' của bạn."
+        "Xin lỗi, tôi chưa tìm được món nào tại Dragon Coffee có hình ảnh giống '{keywords}'. Bạn thử mô tả khác chi tiết hơn về màu sắc, hình dáng, hoặc có lớp gì đặc biệt không nhé?",
+        "Rất tiếc, với mô tả '{keywords}', tôi chưa tìm thấy món nào trong menu của quán có hình ảnh tương tự. Bạn có thể xem qua menu hoặc mô tả lại được không?"
     ],
     "visual_product_search_nokeywords": [
-        "Để tìm ảnh, bạn mô tả món đó giúp tôi nhé? Ví dụ: cà phê đen đá có nhiều đá, trà sữa màu nâu nhạt có trân châu...",
-        "Bạn muốn xem ảnh món có đặc điểm gì ạ? Cho tôi vài gợi ý về màu sắc, hình dáng nha."
+        "Để tìm ảnh giúp bạn, bạn vui lòng mô tả món đó giúp tôi nhé? Ví dụ: 'cà phê đen đá có nhiều đá và ít bọt', hoặc 'trà sữa màu nâu nhạt có trân châu đen và lớp kem trắng bên trên'.",
+        "Bạn muốn xem ảnh món ăn/đồ uống có đặc điểm gì nổi bật ạ? Cho tôi một vài gợi ý về màu sắc, hình dáng, hoặc các thành phần chính để tôi tìm kiếm chính xác hơn nha."
     ],
     "order_confirmation_request": [
-        "Xác nhận lại nhé: **{quantity} x '{product_name}' (Size {size})**{notes}. Tạm tính: **{price_str}**. Bạn OK đặt hàng chứ ạ? (Vui lòng trả lời 'Yes' hoặc 'No')",
-        "Đơn của bạn sẽ là: {quantity} '{product_name}', size {size}{notes}. Tổng cộng khoảng {price_str}. Bạn xác nhận (Yes/No) giúp tôi nha.",
-        "Chốt đơn: {quantity} '{product_name}' (Size {size}){notes}. Giá tạm tính {price_str}. Đồng ý đặt không bạn?"
+        "Xác nhận lại đơn hàng của bạn nhé: **{quantity} x '{product_name}' (Size {size})**{notes}. Tạm tính: **{price_str}**. Bạn đồng ý đặt hàng chứ ạ? (Vui lòng trả lời 'Yes'/'Đồng ý' hoặc 'No'/'Hủy')",
+        "Đơn của bạn sẽ bao gồm: {quantity} phần '{product_name}', size {size}{notes}. Tổng cộng khoảng {price_str}. Bạn xác nhận đặt hàng (Yes/Đồng ý) hay muốn thay đổi (No/Hủy) ạ?",
+        "Chốt đơn nhé: {quantity} ly/phần '{product_name}' (Size {size}){notes}. Giá tạm tính là {price_str}. Bạn đồng ý không? (Yes/Đồng ý hoặc No/Hủy)"
     ],
-    "order_confirmation_yes": [ 
-        "Ok bạn, tôi đang xử lý đơn hàng...",
-        "Đã ghi nhận xác nhận của bạn. Đang tạo đơn..."
+    "order_confirmation_yes": [
+        "Ok bạn, tôi đang xử lý đơn hàng của bạn...",
+        "Đã ghi nhận xác nhận của bạn. Đang tạo đơn hàng..."
     ],
-     "order_confirmation_no": [ 
-        "Ok ạ, tôi đã hủy yêu cầu đặt món này. Bạn có muốn đặt món khác không?",
-        "Dạ rồi, đã hủy. Bạn xem thêm menu hoặc cần hỗ trợ gì khác không ạ?"
+    "order_confirmation_no": [
+        "Dạ vâng, tôi đã hủy yêu cầu đặt món này. Bạn có muốn tham khảo và đặt món khác không ạ?",
+        "Ok ạ, đã hủy. Bạn xem thêm thực đơn hoặc cần tôi hỗ trợ gì khác không?"
     ],
     "order_confirmation_missing_info": [
-        "Để tôi chốt đơn, bạn vui lòng cho biết: **Tên món**, **Size (Nhỏ/Vừa/Lớn)** và **Số lượng** bạn muốn đặt nha."
+        "Để tôi có thể chốt đơn hàng giúp bạn, bạn vui lòng cho tôi biết đầy đủ: **Tên món bạn muốn đặt**, **Size (Nhỏ/Vừa/Lớn)** và **Số lượng** nhé. Cảm ơn bạn!",
+        "Bạn ơi, để đặt hàng, bạn cần cung cấp Tên món, Size và Số lượng ạ. Bạn xem lại giúp tôi nha."
     ],
     "order_success": [
-        "Tuyệt vời! Đơn hàng của bạn đã được tạo thành công với mã **#{order_number}**. Món sẽ được chuẩn bị và gửi đến bạn sớm!",
-        "Okie, đơn hàng **#{order_number}** của bạn đã được tiếp nhận và đang được xử lý. Cảm ơn bạn!",
-        "Đặt hàng thành công! Mã đơn hàng của bạn là **#{order_number}**. Bạn vui lòng đợi trong giây lát."
+        "Tuyệt vời! Đơn hàng của bạn đã được tạo thành công với mã **#{order_number}**. Món sẽ được chuẩn bị và gửi đến bạn sớm nhất có thể! {order_link}",
+        "Okie, đơn hàng **#{order_number}** của bạn đã được tiếp nhận và đang được xử lý. Cảm ơn bạn đã lựa chọn Dragon Coffee! {order_link}",
+        "Đặt hàng thành công! Mã đơn hàng của bạn là **#{order_number}**. Bạn vui lòng đợi trong giây lát để quán chuẩn bị nhé. {order_link}"
     ],
     "order_failed": [
-        "Rất tiếc, tôi không thể tạo đơn hàng lúc này do: **{error_reason}**. Bạn kiểm tra lại hoặc liên hệ hotline {hotline} để được hỗ trợ nhé.",
-        "Tạo đơn hàng không thành công. Lý do: {error_reason}. Xin lỗi bạn nhiều."
+        "Rất tiếc, tôi không thể tạo đơn hàng của bạn lúc này do: **{error_reason}**. Bạn vui lòng kiểm tra lại thông tin hoặc liên hệ hotline **{hotline}** của Dragon Coffee để được hỗ trợ trực tiếp nhé. Xin lỗi bạn vì sự bất tiện này.",
+        "Quá trình tạo đơn hàng không thành công. Lý do: **{error_reason}**. Mong bạn thông cảm và thử lại hoặc liên hệ {hotline} giúp Dragon Coffee ạ."
     ],
     "order_status_found": [
-        "Đơn hàng **#{order_number}** (đặt ngày {order_date}) hiện đang ở trạng thái: **{status_display}**. {details} {order_link}",
-        "Kiểm tra đơn **#{order_number}**: Trạng thái là **{status_display}**. {details} {order_link}",
-        "Dạ, đơn **#{order_number}** của bạn đang **{status_display}**. {details} {order_link}"
+        "Đơn hàng **#{order_number}** (đặt lúc {order_date_str}) của bạn hiện đang ở trạng thái: **{status_display_text}**. {status_specific_details} Bạn có thể {order_detail_link_html} nếu muốn.",
+        "Kiểm tra đơn hàng **#{order_number}**: Hiện tại, trạng thái của đơn là **{status_display_text}**. {status_specific_details} {order_detail_link_html}",
+        "Dạ, đơn hàng **#{order_number}** mà bạn đặt vào ngày {order_date_str} đang **{status_display_text}**. {status_specific_details} {order_detail_link_html}"
     ],
     "order_status_not_found": [
-        "Xin lỗi, tôi không tìm thấy đơn hàng nào với mã **{order_number}**. Mã đơn hàng thường là ORD-xxxxxxxx... hoặc một dãy số. Bạn xem lại giúp tôi nha.",
-        "Mã đơn **{order_number}** này không tồn tại trong hệ thống. Bạn chắc chắn nhập đúng mã chưa ạ?"
+        "Xin lỗi, tôi không tìm thấy đơn hàng nào với mã **{order_number}**. Mã đơn hàng thường có dạng BOT-XXXXXXX hoặc ORD-YYYYMMDD-XXXX. Bạn vui lòng kiểm tra lại mã và thử lại nhé.",
+        "Mã đơn hàng **{order_number}** này không tồn tại trong hệ thống của Dragon Coffee. Bạn có chắc chắn đã nhập đúng mã chưa ạ? Hoặc bạn có thể cung cấp thêm thông tin (số điện thoại, ngày đặt) để tôi tìm thử."
     ],
     "order_status_ask_number": [
-        "Bạn vui lòng cung cấp mã đơn hàng bạn muốn kiểm tra nhé (thường có trong SMS/email xác nhận).",
-        "Để kiểm tra trạng thái, bạn cho tôi xin mã đơn hàng bạn đã đặt nha.",
-        "Bạn có mã đơn hàng không ạ? Nhập mã vào đây tôi check cho."
+        "Bạn vui lòng cung cấp mã đơn hàng bạn muốn kiểm tra nhé (thường có trong SMS/email xác nhận, hoặc trong lịch sử đơn hàng trên website/app).",
+        "Để tôi kiểm tra trạng thái đơn hàng giúp bạn, bạn cho tôi xin mã đơn hàng đã đặt được không ạ?",
+        "Bạn có mã đơn hàng không ạ? Nhập mã đó vào đây để tôi tìm thông tin cho bạn nhé."
+    ],
+    "order_status_no_order_history": [
+        "Xin lỗi, tôi chưa tìm thấy đơn hàng nào gần đây của bạn. Bạn có muốn đặt một đơn mới không?"
     ],
     "generic_question_response": [
-        "Tôi là Dragon Bot, trợ lý ảo được lập trình để hỗ trợ bạn tại Dragon Coffee. Tôi có thể giúp bạn xem menu, kiểm tra thông tin món, khuyến mãi,...",
-        "Tôi ở đây để giúp bạn về các sản phẩm và dịch vụ của Dragon Coffee đó ạ. 😉",
-        "Hihi, một ngày thật đẹp để thưởng thức cà phê!",
-        "Câu hỏi này hơi khó với tôi rồi! Bạn hỏi về cà phê hay trà nhé?",
-        "Hmm, đó là một câu hỏi hay! Nhưng chuyên môn của tôi là về menu và đơn hàng của Dragon Coffee thôi.",
-        "Thay vì trả lời câu đó, bạn có muốn tôi gợi ý một món nước giải nhiệt mùa hè không?"
+        "Tôi là Dragon Bot, trợ lý ảo được lập trình bởi Dragon Coffee để hỗ trợ bạn. Tôi có thể giúp bạn xem menu, kiểm tra thông tin món ăn, giá cả, các chương trình khuyến mãi, địa chỉ cửa hàng và tình trạng đơn hàng.",
+        "Tôi ở đây để giúp bạn giải đáp các thắc mắc liên quan đến sản phẩm và dịch vụ của Dragon Coffee đó ạ. Bạn cứ hỏi tự nhiên nhé! 😉",
+        "Hihi, một ngày thật đẹp để thưởng thức cà phê phải không nào? Bạn muốn thử món gì hôm nay?",
+        "Câu hỏi này thú vị quá! Nhưng chuyên môn của tôi là về các món ngon và dịch vụ tại Dragon Coffee thôi. Bạn có muốn tôi giới thiệu một món đồ uống mới không?",
+        "Hmm, đó là một câu hỏi hay! Tuy nhiên, tôi được lập trình để trả lời các câu hỏi liên quan đến Dragon Coffee. Bạn có thắc mắc gì về menu hay các chương trình ưu đãi không ạ?",
+        "Thay vì trả lời câu đó, bạn có muốn tôi gợi ý một món nước giải nhiệt cho mùa hè này, hay một loại bánh ngọt để nhâm nhi không?"
     ],
     "affirmation": [
         "Dạ vâng, đúng rồi ạ.",
         "Ok bạn! Chính xác.",
-        "Vâng ạ."
+        "Vâng ạ, tôi đã ghi nhận."
     ],
     "negation": [
-        "Dạ không phải ạ. Có gì nhầm lẫn sao?",
-        "Ồ vậy ạ. Bạn nói lại yêu cầu của mình để tôi hiểu đúng hơn nha.",
-        "Ok, đã hủy/ghi nhận không phải. Bạn cần tôi giúp gì tiếp theo không?"
+        "Dạ không phải ạ. Xin lỗi nếu có sự nhầm lẫn. Bạn có thể nói lại yêu cầu của mình được không?",
+        "Ồ vậy ạ. Bạn vui lòng cung cấp lại thông tin để tôi hiểu đúng hơn nhé.",
+        "Ok, tôi đã ghi nhận là không phải. Bạn cần tôi hỗ trợ gì tiếp theo không ạ?"
     ],
     "clarification": [
-        "Xin lỗi, bạn có thể nhắc lại hoặc diễn đạt khác cho tôi dễ hiểu hơn được không?",
-        "Hình như tôi chưa hiểu đúng ý bạn lắm. Bạn nói rõ hơn một chút nha?",
-        "Bạn vui lòng mô tả chi tiết hơn yêu cầu được không ạ?"
+        "Xin lỗi, bạn có thể nhắc lại hoặc diễn đạt khác cho tôi dễ hiểu hơn được không ạ? Đôi khi tôi hơi chậm hiểu chút xíu.",
+        "Hình như tôi chưa hiểu đúng ý bạn lắm. Bạn có thể vui lòng nói rõ hơn một chút về điều bạn muốn không?",
+        "Bạn vui lòng mô tả chi tiết hơn yêu cầu của mình được không ạ? Ví dụ, nếu bạn muốn đặt món, hãy cho tôi biết tên món, size và số lượng."
     ],
     "quality_inquiry_product": [
-        "Dạ, '{product_name}' là một trong những món được yêu thích và đánh giá cao tại quán đó ạ. Nguyên liệu luôn được lựa chọn kỹ càng.",
-        "Khách hàng thường khen món '{product_name}' vì {positive_aspect}. Bạn yên tâm về chất lượng nhé!",
-        "'{product_name}' sử dụng {ingredient_highlight} nên hương vị rất đặc trưng. Bạn nên thử ạ!"
+        "Dạ, món '{product_name}' là một trong những lựa chọn được nhiều khách hàng yêu thích và đánh giá cao tại Dragon Coffee đó ạ. Nguyên liệu {ingredient_highlight} luôn được chúng tôi lựa chọn kỹ càng để đảm bảo hương vị {quality_adj} nhất.",
+        "Khách hàng thường khen món '{product_name}' của Dragon Coffee vì hương vị {quality_adj} và sử dụng {ingredient_highlight} chất lượng. Bạn yên tâm về chất lượng sản phẩm nhé!",
+        "'{product_name}' của quán sử dụng {ingredient_highlight} nên có hương vị rất {quality_adj} và đặc trưng. Bạn nên thử một lần để cảm nhận ạ!"
     ],
     "quality_inquiry_general": [
-        "Dragon Coffee luôn đặt chất lượng sản phẩm và vệ sinh an toàn thực phẩm lên hàng đầu ạ.",
-        "Bạn cứ yên tâm thưởng thức nhé, quán rất chú trọng khâu chọn nguyên liệu và pha chế.",
-        "Nếu có bất kỳ điều gì chưa hài lòng về chất lượng, bạn đừng ngần ngại góp ý ngay với quản lý hoặc nhân viên nhé."
+        "Dragon Coffee luôn đặt chất lượng sản phẩm và vệ sinh an toàn thực phẩm lên hàng đầu ạ. Chúng tôi cam kết mang đến những trải nghiệm tốt nhất cho khách hàng.",
+        "Bạn cứ yên tâm thưởng thức nhé, Dragon Coffee rất chú trọng trong khâu lựa chọn nguyên liệu tươi ngon và quy trình pha chế đạt chuẩn.",
+        "Nếu có bất kỳ điều gì chưa hài lòng về chất lượng sản phẩm hay dịch vụ, bạn đừng ngần ngại góp ý ngay với quản lý ca tại cửa hàng hoặc qua các kênh hỗ trợ của Dragon Coffee nhé. Chúng tôi luôn lắng nghe bạn!"
     ],
     "ambiance_inquiry": [
-        "Không gian quán Dragon Coffee được thiết kế theo phong cách Á Đông hiện đại, có nhiều góc trang trí hình rồng rất độc đáo, vừa ấm cúng lại vừa 'chất' để check-in đó ạ.",
-        "Quán có cả khu vực bàn ghế cao yên tĩnh phù hợp làm việc, học tập và khu sofa êm ái để trò chuyện bạn bè.",
-        "Decor của quán theo chủ đề rồng khá thú vị, ánh sáng vàng ấm áp, nhạc nhẹ nhàng, phù hợp để thư giãn hoặc gặp gỡ bạn bè."
+        "Không gian quán Dragon Coffee được thiết kế theo phong cách {theme_description}, với nhiều góc {decor_feature} rất độc đáo. Quán có khu vực {zone_type1} và {zone_type2}, cùng với {music_style} tạo cảm giác thư giãn, phù hợp để học tập, làm việc hoặc trò chuyện cùng bạn bè.",
+        "Quán Dragon Coffee có không gian {theme_description} bạn ạ. Có cả khu {zone_type1} để bạn thư giãn, khu {zone_type2} cho nhóm. {decor_feature} cũng là điểm nhấn đó. Bạn ghé thử xem sao nhé!",
+        "Decor của quán theo chủ đề {theme_description} khá thú vị, ánh sáng vàng ấm áp, nhạc {music_style}, phù hợp để bạn thư giãn hoặc check-in cùng bạn bè. Có khu {zone_type1} và {zone_type2} cho bạn lựa chọn."
     ],
     "reservation_inquiry": [
-        "Dạ, hiện tại Dragon Coffee chưa nhận đặt bàn trước qua Chatbot ạ. Nếu bạn cần đặt chỗ cho nhóm đông hoặc vào cuối tuần, bạn vui lòng gọi đến hotline chi nhánh gần nhất (xem tại {locations_url}) nhé.",
-        "Rất tiếc, tôi chưa hỗ trợ đặt bàn được. Bạn liên hệ số điện thoại của chi nhánh bạn muốn đến để giữ chỗ nha."
+        "Dạ, hiện tại Dragon Coffee chưa hỗ trợ đặt bàn trước qua Chatbot ạ. Nếu bạn cần đặt bàn cho nhóm đông hoặc vào các dịp đặc biệt cuối tuần, bạn vui lòng liên hệ trực tiếp hotline của chi nhánh gần nhất (xem tại {locations_url}) để được hỗ trợ tốt nhất nhé. Xin cảm ơn bạn!",
+        "Rất tiếc, tôi chưa thể giúp bạn đặt bàn qua đây. Bạn có thể gọi điện thoại đến chi nhánh Dragon Coffee mà bạn muốn đến ({locations_url}) để nhân viên giữ chỗ giúp bạn nha.",
+        "Để đặt bàn, bạn vui lòng gọi số hotline {hotline} hoặc liên hệ trực tiếp với chi nhánh bạn muốn ghé qua. Bạn có thể xem danh sách và SĐT các chi nhánh tại {locations_url}."
     ],
     "feedback_complaint": [
-        "Cảm ơn bạn đã dành thời gian góp ý! Dragon Coffee rất trân trọng mọi ý kiến để ngày càng hoàn thiện. Bạn có thể chia sẻ cụ thể hơn về vấn đề bạn gặp phải hoặc điều bạn muốn góp ý được không ạ?",
-        "Chúng tôi rất lấy làm tiếc nếu bạn đã có trải nghiệm chưa tốt tại quán. Bạn vui lòng mô tả rõ hơn về sự việc (thời gian, chi nhánh nếu có) để bộ phận liên quan có thể kiểm tra và khắc phục nhé.",
-        "Mọi ý kiến đóng góp hoặc khiếu nại, bạn có thể gặp trực tiếp quản lý ca, gọi hotline [Số Hotline CSKH] hoặc gửi email về [Địa chỉ Email CSKH]. Dragon Coffee luôn sẵn sàng lắng nghe bạn!"
+        "Cảm ơn bạn đã dành thời gian góp ý cho Dragon Coffee! Chúng tôi rất trân trọng mọi ý kiến đóng góp để ngày càng hoàn thiện hơn. Bạn có thể chia sẻ cụ thể hơn về vấn đề bạn gặp phải hoặc điều bạn muốn góp ý được không ạ? Chúng tôi sẽ chuyển thông tin đến bộ phận liên quan.",
+        "Dragon Coffee rất lấy làm tiếc nếu bạn đã có trải nghiệm chưa thực sự hài lòng. Bạn vui lòng mô tả rõ hơn về sự việc (thời gian, chi nhánh nếu có, vấn đề cụ thể) để chúng tôi có thể kiểm tra, xem xét và có những cải thiện phù hợp nhé.",
+        "Mọi ý kiến đóng góp hoặc khiếu nại về chất lượng sản phẩm và dịch vụ, bạn có thể gặp trực tiếp quản lý ca tại cửa hàng, gọi hotline CSKH của Dragon Coffee qua số {hotline}, hoặc gửi email về địa chỉ {feedback_email}. Dragon Coffee luôn sẵn sàng lắng nghe và giải quyết mọi vấn đề của bạn một cách nhanh chóng nhất!"
     ],
-    "help_inquiry": [  "bạn giúp gì được", "cần giúp", "help",
-        "Tôi có thể giúp bạn xem menu, tìm hiểu thông tin món ăn/đồ uống, giá cả, giờ mở cửa, địa chỉ quán, các chương trình khuyến mãi, gợi ý combo, kiểm tra trạng thái đơn hàng và thậm chí là tìm ảnh món bạn thích!",
-        "Bạn cần thông tin gì về Dragon Coffee? Cứ hỏi tôi nhé: menu, giá, món mới, địa chỉ, giờ bán, khuyến mãi, đơn hàng,...",
-        "Tôi có thể hỗ trợ bạn các việc như: xem menu, hỏi giá, tìm món, xem quán ở đâu, mấy giờ mở cửa, có giảm giá gì không, check đơn hàng bạn đã đặt."
+    "help_inquiry": [
+        "Tôi có thể giúp bạn rất nhiều thứ liên quan đến Dragon Coffee! Ví dụ như: xem menu, tìm hiểu thông tin chi tiết về món ăn/đồ uống, giá cả, giờ mở cửa, địa chỉ các chi nhánh, các chương trình khuyến mãi hiện có, gợi ý combo phù hợp, và cả kiểm tra trạng thái đơn hàng bạn đã đặt nữa đó!",
+        "Bạn cần thông tin gì về Dragon Coffee hôm nay? Tôi có thể hỗ trợ bạn về thực đơn, giá món, món mới, địa chỉ và giờ hoạt động của các cửa hàng, các ưu đãi đang diễn ra, hoặc giúp bạn theo dõi đơn hàng.",
+        "Chào bạn, tôi là trợ lý ảo của Dragon Coffee. Tôi có thể hỗ trợ bạn các việc như: cung cấp thông tin menu, báo giá sản phẩm, kiểm tra món còn hàng không, thông báo khuyến mãi, chỉ đường đến quán, giải đáp thắc mắc về giờ mở cửa, và kiểm tra tình trạng đơn hàng của bạn."
     ],
-    "bot_identity": [  "bạn là ai", "who are you",
-         "Tôi là Dragon Bot, trợ lý ảo của Dragon Coffee.",
-         "Em là chatbot của Dragon Coffee ạ."
+    "bot_identity": [
+        "Tôi là Dragon Bot, trợ lý ảo thông minh của Dragon Coffee, được tạo ra để đồng hành và hỗ trợ bạn khám phá những điều tuyệt vời tại quán!",
+        "Em là chatbot AI của Dragon Coffee, rất vui được phục vụ và giải đáp các thắc mắc của anh/chị ạ.",
+        "Bạn đang trò chuyện với Dragon Bot, trợ lý ảo chính thức của Dragon Coffee."
     ],
-     "bot_capability": [  "bạn làm được gì",
-          "Em có thể cung cấp thông tin về menu, sản phẩm, giá cả, khuyến mãi, địa chỉ, giờ mở cửa và giúp kiểm tra đơn hàng.",
-          "Tôi giúp bạn tra cứu thông tin về quán Dragon Coffee, từ món ăn đồ uống đến các ưu đãi ạ."
-      ],
+    "bot_capability": [
+        "Tôi có thể giúp bạn tìm hiểu về thực đơn, thông tin chi tiết từng món, giá cả, các chương trình khuyến mãi đang diễn ra, địa chỉ và giờ hoạt động của các chi nhánh Dragon Coffee. Ngoài ra, tôi còn có thể giúp bạn kiểm tra trạng thái đơn hàng đã đặt và gợi ý những combo hấp dẫn nữa đó!",
+        "Khả năng của tôi bao gồm: cung cấp thông tin về menu, giá sản phẩm, tình trạng còn hàng, các ưu đãi mới nhất, thông tin chi nhánh, và theo dõi đơn hàng. Bạn cần tôi hỗ trợ gì cụ thể ạ?",
+        "Tôi được lập trình để giúp bạn mọi thứ liên quan đến Dragon Coffee! Từ việc khám phá menu, tìm hiểu món mới, cập nhật khuyến mãi, cho đến việc kiểm tra đơn hàng. Bạn cứ hỏi nhé!"
+    ],
+    "best_seller_inquiry": [
+        "Những món đang 'làm mưa làm gió' tại Dragon Coffee và được khách hàng yêu thích nhất gần đây là:\n{best_seller_list}.\nBạn có muốn thử món nào trong số này không? Hoặc {menu_url} nhé!",
+        "Các món 'best seller' không thể bỏ qua khi đến Dragon Coffee:\n{best_seller_list}.\nĐây là những lựa chọn được nhiều khách hàng tin dùng nhất. Bạn có thể tham khảo thêm toàn bộ {menu_url}.",
+        "Nếu bạn chưa biết chọn gì, hãy thử ngay những món 'hot hit' này nhé:\n{best_seller_list}.\nĐây là top những sản phẩm bán chạy nhất tại Dragon Coffee đó ạ. Tham khảo thêm tại {menu_url}."
+    ],
+     "best_seller_inquiry_none": [
+        "Hiện tại Dragon Coffee đang cập nhật danh sách các món bán chạy nhất. Trong thời gian này, bạn có thể tham khảo {menu_url} để khám phá nhiều món ngon khác đang chờ bạn nhé!",
+        "Dữ liệu về các món bán chạy nhất của quán đang được làm mới. Mời bạn xem {menu_url} để chọn lựa những món bạn yêu thích nha."
+    ],
     "error": [
-        "Ôi, hình như mạng có chút vấn đề hoặc tôi đang bị lỗi rồi. Bạn đợi một lát rồi thử lại nhé!",
-        "Hệ thống đang bảo trì một chút. Mong bạn thông cảm và quay lại sau nha.",
-        "Xin lỗi, tôi không thể xử lý yêu cầu này ngay bây giờ. Bạn thử lại hoặc hỏi khác đi được không ạ?"
+        "Ôi, có vẻ như tôi đang gặp một chút trục trặc kỹ thuật hoặc mạng có vấn đề. Bạn vui lòng đợi một lát rồi thử lại nhé! Nếu vẫn không được, bạn có thể liên hệ trực tiếp với cửa hàng.",
+        "Hệ thống chatbot đang tạm thời bảo trì hoặc có lỗi nhỏ. Mong bạn thông cảm và thử lại sau ít phút nha. Cảm ơn bạn!",
+        "Xin lỗi bạn, tôi không thể xử lý yêu cầu này ngay bây giờ do có lỗi phát sinh. Bạn thử lại hoặc đặt câu hỏi khác đơn giản hơn được không ạ? Cảm ơn bạn nhiều!"
     ],
     "fallback": [
-        "Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn. Bạn có thể hỏi về: menu, món cà phê sữa đá, giá trà đào, giờ mở cửa, địa chỉ, khuyến mãi tháng này, kiểm tra đơn hàng ORD-12345,...",
-        "Hmm, câu hỏi này hơi ngoài khả năng của tôi. Bạn thử hỏi về các món uống, đồ ăn hoặc dịch vụ của Dragon Coffee nhé?",
-        "Tôi vẫn đang học hỏi thêm. Bạn có thể diễn đạt yêu cầu của mình theo cách khác được không? Ví dụ: 'Giá món X?', 'Menu trà có gì?', 'Quán mở cửa lúc mấy giờ?'..."
-    ],
-    
-    "best_seller_inquiry": [ 
-    "Các món đang được yêu thích nhất tại Dragon Coffee gần đây là: {best_seller_list}.",
-    "Những món 'hot hit' bán chạy bạn nên thử: {best_seller_list}.",
-    "Khách hàng hay gọi nhất mấy món này nè bạn: {best_seller_list}."
-]
+        "Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn. Bạn có thể hỏi về: menu, giá món cụ thể (ví dụ: 'giá cà phê sữa đá'), giờ mở cửa, địa chỉ, các chương trình khuyến mãi, hoặc kiểm tra đơn hàng bằng cách cung cấp mã đơn (ví dụ: 'kiểm tra đơn BOT-123XYZ'). Hoặc bạn có thể {suggestions}",
+        "Hmm, câu hỏi này có vẻ hơi ngoài khả năng hiện tại của tôi. Bạn thử hỏi về các món đồ uống, đồ ăn, dịch vụ hoặc các thông tin chung của Dragon Coffee nhé. Ví dụ: 'Menu trà có những món nào?', 'Quán ở đâu?', 'Hôm nay có giảm giá không?'. Hoặc bạn có thể {suggestions}",
+        "Tôi vẫn đang trong quá trình học hỏi để hiểu bạn tốt hơn. Bạn có thể vui lòng diễn đạt yêu cầu của mình theo một cách khác, hoặc cung cấp thêm chi tiết được không? Ví dụ, thay vì hỏi 'Món đó thế nào?', bạn có thể hỏi 'Mô tả món Cà phê Trứng' hoặc 'Giá món Bánh Tiramisu'. Bạn cũng có thể thử {suggestions}"
+    ]
 
 }

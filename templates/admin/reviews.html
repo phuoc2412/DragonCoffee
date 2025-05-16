@@ -1,4 +1,3 @@
-{# templates/admin/reviews.html #}
 {% extends "admin/base.html" %}
 {% from "macros/_ui_helpers.html" import render_pagination, status_badge %}
 
@@ -14,7 +13,6 @@
     <div class="card-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <h3 class="card-title mb-2 mb-md-0">Danh sách Đánh giá</h3>
-            {# Form tìm kiếm (ví dụ tìm theo tên SP, tên user) #}
             <form method="GET" action="{{ url_for('admin.manage_reviews') }}">
                 <div class="input-group input-group-sm" style="width: 350px;">
                     <input type="text" name="q" class="form-control" placeholder="Tìm tên sản phẩm, người dùng, nội dung..." value="{{ request.args.get('q', '') }}">
@@ -59,34 +57,16 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if review.author %}
-                                <div class="modal fade" id="toggleBanModal{{ review.author.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-sm">
-                                    <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Xác nhận {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Chặn' }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body text-start">
-                                        Bạn chắc chắn muốn <strong>{{ 'BỎ CHẶN' if review.author.is_comment_banned else 'CHẶN' }}</strong> quyền bình luận của người dùng <strong>{{ review.author.username }}</strong>?
-                                        {% if not review.author.is_comment_banned %}
-                                        <p class="small text-muted mt-2">Người dùng này hiện có {{ review.author.review_warning_count }} cảnh báo.</p>
-                                        {% endif %}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                        {# ====> SỬA url_for Ở ĐÂY <==== #}
-                                        <form action="{{ url_for('admin.toggle_user_comment_ban', user_id=review.author.id) }}" method="POST" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn {{ 'btn-success' if review.author.is_comment_banned else 'btn-warning' }} btn-sm">
-                                                {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Xác nhận Chặn' }}
-                                            </button>
-                                        </form>
-                                    </div>
-                                    </div>
-                                </div>
-                                </div>
+                             {% if review.author %}
+                                <a href="{{ url_for('admin.user_detail', user_id=review.author.id) }}" class="text-dark">{{ review.author.username }}</a>
+                                {% if review.author.is_comment_banned %}
+                                <span class="badge bg-danger ms-1" title="Người dùng này đã bị chặn bình luận">Bị chặn</span>
+                                {% elif review.author.review_warning_count > 0 %}
+                                <span class="badge bg-warning text-dark ms-1" title="Số lần cảnh báo: {{ review.author.review_warning_count }}">! {{ review.author.review_warning_count }}</span>
                                 {% endif %}
+                             {% else %}
+                                <span class="text-muted">Ẩn danh</span>
+                             {% endif %}
                         </td>
                         <td>
                             {% if review.is_toxic_guess %}
@@ -113,11 +93,9 @@
                         <td class="text-center"><small>{{ review.created_at.strftime('%d/%m/%y %H:%M') }}</small></td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                {# Nút Xóa #}
                                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ review.id }}" title="Xóa đánh giá">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                                {# Nút Duyệt (chỉ hiện khi đang pending) #}
                                 {% if review.status == 'pending' %}
                                 <form action="{{ url_for('admin.update_review_status', review_id=review.id) }}" method="POST" class="d-inline">
                                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -126,7 +104,6 @@
                                          <i class="fas fa-check"></i>
                                      </button>
                                  </form>
-                                 {# Nút Từ chối (chỉ hiện khi đang pending) #}
                                  <form action="{{ url_for('admin.update_review_status', review_id=review.id) }}" method="POST" class="d-inline">
                                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                      <input type="hidden" name="status" value="rejected">
@@ -135,11 +112,13 @@
                                      </button>
                                  </form>
                                 {% endif %}
-                                 {# Nút Chặn User (giữ nguyên) #}
-                                 {% if review.author %} {# ... code nút chặn user ... #} {% endif %}
+                                {% if review.author %}
+                                 <button type="button" class="btn btn-outline-{{ 'success' if review.author.is_comment_banned else 'warning' }}" data-bs-toggle="modal" data-bs-target="#toggleBanModal{{ review.author.id }}" title="{{ 'Bỏ chặn' if review.author.is_comment_banned else 'Chặn' }} người dùng">
+                                     <i class="fas {{ 'fa-user-check' if review.author.is_comment_banned else 'fa-user-slash' }}"></i>
+                                 </button>
+                                {% endif %}
                             </div>
 
-                             {# --- Modal Xóa Review --- #}
                              <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-hidden="true">
                               <div class="modal-dialog modal-sm">
                                 <div class="modal-content">
@@ -161,7 +140,6 @@
                               </div>
                             </div>
 
-                            {# --- Modal Cấm/Bỏ cấm User --- #}
                             {% if review.author %}
                             <div class="modal fade" id="toggleBanModal{{ review.author.id }}" tabindex="-1" aria-hidden="true">
                               <div class="modal-dialog modal-sm">
@@ -178,7 +156,7 @@
                                   </div>
                                   <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                    <form action="{{ url_for('admin.toggle_comment_ban', user_id=review.author.id) }}" method="POST" class="d-inline">
+                                    <form action="{{ url_for('admin.toggle_user_comment_ban', user_id=review.author.id) }}" method="POST" class="d-inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn {{ 'btn-success' if review.author.is_comment_banned else 'btn-warning' }} btn-sm">
                                             {{ 'Bỏ chặn' if review.author.is_comment_banned else 'Xác nhận Chặn' }}
@@ -212,13 +190,17 @@
 
 {% block extra_js %}
     {{ super() }}
-    {# Khởi tạo Popover (Bootstrap 5) #}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
             var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-                return new bootstrap.Popover(popoverTriggerEl, { html: true, sanitize: false }); // Cho phép HTML, tắt sanitize nếu cần
+                return new bootstrap.Popover(popoverTriggerEl, { html: true, sanitize: false });
             });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                 return new bootstrap.Tooltip(tooltipTriggerEl)
+             })
         });
     </script>
 {% endblock %}

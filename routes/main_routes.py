@@ -526,26 +526,49 @@ def internal_server_error(e):
 
 @main_bp.route('/promotions')
 def promotions_page():
-    """Trang hiển thị tất cả khuyến mãi (Nếu muốn có trang riêng)."""
+    """Trang hiển thị tất cả khuyến mãi (active, upcoming, expired)."""
     logger = current_app.logger if current_app else logging.getLogger(__name__)
-    logger.info("Accessing promotions page.")
+    logger.info("Accessing ALL promotions page.")
+    now = datetime.utcnow() # Sử dụng UTC để so sánh nhất quán với DB (nếu DB dùng UTC)
+                            # Hoặc timezone của server/quán bạn nếu DB lưu local time.
+    active_promotions_list = []
+    upcoming_promotions_list = []
+    expired_or_inactive_promotions_list = []
+
     try:
-        now = datetime.utcnow()
-        all_active_promotions = Promotion.query.filter(
-            Promotion.is_active == True,
-            Promotion.start_date <= now,
-            Promotion.end_date >= now
-        ).order_by(Promotion.end_date.asc()).all()
+        # Query tất cả khuyến mãi, sắp xếp để dễ phân loại và hiển thị
+        # Ưu tiên sắp xếp theo trạng thái, rồi đến ngày kết thúc/bắt đầu
+        all_promotions = Promotion.query.order_by(
+            Promotion.is_active.desc(), # Active lên đầu
+            Promotion.start_date.asc(), # Sắp tới gần nhất lên đầu (cho upcoming)
+            Promotion.end_date.desc()   # Sắp hết hạn gần nhất lên đầu (cho active)
+        ).all()
+
+        for promo in all_promotions:
+            if promo.is_active and promo.start_date <= now <= promo.end_date:
+                active_promotions_list.append(promo)
+            elif promo.is_active and promo.start_date > now:
+                upcoming_promotions_list.append(promo)
+            else: # Bao gồm is_active == False HOẶC đã hết hạn (promo.end_date < now)
+                expired_or_inactive_promotions_list.append(promo)
+        
+        # Sắp xếp lại các list con nếu cần (ví dụ: active thì sắp hết hạn lên đầu)
+        active_promotions_list.sort(key=lambda p: p.end_date) 
+        upcoming_promotions_list.sort(key=lambda p: p.start_date)
+        # expired_or_inactive_promotions_list.sort(key=lambda p: p.end_date, reverse=True) # Mới hết hạn lên đầu
+
     except Exception as e:
-        logger.error(f"Error fetching all active promotions: {e}", exc_info=True)
-        all_active_promotions = []
+        logger.error(f"Error fetching all promotions for display: {e}", exc_info=True)
         flash("Lỗi khi tải danh sách khuyến mãi.", "danger")
 
-    # Cần tạo template 'promotions.html' nếu bạn muốn trang này
-    return render_template('promotions.html', # <-- Tạo file template này nếu cần
-                           promotions=all_active_promotions,
-                           format_currency=format_currency,
-                           title="Ưu đãi Hiện có")
+    return render_template('promotions.html',
+                           active_promotions=active_promotions_list,
+                           upcoming_promotions=upcoming_promotions_list,
+                           expired_or_inactive_promotions=expired_or_inactive_promotions_list,
+                           format_currency=format_currency, # Vẫn truyền format_currency
+                           title="Tất cả Ưu đãi",
+                           now_utc=now # Truyền now_utc vào template để so sánh
+                           )
 
 @main_bp.route('/api/menu-products')
 def api_menu_products():

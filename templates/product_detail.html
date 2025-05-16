@@ -2,239 +2,413 @@
 
 {% block title %}{{ product.name }} - Dragon Coffee{% endblock %}
 
+{% block extra_css %}
+{{ super() }}
+<style>
+    /* -- Product Detail Card -- */
+    .product-detail-wrapper { /* Container chính bao quanh toàn bộ chi tiết và tabs */
+        background-color: #fff;
+        border-radius: var(--border-radius-soft, 10px);
+        box-shadow: var(--box-shadow-medium, 0 8px 25px rgba(0,0,0,0.07));
+        padding: 2.5rem;
+        border: 1px solid var(--border-color-subtle, #EAE0D6);
+        margin-bottom: 3rem;
+    }
+    @media (max-width: 768px) {
+        .product-detail-wrapper { padding: 1.5rem; }
+    }
+
+    /* -- Product Image Column -- */
+    .main-product-image {
+        width: 100%;
+        max-height: 500px; /* Tăng nhẹ max-height nếu cần ảnh to hơn */
+        object-fit: cover; /* Đảm bảo ảnh phủ kín, có thể crop nếu tỉ lệ khác */
+        border-radius: var(--border-radius-soft);
+        box-shadow: var(--box-shadow-soft);
+        border: 1px solid var(--border-color-subtle);
+        background-color: #f9f9f9; /* Nền cho ảnh khi chưa load / có khoảng trống */
+    }
+    /* Thêm style cho thumbnail nếu có */
+
+    /* -- Product Info Column -- */
+    .product-info-column .product-category {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.3rem 0.8rem;
+        background-color: var(--accent-color);
+        color: var(--dark-color);
+        border-radius: var(--border-radius-pill);
+        margin-bottom: 0.8rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .product-info-column .product-title {
+        font-size: 2.4rem; /* Kích thước tiêu đề sản phẩm */
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+        font-family: var(--font-heading);
+    }
+    .product-rating { margin-bottom: 1rem; font-size: 1rem; }
+    .product-rating .fa-star, .product-rating .fa-star-half-alt { color: var(--warning-color); font-size: 1.1em; margin-right:2px; }
+    .product-rating .text-muted { font-size: 0.9em; }
+
+    .product-price {
+        font-size: 2.2rem; /* Giá to, nổi bật */
+        font-weight: 700;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+        border-bottom: 2px dashed var(--border-color-subtle); /* Gạch ngang dưới giá */
+        padding-bottom: 1rem;
+    }
+    .product-section-title {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        color: var(--primary-color);
+        margin-top: 1.5rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color-subtle); /* Gạch ngang nhẹ cho tiểu mục */
+    }
+    .product-description p {
+        color: #555;
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+    .ai-generated-description { /* Giữ lại style cũ cho AI desc */
+        font-style: italic; color: #777; border-left: 3px solid var(--info-color);
+        padding: 8px 12px; margin: 15px 0; background-color: rgba(13, 202, 240, 0.05);
+        border-radius: 0 4px 4px 0;
+    }
+    .product-availability { margin-bottom: 1.5rem; font-weight: 500; }
+    .product-availability .fa-check-circle { color: var(--success-color); }
+    .product-availability .fa-times-circle { color: var(--danger-color); }
+
+    /* Form Add to Cart */
+    #add-to-cart-form .form-label { font-weight: 600; color: #495057; font-size: 0.9rem; }
+    #add-to-cart-form .form-select, #add-to-cart-form .form-control {
+        border-radius: 6px;
+        font-size: 0.95rem;
+        padding: 0.55rem 0.85rem; /* Padding nhỏ gọn hơn cho form control */
+    }
+    #add-to-cart-form .input-group .btn {
+        border-radius: 6px; /* Giữ bo góc đồng nhất */
+        border-color: #ced4da;
+        color: #495057;
+    }
+     #add-to-cart-form .input-group .btn:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+    #add-to-cart-form .input-group input[type="number"] { max-width: 60px;}
+    #add-to-cart-form .btn-primary { /* Nút "Thêm vào giỏ" */
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color:white;
+    }
+     #add-to-cart-form .btn-primary:hover {
+        background-color: #523A28; /* Darker primary */
+        border-color: #523A28;
+    }
+    #add-to-cart-form .btn-outline-primary { /* Nút "Mua ngay" */
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    #add-to-cart-form .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .product-meta { margin-top: 2rem; font-size: 0.85rem; color: var(--gray-color); }
+    .product-meta strong { color: var(--dark-color); }
+    .product-meta a { color: var(--secondary-color); }
+    .product-meta span:not(:last-child)::after { content: " | "; margin: 0 0.5rem; opacity:0.5; }
+
+    /* -- Product Tabs Styling (Nằm ngoài card chính) -- */
+    .product-tabs-section { margin-top: 0; margin-bottom: 2rem; } /* Bỏ margin-top nếu tabs nằm ngay dưới card */
+    .nav-tabs .nav-link {
+        font-weight: 600;
+        color: var(--gray-color);
+        border: none;
+        border-bottom: 3px solid transparent; /* Border bottom cho active/hover */
+        padding: 0.8rem 1.5rem; /* Padding cho nav link */
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .nav-tabs .nav-link.active, .nav-tabs .nav-link:hover {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background-color: transparent; /* Không cần nền cho tab link */
+    }
+    .tab-content { padding: 2rem 0; /* Padding cho nội dung tab */ }
+    .reviews-section .product-section-title, /* Dùng chung product-section-title cho các tiểu mục */
+    .nutrition-section .product-section-title,
+    .shipping-section .product_section-title {
+        text-align: left; /* Căn trái cho các title này */
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0; /* Gạch dưới title nhẹ hơn */
+    }
+     .reviews-section .product-section-title::after, /* Bỏ gạch chân trang trí của section-title */
+    .nutrition-section .product-section-title::after,
+    .shipping-section .product_section-title::after {
+         display: none;
+    }
+
+    /* Reviews List */
+    .review-item {
+        background-color: #fdfdfd; /* Nền review item sáng hơn chút */
+        border-color: #eee;
+        border-radius: var(--border-radius-soft);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+        margin-bottom: 1.5rem;
+        padding: 1.5rem; /* Padding chuẩn cho review item */
+    }
+    .review-item .reviewer h5 { font-size: 1.1rem; color: var(--primary-color); }
+    .review-item .rating { font-size: 0.95rem; }
+    .review-item .review-content { font-size: 0.9rem; color: #444; }
+    .reviews-summary { background-color: rgba(111,78,55,0.03); border-radius: var(--border-radius-soft); border:1px solid var(--border-color-subtle);}
+    .reviews-summary .display-4 { color: var(--secondary-color); }
+    .reviews-summary .progress { height: 10px; border-radius: 5px; }
+    .product-reviews-form { background-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+    /* Similar Products */
+    .similar-products .section-title { /* Style riêng cho title phần SP tương tự */
+         margin-top: 3rem;
+         margin-bottom: 1.5rem;
+         font-size: 1.8rem; /* Title nhỏ hơn */
+         text-align: left; /* Căn trái */
+    }
+    .similar-products .section-title::after { /* Bỏ gạch dưới */
+        display:none;
+    }
+    .similar-products .product-card {
+         box-shadow: var(--box-shadow-soft); /* Shadow nhẹ hơn */
+         margin-bottom: 1.5rem;
+    }
+    .similar-products .product-card:hover { transform: translateY(-4px); }
+    .similar-products .card-img-top { height: 160px; } /* Ảnh SP tương tự nhỏ hơn */
+    .similar-products .card-title { font-size: 1rem; }
+    .similar-products .card-text.price { font-size: 1.1rem; margin-bottom: 0.8rem;}
+    .similar-products .btn-sm { font-size: 0.8rem; padding: 0.4rem 0.8rem;}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
+<div class="container my-4">
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
+        <ol class="breadcrumb bg-light px-3 py-2 rounded-pill" style="font-size: 0.85rem;">
             <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">{{ _('Trang chủ') }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('main.menu') }}">{{ _('Thực đơn') }}</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('main.menu', category_id=product.category_id) }}">{{ product.category.name }}</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item"><a href="{{ url_for('main.menu', category=product.category_id) }}">{{ product.category.name }}</a></li>
+            {% endif %}
             <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
         </ol>
     </nav>
 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="product-images mb-4">
-                <div class="main-image">
+    <div class="product-detail-wrapper">
+        <div class="row">
+            {# ----- Cột Ảnh Sản Phẩm ----- #}
+            <div class="col-lg-5 mb-4 mb-lg-0 product-image-column text-center">
+                <div class="main-image sticky-top" style="top: 85px;">
                     {% if product.image_url %}
-                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded main-product-image">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid main-product-image">
                     {% else %}
-                        <img src="{{ url_for('static', filename='img/product-placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid rounded main-product-image">
+                        <img src="{{ url_for('static', filename='images/default_product_large.png') }}" alt="{{ product.name }}" class="img-fluid main-product-image">
                     {% endif %}
+                    {# Thêm thumbnails nếu có nhiều ảnh #}
                 </div>
             </div>
-        </div>
-        <div class="col-md-7">
-            <div class="product-details ps-md-4">
-                <h1 class="mb-3">{{ product.name }}</h1>
 
-                {% if product.is_featured %}
-                <div class="badge bg-primary mb-3">{{ _('Sản phẩm nổi bật') }}</div>
+            {# ----- Cột Thông Tin Sản Phẩm ----- #}
+            <div class="col-lg-7 product-info-column">
+                {% if product.category %}
+                <span class="product-category">{{ product.category.name }}</span>
                 {% endif %}
+                <h1 class="product-title">{{ product.name }}</h1>
 
-                <div class="product-rating mb-3">
+                <div class="product-rating mb-2">
                     {% if avg_rating is not none and avg_rating > 0 %}
-                        <span class="me-1"> {{ "%.1f"|format(avg_rating) }}</span>
+                        <span class="me-1 fw-bold" style="color: var(--dark-color);">{{ "%.1f"|format(avg_rating) }}</span>
                         {% for i in range(5) %}
-                            {% if i < avg_rating|round(0, 'floor') %}
-                                <i class="fas fa-star text-warning"></i>
-                            {% elif i < avg_rating|round(1) %}
-                                <i class="fas fa-star-half-alt text-warning"></i>
-                            {% else %}
-                                <i class="far fa-star text-warning"></i>
-                            {% endif %}
+                            {% if i < avg_rating|round(0, 'floor') %} <i class="fas fa-star"></i>
+                            {% elif i < avg_rating|round(1) %} <i class="fas fa-star-half-alt"></i>
+                            {% else %} <i class="far fa-star"></i> {% endif %}
                         {% endfor %}
-                        <span class="ms-2">({{ reviews|length }} {{ _('đánh giá') }})</span>
+                        <a href="#reviews-tab" class="ms-2 text-muted text-decoration-underline">({{ reviews|length }} {{ _('đánh giá') }})</a>
                     {% else %}
                         <span class="text-muted">{{ _('Chưa có đánh giá') }}</span>
                     {% endif %}
                 </div>
 
-                <h2 class="product-price mb-3">{{ format_currency(product.price) }}</h2>
+                <p class="product-price">{{ format_currency(product.price) }}</p>
+                <hr class="my-3" style="border-style: dashed; border-color: #ddd;">
 
-                <div class="product-description mb-4">
-                    <h4 class="mb-3">Mô tả sản phẩm</h4>
+                <h4 class="product-section-title">Mô tả</h4>
+                <div class="product-description">
                     {% if product.description and product.description|length >= 10 %}
-                        <p>{{ product.description }}</p>
+                        <p>{{ product.description|safe }}</p>
                     {% elif ai_product_description %}
                         <p class="ai-generated-description">
-                            {{ ai_product_description }}
-                            <span class="badge bg-info ms-2" style="font-size: 0.7em;">AI Generated</span>
+                            {{ ai_product_description|safe }}
+                            <span class="badge bg-info text-dark ms-2" style="font-size: 0.7em;">AI Generated</span>
                         </p>
                     {% else %}
-                        <p class="text-muted"><i>Chưa có mô tả chi tiết cho sản phẩm này.</i></p>
+                        <p class="text-muted fst-italic">{{ _('Chưa có mô tả chi tiết cho sản phẩm này.') }}</p>
                     {% endif %}
                 </div>
 
-                <div class="product-availability mb-4">
+                <div class="product-availability my-3">
                     {% if product.is_available %}
-                        <div class="text-success"><i class="fas fa-check-circle me-1"></i> {{ _('Còn hàng') }}</div>
+                        <span class="text-success fw-medium"><i class="fas fa-check-circle me-1"></i> {{ _('Còn hàng') }}</span>
                     {% else %}
-                        <div class="text-danger"><i class="fas fa-times-circle me-1"></i> {{ _('Hết hàng') }}</div>
+                        <span class="text-danger fw-medium"><i class="fas fa-times-circle me-1"></i> {{ _('Hết hàng') }}</span>
                     {% endif %}
                 </div>
+                <hr class="my-3">
 
                 {% if product.is_available %}
                 <form id="add-to-cart-form" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="size" class="form-label">{{ _('Kích cỡ') }}</label>
-                            <select class="form-select" id="size" name="size">
+                     <input type="hidden" id="detailProductId" name="product_id" value="{{ product.id }}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5 col-6">
+                            <label for="size" class="form-label">{{ _('Kích cỡ') }}:</label>
+                            <select class="form-select form-select-sm" id="size" name="size">
                                 <option value="small">{{ _('Nhỏ') }}</option>
                                 <option value="medium" selected>{{ _('Vừa') }}</option>
                                 <option value="large">{{ _('Lớn') }} (+{{ format_currency(product.price * 0.2) }})</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label for="quantity" class="form-label">{{ _('Số lượng') }}</label>
-                            <div class="input-group">
+                        <div class="col-md-4 col-6">
+                            <label for="quantity" class="form-label">{{ _('Số lượng') }}:</label>
+                            <div class="input-group input-group-sm">
                                 <button type="button" class="btn btn-outline-secondary qty-btn" id="decQty">-</button>
-                                <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1" max="10">
+                                <input type="number" class="form-control text-center fw-bold" id="quantity" name="quantity" value="1" min="1" max="20">
                                 <button type="button" class="btn btn-outline-secondary qty-btn" id="incQty">+</button>
                             </div>
                         </div>
                     </div>
-
                     <div class="row mt-3">
                         <div class="col-12">
-                            <label for="notes" class="form-label">{{ _('Ghi chú đặc biệt') }}</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="{{ _('Ví dụ: Ít đường, không đá...') }}"></textarea>
+                            <label for="notes" class="form-label">{{ _('Ghi chú đặc biệt') }}:</label>
+                            <textarea class="form-control form-control-sm" id="notes" name="notes" rows="2" placeholder="{{ _('Ví dụ: Ít đường, không đá...') }}"></textarea>
                         </div>
                     </div>
-
-                    <div class="d-grid gap-2 d-md-flex mt-4">
-                        <button type="button" class="btn btn-primary btn-lg flex-grow-1 add-to-cart-btn" data-product-id="{{ product.id }}">
-                            <i class="fas fa-shopping-cart me-2"></i> {{ _('Thêm vào giỏ hàng') }}
+                    <div class="d-grid gap-2 d-sm-flex mt-4">
+                        <button type="button" class="btn btn-primary flex-grow-1 add-to-cart-btn">
+                            <i class="fas fa-cart-plus me-2"></i> {{ _('Thêm vào giỏ') }}
                         </button>
-                        <button type="button" class="btn btn-outline-primary btn-lg add-to-cart-btn" data-product-id="{{ product.id }}" data-action="buy-now">
+                        <button type="button" class="btn btn-outline-primary flex-grow-1 add-to-cart-btn" data-action="buy-now">
                             <i class="fas fa-bolt me-2"></i> {{ _('Mua ngay') }}
                         </button>
                     </div>
                 </form>
                 {% endif %}
+                <hr class="my-3">
 
                 <div class="product-meta">
-                    <div class="d-flex flex-wrap gap-3">
-                        <span class="me-3"><strong>{{ _('Danh mục') }}:</strong> <a href="{{ url_for('main.menu', category=product.category_id) }}">{{ product.category.name }}</a></span>
-                        <span class="me-3"><strong>{{ _('Mã SP') }}:</strong> #{{ product.id }}</span>
-                        <span class="me-3"><strong>{{ _('Cập nhật') }}:</strong> {{ product.updated_at.strftime('%d/%m/%Y') if product.updated_at else 'N/A'}}</span>
-                    </div>
+                    <span title="Mã sản phẩm"><strong>{{ _('Mã SP') }}:</strong> #{{ product.id }}</span>
+                    <span title="Cập nhật lần cuối"><strong>{{ _('Cập nhật') }}:</strong> {{ product.updated_at.strftime('%d/%m/%Y') if product.updated_at else 'N/A'}}</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Product tabs -->
-    <div class="row mt-5">
+
+    <!-- Product tabs: Reviews, Nutrition, Shipping -->
+    <div class="row mt-4 product-tabs-section">
         <div class="col-12">
             <ul class="nav nav-tabs" id="productTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="true">
-                        {{ _('Đánh giá') }} ({{ reviews|length }})
+                    <button class="nav-link active" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviewsContent" type="button" role="tab" aria-controls="reviewsContent" aria-selected="true">
+                        <i class="fas fa-comments me-1"></i> {{ _('Đánh giá') }} ({{ reviews|length }})
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab" aria-controls="nutrition" aria-selected="false">
-                        {{ _('Thông tin dinh dưỡng') }}
+                    <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutritionContent" type="button" role="tab" aria-controls="nutritionContent" aria-selected="false">
+                        <i class="fas fa-utensils me-1"></i> {{ _('Dinh dưỡng') }}
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab" aria-controls="shipping" aria-selected="false">
-                        {{ _('Vận chuyển & Đổi trả') }}
+                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shippingContent" type="button" role="tab" aria-controls="shippingContent" aria-selected="false">
+                       <i class="fas fa-truck-fast me-1"></i> {{ _('Giao hàng') }}
                     </button>
                 </li>
             </ul>
 
-            <div class="tab-content mt-4" id="productTabsContent">
-                <!-- Reviews tab -->
-                <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+            <div class="tab-content py-4" id="productTabsContent">
+                <!-- Reviews tab content -->
+                <div class="tab-pane fade show active reviews-section" id="reviewsContent" role="tabpanel" aria-labelledby="reviews-tab">
                     <div class="row">
                         <div class="col-lg-7">
+                             <h4 class="product-section-title">{{ _('Đánh giá từ khách hàng') }}</h4>
                             <div class="reviews-list mb-4">
-                                <h3 class="h4 mb-3">{{ _('Đánh giá từ khách hàng') }}</h3>
                                 {% if reviews|length > 0 %}
                                     {% for review in reviews %}
-                                    <div class="review-item p-4 mb-4 border rounded shadow-sm">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="review-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
                                             <div class="reviewer">
                                                 <h5 class="mb-0">
-                                                    <i class="fas fa-user-circle text-secondary me-1"></i>
-                                                    {# Kiểm tra author tồn tại #}
-                                                    {{ review.author.username if review.author else 'Ẩn danh' }}
+                                                    <i class="fas fa-user-circle text-secondary me-1 opacity-75" style="font-size: 0.9em;"></i>
+                                                    {{ review.author.username if review.author else _('Ẩn danh') }}
                                                 </h5>
                                                 <small class="text-muted ms-1">{{ review.created_at.strftime('%d/%m/%Y %H:%M') if review.created_at else '' }}</small>
                                             </div>
                                             <div class="rating">
-                                                {# Kiểm tra review.rating tồn tại trước khi lặp #}
                                                 {% if review.rating is not none %}
                                                     {% for i in range(5) %}
-                                                        <i class="{% if i < review.rating %}fas{% else %}far{% endif %} fa-star text-warning"></i>
+                                                        <i class="{% if i < review.rating %}fas{% else %}far{% endif %} fa-star"></i>
                                                     {% endfor %}
-                                                {% else %}
-                                                    <span class="text-muted small">Chưa đánh giá sao</span>
-                                                {% endif %}
+                                                {% else %} <span class="text-muted small">{{_('Chưa có sao')}}</span> {% endif %}
                                             </div>
                                         </div>
                                         <div class="review-content">
                                             {% if review.is_toxic_guess %}
-                                                <p class="mb-1 text-muted"><em>{{ review.content | safe if review.content else 'Nội dung đã bị ẩn do không phù hợp.' }}</em></p>
+                                                <p class="mb-1 text-muted"><em>{{ review.content | safe if review.content else _('Nội dung đã ẩn.') }}</em></p>
                                             {% else %}
-                                                {# Kiểm tra review.content tồn tại #}
-                                                <p class="mb-1">{{ review.content | safe if review.content else 'Không có nhận xét chi tiết.' }}</p>
+                                                <p class="mb-1">{{ review.content | safe if review.content else _('Không có nhận xét.') }}</p>
                                             {% endif %}
                                         </div>
-                                    
-                                        {# ---- SỬA KHỐI HIỂN THỊ SENTIMENT BADGE ---- #}
-                                        {# Chỉ hiển thị khối này nếu có sentiment_label #}
-                                        {% if review.sentiment_label %} {# Chỉ hiển thị nếu có label #}
+                                        {% if review.sentiment_label %}
                                         <div class="sentiment-badge-container text-end mt-2">
-                                            {% set badge_class = 'secondary' %}
-                                            {% set icon_class = 'fa-meh-blank' %}
-                                            {% set label_text = review.sentiment_label|capitalize %}
-
-                                            {% if review.sentiment_label == 'positive' %}
-                                                {% set badge_class = 'success' %}{% set icon_class = 'fa-smile-beam' %}{% set label_text = 'Tích cực' %}
-                                            {% elif review.sentiment_label == 'negative' %}
-                                                {% set badge_class = 'danger' %}{% set icon_class = 'fa-frown' %}{% set label_text = 'Tiêu cực' %}
-                                            {% elif review.sentiment_label == 'neutral' %}
-                                                {% set badge_class = 'warning text-dark' %}{% set icon_class = 'fa-meh' %}{% set label_text = 'Trung tính' %}
+                                            {% set badge_class = 'secondary' %}{% set icon_class = 'fa-meh-blank' %}{% set label_text = review.sentiment_label|capitalize %}
+                                            {% if review.sentiment_label == 'positive' %}{% set badge_class = 'success' %}{% set icon_class = 'fa-smile-beam' %}{% set label_text = _('Tích cực') %}
+                                            {% elif review.sentiment_label == 'negative' %}{% set badge_class = 'danger' %}{% set icon_class = 'fa-frown' %}{% set label_text = _('Tiêu cực') %}
+                                            {% elif review.sentiment_label == 'neutral' %}{% set badge_class = 'warning text-dark' %}{% set icon_class = 'fa-meh' %}{% set label_text = _('Trung tính') %}
                                             {% endif %}
-
-                                            <span class="badge rounded-pill bg-{{ badge_class }} px-2 py-1 sentiment-badge"
-                                                {% if review.sentiment_score is not none %} data-bs-toggle="tooltip" title="Điểm: {{ '%.2f'|format(review.sentiment_score) }}" {% endif %}>
+                                            <span class="badge rounded-pill bg-{{ badge_class }} px-2 py-1 sentiment-badge" {% if review.sentiment_score is not none %} data-bs-toggle="tooltip" title="{{_('Điểm')}}: {{ '%.2f'|format(review.sentiment_score) }}" {% endif %}>
                                                 <i class="fas {{ icon_class }} me-1"></i> {{ label_text }}
                                             </span>
                                         </div>
                                         {% endif %}
-                                        {# ---- KẾT THÚC KHỐI SENTIMENT BADGE ---- #}
-                                    
                                     </div>
                                     {% endfor %}
                                 {% else %}
-                                    <div class="text-center py-5 bg-light rounded">
-                                        <i class="far fa-comment-dots fa-3x text-muted mb-3"></i>
-                                        <h4>{{ _('Chưa có đánh giá nào') }}</h4>
-                                        <p class="text-muted">{{ _('Hãy là người đầu tiên đánh giá sản phẩm này!') }}</p>
+                                    <div class="text-center py-4 bg-light rounded">
+                                        <i class="far fa-comment-dots fa-2x text-muted mb-3"></i>
+                                        <h6>{{ _('Chưa có đánh giá nào') }}</h6>
+                                        <p class="text-muted small">{{ _('Hãy là người đầu tiên đánh giá sản phẩm này!') }}</p>
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-5">
                             <div class="sticky-top" style="top: 100px;">
-                                <div class="reviews-summary p-4 bg-light rounded mb-4">
-                                     <h3 class="h4 mb-4">{{ _('Tổng quan') }}</h3>
+                                <div class="reviews-summary p-4 mb-4">
+                                     <h4 class="product-section-title">{{ _('Tổng quan') }}</h4>
                                      <div class="d-flex align-items-center mb-3">
-                                        <h2 class="display-4 mb-0 me-3 fw-bold">{{ "%.1f"|format(avg_rating) }}</h2>
+                                        <h2 class="display-4 mb-0 me-3 fw-bold">{{ "%.1f"|format(avg_rating) if avg_rating is not none else "0.0" }}</h2>
                                          <div>
-                                             {% if avg_rating > 0 %}
+                                             {% if avg_rating is not none and avg_rating > 0 %}
                                                 {% for i in range(5) %}
-                                                    {% if i < avg_rating|int %} <i class="fas fa-star fa-lg text-warning"></i>
-                                                    {% elif i < avg_rating|round(1) %} <i class="fas fa-star-half-alt fa-lg text-warning"></i>
-                                                    {% else %} <i class="far fa-star fa-lg text-warning"></i> {% endif %}
+                                                    {% if i < avg_rating|int %} <i class="fas fa-star fa-lg"></i>
+                                                    {% elif i < avg_rating|round(1) %} <i class="fas fa-star-half-alt fa-lg"></i>
+                                                    {% else %} <i class="far fa-star fa-lg"></i> {% endif %}
                                                 {% endfor %}
                                             {% else %}
-                                                 {% for i in range(5) %} <i class="far fa-star fa-lg text-muted"></i> {% endfor %}
+                                                 {% for i in range(5) %} <i class="far fa-star fa-lg text-muted opacity-50"></i> {% endfor %}
                                              {% endif %}
                                              <div class="small text-muted mt-1">{{ _('Dựa trên') }} {{ reviews|length }} {{ _('đánh giá') }}</div>
                                          </div>
@@ -242,11 +416,11 @@
                                     <div class="rating-breakdown">
                                          {% for i in range(5, 0, -1) %}
                                              {% set count = reviews|selectattr('rating', 'equalto', i)|list|length %}
-                                             {% set review_count = reviews|length %}
-                                             {% set percentage = (count / max(review_count, 1) * 100) %}
+                                             {% set review_count = max(reviews|length, 1) %}
+                                             {% set percentage = (count / review_count * 100) %}
                                              <div class="d-flex align-items-center mb-2">
-                                                 <div class="me-2 small text-muted">{{ i }} <i class="fas fa-star text-muted fa-xs"></i></div>
-                                                 <div class="progress flex-grow-1" style="height: 8px;">
+                                                 <div class="me-2 small text-muted">{{ i }} <i class="fas fa-star fa-xs text-muted"></i></div>
+                                                 <div class="progress flex-grow-1">
                                                      <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                                                  </div>
                                                  <div class="ms-2 small text-muted">{{ count }}</div>
@@ -254,40 +428,18 @@
                                          {% endfor %}
                                      </div>
                                 </div>
-
-                                <div class="product-reviews-form mt-4 border p-4 rounded bg-white shadow-sm">
-                                     <h3 class="h4 mb-3">{{ _('Viết đánh giá của bạn') }}</h3>
+                                <div class="product-reviews-form border p-4 rounded shadow-sm">
+                                     <h4 class="product-section-title">{{ _('Viết đánh giá của bạn') }}</h4>
                                     {% if current_user.is_authenticated %}
                                         {% if not current_user.is_comment_banned %}
                                             <form method="POST" id="reviewSubmitForm">
                                                 {{ review_form.hidden_tag() }}
-                                                <div class="mb-3">
-                                                    {{ review_form.rating.label(class="form-label") }}
-                                                    {{ review_form.rating(class="form-select" + (" is-invalid" if review_form.rating.errors else "")) }}
-                                                    {% if review_form.rating.errors %}
-                                                    <div class="invalid-feedback"> {% for error in review_form.rating.errors %} {{ error }} {% endfor %} </div>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="mb-3">
-                                                    {{ review_form.content.label(class="form-label") }}
-                                                    {{ review_form.content(id="reviewContentInput", class="form-control" + (" is-invalid" if review_form.content.errors else ""), rows="4", placeholder="Chia sẻ cảm nhận của bạn...") }}
-                                                    {% if review_form.content.errors %}
-                                                    <div class="invalid-feedback"> {% for error in review_form.content.errors %} {{ error }} {% endfor %} </div>
-                                                    {% endif %}
-                                                </div>
-                                                {{ review_form.submit(class="btn btn-primary w-100") }}
+                                                <div class="mb-3"> {{ review_form.rating.label(class="form-label") }} {{ review_form.rating(class="form-select form-select-sm" + (" is-invalid" if review_form.rating.errors else "")) }} {% if review_form.rating.errors %} <div class="invalid-feedback"> {% for error in review_form.rating.errors %} {{ error }} {% endfor %} </div> {% endif %} </div>
+                                                <div class="mb-3"> {{ review_form.content.label(class="form-label") }} {{ review_form.content(id="reviewContentInput", class="form-control form-control-sm" + (" is-invalid" if review_form.content.errors else ""), rows="3", placeholder=_("Chia sẻ cảm nhận của bạn...")) }} {% if review_form.content.errors %} <div class="invalid-feedback"> {% for error in review_form.content.errors %} {{ error }} {% endfor %} </div> {% endif %} </div>
+                                                {{ review_form.submit(class="btn btn-primary btn-sm w-100") }}
                                             </form>
-                                        {% else %}
-                                             <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                                  <i class="fas fa-ban fa-lg me-2"></i>
-                                                  <div>{{ _('Tài khoản của bạn đã bị hạn chế gửi bình luận.') }}</div>
-                                             </div>
-                                         {% endif %}
-                                     {% else %}
-                                        <div class="alert alert-info">
-                                            Vui lòng <a href="{{ url_for('auth.login', next=request.url) }}">đăng nhập</a> để viết đánh giá.
-                                         </div>
-                                     {% endif %}
+                                        {% else %} <div class="alert alert-danger d-flex align-items-center" role="alert"> <i class="fas fa-ban fa-lg me-2"></i> <div>{{ _('Tài khoản đã bị hạn chế gửi bình luận.') }}</div> </div> {% endif %}
+                                     {% else %} <div class="alert alert-info"><p class="mb-0">{{_('Vui lòng')}} <a href="{{ url_for('auth.login', next=request.url) }}" class="fw-bold text-decoration-underline">{{_('đăng nhập')}}</a> {{_('để viết đánh giá.')}}</p></div> {% endif %}
                                  </div>
                             </div>
                          </div>
@@ -295,58 +447,60 @@
                  </div>
 
                  <!-- Nutrition tab -->
-                 <div class="tab-pane fade" id="nutrition" role="tabpanel" aria-labelledby="nutrition-tab">
+                 <div class="tab-pane fade nutrition-section" id="nutritionContent" role="tabpanel" aria-labelledby="nutrition-tab">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h3 class="h4 mb-4">{{ _('Thông tin dinh dưỡng') }}</h3>
-                            <table class="table table-bordered">
+                        <div class="col-md-7">
+                            <h4 class="product-section-title">{{ _('Thông tin dinh dưỡng') }}</h4>
+                            <table class="table table-sm table-bordered table-hover" style="font-size:0.9rem;">
+                                <thead class="table-light"><tr><th style="width:40%">{{_('Chỉ số')}}</th><th>{{_('Giá trị ước tính')}}</th></tr></thead>
                                 <tbody>
-                                    <tr><th scope="row">{{ _('Calo') }}</th><td>180-240 kcal</td></tr>
-                                    <tr><th scope="row">{{ _('Protein') }}</th><td>1-3g</td></tr>
-                                    <tr><th scope="row">{{ _('Chất béo') }}</th><td>2-9g</td></tr>
-                                    <tr><th scope="row">{{ _('Carbohydrate') }}</th><td>15-25g</td></tr>
-                                    <tr><th scope="row">{{ _('Đường') }}</th><td>10-20g</td></tr>
-                                    <tr><th scope="row">{{ _('Caffeine') }}</th><td>85-120mg</td></tr>
+                                    <tr><th scope="row">{{ _('Năng lượng') }}</th><td>180-240 kcal</td></tr>
+                                    <tr><th scope="row">{{ _('Protein') }}</th><td>1-3 g</td></tr>
+                                    <tr><th scope="row">{{ _('Chất béo tổng') }}</th><td>2-9 g</td></tr>
+                                    <tr><th scope="row">{{ _('Carbohydrate') }}</th><td>15-25 g</td></tr>
+                                    <tr><th scope="row">{{ _('Đường tổng') }}</th><td>10-20 g</td></tr>
+                                    <tr><th scope="row">{{ _('Caffeine') }}</th><td>85-120 mg</td></tr>
                                 </tbody>
                             </table>
-                            <p class="small text-muted mt-3">{{ _('* Giá trị dinh dưỡng ước tính cho size vừa. Có thể thay đổi tùy theo kích cỡ và yêu cầu.') }}</p>
+                            <p class="small text-muted mt-3 fst-italic">{{ _('* Giá trị dinh dưỡng ước tính cho size vừa. Có thể thay đổi tùy theo kích cỡ và yêu cầu đặc biệt của khách hàng.') }}</p>
                         </div>
-                        <div class="col-md-6">
-                             <h3 class="h4 mb-4">{{ _('Thành phần chính') }}</h3>
+                        <div class="col-md-5">
+                             <h4 class="product-section-title">{{ _('Thành phần chính') }}</h4>
                              <ul class="list-group list-group-flush">
-                                <li class="list-group-item">{{ _('Cà phê Arabica & Robusta blend đặc trưng') }}</li>
-                                <li class="list-group-item">{{ _('Sữa tươi nguyên kem (nếu chọn)') }}</li>
-                                <li class="list-group-item">{{ _('Nước tinh khiết') }}</li>
-                                <li class="list-group-item">{{ _('Đường, Syrup (tùy chọn)') }}</li>
+                                <li class="list-group-item bg-transparent px-0 py-2"><i class="fas fa-seedling me-2 text-success"></i> {{ _('Hỗn hợp cà phê Arabica & Robusta đặc trưng') }}</li>
+                                <li class="list-group-item bg-transparent px-0 py-2"><i class="fas fa-tint me-2 text-info"></i> {{ _('Nước tinh khiết') }}</li>
+                                <li class="list-group-item bg-transparent px-0 py-2"><i class="fas fa-prescription-bottle me-2 text-secondary opacity-75"></i> {{ _('Sữa tươi (nếu là món có sữa)') }}</li>
+                                <li class="list-group-item bg-transparent px-0 py-2"><i class="fas fa-cube me-2 text-muted opacity-50"></i> {{ _('Đường, Syrup (tùy theo món)') }}</li>
                              </ul>
-                             <p class="mt-4"><strong>{{ _('Cảnh báo dị ứng') }}:</strong> {{ _('Chứa hoặc có thể tiếp xúc với sữa, đậu nành.') }}</p>
+                             <p class="mt-4"><strong>{{ _('Cảnh báo dị ứng') }}:</strong> <span class="text-danger">{{ _('Chứa hoặc có thể tiếp xúc với sữa, đậu nành, các loại hạt.') }}</span> {{_('Vui lòng thông báo cho nhân viên nếu bạn có bất kỳ dị ứng thực phẩm nào.')}}</p>
                         </div>
                     </div>
                  </div>
 
                 <!-- Shipping tab -->
-                 <div class="tab-pane fade" id="shipping" role="tabpanel" aria-labelledby="shipping-tab">
-                     <h3 class="h4 mb-4">{{ _('Vận chuyển & Đổi trả') }}</h3>
+                 <div class="tab-pane fade shipping-section" id="shippingContent" role="tabpanel" aria-labelledby="shipping-tab">
+                     <h4 class="product-section-title">{{ _('Thông tin Vận chuyển & Đổi trả') }}</h4>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-light"> <h5 class="card-title mb-0"><i class="fas fa-truck me-2"></i> {{ _('Vận chuyển') }}</h5> </div>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header bg-light py-2"> <h5 class="mb-0"><i class="fas fa-shipping-fast me-2 text-primary"></i> {{ _('Chính sách Vận chuyển') }}</h5> </div>
                                 <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                        <li class="mb-2"><strong>{{ _('Giao hàng nội thành') }}:</strong> {{ _('Khoảng 20-40 phút.') }}</li>
-                                        <li class="mb-2"><strong>{{ _('Phí giao hàng') }}:</strong> {{ _('Từ 15.000đ, miễn phí cho đơn từ 100.000đ (tùy khu vực).') }}</li>
+                                    <ul class="list-unstyled mb-0" style="font-size:0.95rem; line-height:1.7;">
+                                        <li class="mb-2"><strong><i class="far fa-clock me-1 text-muted"></i> {{ _('Thời gian giao hàng') }}:</strong> {{ _('Nội thành: 20-40 phút. Ngoại thành/Tỉnh: 1-3 ngày.') }}</li>
+                                        <li class="mb-2"><strong><i class="fas fa-dollar-sign me-1 text-muted"></i> {{ _('Phí giao hàng') }}:</strong> {{ _('Từ 15.000đ. Miễn phí cho đơn từ 200.000đ (áp dụng cho một số khu vực nhất định).') }}</li>
+                                        <li><strong><i class="fas fa-box-open me-1 text-muted"></i> {{ _('Đóng gói') }}:</strong> {{ _('Sản phẩm được đóng gói cẩn thận, đảm bảo giữ trọn hương vị khi đến tay bạn.')}}</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
                          <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light"> <h5 class="card-title mb-0"><i class="fas fa-exchange-alt me-2"></i> {{ _('Đổi trả') }}</h5> </div>
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light py-2"> <h5 class="mb-0"><i class="fas fa-undo-alt me-2 text-success"></i> {{ _('Chính sách Đổi trả') }}</h5> </div>
                                 <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                         <li class="mb-2"><strong>{{ _('Điều kiện') }}:</strong> {{ _('Sai món, chất lượng không đảm bảo.') }}</li>
-                                         <li class="mb-2"><strong>{{ _('Liên hệ') }}:</strong> {{ _('Trong vòng 15 phút sau khi nhận.') }}</li>
-                                         <li><strong>{{ _('Giải quyết') }}:</strong> {{ _('Đổi món mới hoặc hoàn tiền 100%%.') }}</li>
+                                    <ul class="list-unstyled mb-0" style="font-size:0.95rem; line-height:1.7;">
+                                         <li class="mb-2"><strong><i class="fas fa-check-circle me-1 text-muted"></i> {{ _('Điều kiện đổi trả') }}:</strong> {{ _('Sản phẩm sai so với đơn đặt, chất lượng không đảm bảo, hư hỏng do vận chuyển.') }}</li>
+                                         <li class="mb-2"><strong><i class="far fa-calendar-alt me-1 text-muted"></i> {{ _('Thời gian liên hệ') }}:</strong> {{ _('Trong vòng 30 phút (đối với đồ uống/thực phẩm) hoặc 24h (đối với sản phẩm đóng gói) sau khi nhận hàng.') }}</li>
+                                         <li><strong><i class="fas fa-headset me-1 text-muted"></i> {{ _('Cách thức giải quyết') }}:</strong> {{ _('Hoàn tiền 100%% hoặc đổi sản phẩm mới tương đương. Vui lòng cung cấp hình ảnh/video làm bằng chứng.')}}</li>
                                      </ul>
                                  </div>
                              </div>
@@ -357,22 +511,22 @@
          </div>
      </div>
 
-    <!-- Similar products -->
-     <div class="similar-products mt-5">
-        <h3 class="mb-4">{{ _('Sản phẩm bạn có thể thích') }}</h3>
+    <!-- Similar products section -->
+     <div class="similar-products mt-4">
+        <h3 class="section-title text-center">{{ _('Sản phẩm bạn có thể thích') }}</h3>
         <div class="row">
             {% for rel_product in related_products %}
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 product-card">
-                        <a href="{{ url_for('main.product_detail', product_id=rel_product.id) }}" class="text-decoration-none">
+                <div class="col-lg-3 col-md-4 col-6 mb-4">
+                    <div class="card h-100 product-card shadow-sm">
+                        <a href="{{ url_for('main.product_detail', product_id=rel_product.id) }}" class="text-decoration-none d-block">
                          {% if rel_product.image_url %}
                             <img src="{{ rel_product.image_url }}" class="card-img-top" alt="{{ rel_product.name }}">
                          {% else %}
-                            <img src="{{ url_for('static', filename='img/product-placeholder.jpg') }}" class="card-img-top" alt="{{ rel_product.name }}">
+                            <img src="{{ url_for('static', filename='images/default_product.png') }}" class="card-img-top" alt="{{ rel_product.name }}">
                          {% endif %}
                          </a>
-                         <div class="card-body d-flex flex-column">
-                             <h5 class="card-title"><a href="{{ url_for('main.product_detail', product_id=rel_product.id) }}" class="text-dark text-decoration-none">{{ rel_product.name }}</a></h5>
+                         <div class="card-body d-flex flex-column p-3">
+                             <h5 class="card-title mb-1"><a href="{{ url_for('main.product_detail', product_id=rel_product.id) }}" class="text-dark text-decoration-none">{{ rel_product.name }}</a></h5>
                             <p class="card-text price mb-2">{{ format_currency(rel_product.price) }}</p>
                             <div class="mt-auto d-grid">
                                  <button class="btn btn-primary btn-sm add-to-cart-btn" data-product-id="{{ rel_product.id }}">
@@ -382,47 +536,16 @@
                          </div>
                      </div>
                  </div>
+             {% else %}
+              <div class="col-12 text-center text-muted py-3">
+                <p>{{_('Chưa có sản phẩm tương tự.')}}</p>
+              </div>
              {% endfor %}
          </div>
      </div>
  </div>
+{% endblock %}
 
- <!-- Toast container (already in base.html) -->
- {% endblock %}
-
- {% block styles %}
- {{ super() }}
- <style>
-     .main-product-image {
-         width: 100%; border-radius: var(--border-radius-soft); box-shadow: var(--box-shadow-medium);
-         max-height: 550px; object-fit: contain; background-color: #f9f9f9;
-         border: 1px solid var(--border-color-subtle);
-     }
-     .product-details { text-align: left; } /* Reset center align */
-     .product-price { color: var(--secondary-color); font-weight: 700; }
-     .product-rating { font-size: 1.1rem; }
-     .product-rating i.fa-star, .product-rating i.fa-star-half-alt { font-size: 1.1em; }
-     .product-card { box-shadow: var(--box-shadow-soft); }
-     .product-card:hover { transform: translateY(-6px); box-shadow: var(--box-shadow-medium); }
-     .product-card .card-img-top { height: 180px; object-fit: cover; }
-     .nav-tabs .nav-link { font-weight: 600; color: var(--gray-color); }
-     .nav-tabs .nav-link.active { color: var(--primary-color); border-color: var(--primary-color); border-bottom-width: 3px;}
-     .qty-btn { width: 40px; }
-     .review-item { background-color: #fff; border-color: #eee; }
-     .reviewer h5 { color: var(--primary-color); }
-     .rating-breakdown .progress { background-color: #eee; }
-     .ai-generated-description {
-        font-style: italic; color: #777; border-left: 3px solid var(--info-color);
-        padding: 8px 12px; margin: 15px 0; background-color: rgba(13, 202, 240, 0.05);
-        border-radius: 0 4px 4px 0;
-    }
-    .sentiment-badge { font-size: 0.7em; opacity: 0.9; vertical-align: middle; }
-    .sentiment-badge i { font-size: 1.1em; }
-    .sentiment-badge-container { line-height: 1; }
- </style>
- {% endblock %}
-
- {% block extra_js %}
-     {{ super() }}
-     {# JavaScript for review form toxicity check moved to main.js #}
- {% endblock %}
+{% block extra_js %}
+    {{ super() }}
+{% endblock %}

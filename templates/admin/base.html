@@ -1,204 +1,287 @@
+{# START OF FILE templates/admin/base.html #}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi"> 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dragon Coffee Shop - Admin Panel{% endblock %}</title>
+    <title>{% block title %}Trang Quản trị - Dragon Coffee{% endblock %}</title> 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <!-- Favicon -->
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐉</text></svg>">
-    
-    <!-- Google Fonts -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}"> 
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar d-none d-lg-block">
+    <div class="d-flex" id="admin-wrapper">
+        <aside class="admin-sidebar"> 
             <div class="sidebar-brand">
-                <i class="fas fa-dragon me-2"></i> Quản trị viên rồng
+                <a href="{{ url_for('admin.dashboard') }}" class="text-white text-decoration-none">
+                    <i class="fas fa-dragon me-2"></i> Quản trị viên
+                </a>
             </div>
-            
-            <ul class="sidebar-menu">
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt sidebar-icon"></i> Bảng điều khiển
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.menu_management') }}" class="sidebar-link {% if request.endpoint == 'admin.menu_management' %}active{% endif %}">
-                        <i class="fas fa-coffee sidebar-icon"></i> Quản lý thực đơn
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.orders') }}" class="sidebar-link {% if request.endpoint == 'admin.orders' %}active{% endif %}">
-                        <i class="fas fa-shopping-cart sidebar-icon"></i> Đơn hàng
-                        {# --- THÊM BADGE ĐƠN MỚI --- #}
-                        {% if new_order_count and new_order_count > 0 %}
-                            <span class="badge bg-warning float-end">{{ new_order_count }}</span>
-                        {% endif %}
-                        {# -------------------------- #}
-                    </a>
-                </li>
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.locations') }}" class="sidebar-link {% if request.endpoint.startswith('admin.locations') %}active{% endif %}">
-                        <i class="fas fa-map-marked-alt sidebar-icon"></i> Quản lý Địa điểm
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.inventory') }}" class="sidebar-link {% if request.endpoint.startswith('admin.inventory') or request.endpoint in ['admin.add_stock'] %}active{% endif %}">
-                        <i class="fas fa-boxes sidebar-icon"></i> Hàng tồn kho
-                        {# --- THÊM BADGE TỒN KHO --- #}
-                         {% if inventory_alert_count and inventory_alert_count > 0 %}
-                            <span class="badge bg-danger float-end">{{ inventory_alert_count }}</span> {# Dùng màu Danger cho tồn kho thấp/hết #}
-                         {% endif %}
-                        {# -------------------------- #}
-                    </a>
-                </li>
-                 {# === THÊM LINK NHẬP KHO === #}
-                <li class="sidebar-item">
-                     <a href="{{ url_for('admin.add_stock') }}" class="sidebar-link {% if request.endpoint == 'admin.add_stock' %}active{% endif %}" style="padding-left: 2.5rem;"> {# Thụt vào một chút #}
-                        <i class="fas fa-plus-circle sidebar-icon" style="opacity: 0.7;"></i> <span style="font-size: 0.9em;">Nhập kho mới</span> {# Icon mờ hơn, chữ nhỏ hơn #}
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.pos') }}" class="sidebar-link {% if request.endpoint == 'admin.pos' %}active{% endif %}">
-                        <i class="fas fa-cash-register sidebar-icon"></i> Hệ thống POS
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.reports') }}" class="sidebar-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
-                        <i class="fas fa-chart-bar sidebar-icon"></i> Báo cáo
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.employees') }}" class="sidebar-link {% if request.endpoint == 'admin.employees' %}active{% endif %}">
-                        <i class="fas fa-users sidebar-icon"></i> Nhân viên
-                    </a>
-                </li>
+            <nav class="sidebar-nav flex-grow-1"> 
+                <ul class="sidebar-menu">
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if request.endpoint.startswith('admin.users') %}active{% endif %}">
-                        <i class="fas fa-users sidebar-icon"></i> Khách hàng {# Icon users #}
-                    </a>
-                </li>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                            <i class="fas fa-tachometer-alt fa-fw sidebar-icon"></i>
+                            <span>Bảng điều khiển</span>
+                        </a>
+                    </li>
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.interesting_stories') }}" class="sidebar-link {% if request.endpoint.startswith('admin.interesting_stories') or request.endpoint in ['admin.generate_story', 'admin.edit_story'] %}active{% endif %}">
-                        <i class="fas fa-book-reader sidebar-icon"></i> Câu chuyện Thú vị
-                    </a>
-                </li>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('admin.orders') }}" class="sidebar-link {% if request.endpoint.startswith('admin.order') %}active{% endif %}">
+                            <i class="fas fa-shopping-cart fa-fw sidebar-icon"></i>
+                            <span>Đơn hàng</span>
+                            {% if new_order_count and new_order_count > 0 %}
+                                <span class="badge bg-warning rounded-pill ms-auto me-2">{{ new_order_count }}</span>
+                             {% endif %}
+                        </a>
+                    </li>
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.promotions') }}" class="sidebar-link {% if request.endpoint.startswith('admin.promotions') %}active{% endif %}">
-                        <i class="fas fa-tags sidebar-icon"></i> Khuyến mãi
-                    </a>
-                </li>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('admin.pos') }}" class="sidebar-link {% if request.endpoint == 'admin.pos' %}active{% endif %}">
+                            <i class="fas fa-cash-register fa-fw sidebar-icon"></i>
+                            <span>Hệ thống POS</span>
+                        </a>
+                    </li>
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.manage_reviews') }}" class="sidebar-link {% if request.endpoint.startswith('admin.manage_reviews') %}active{% endif %}">
-                        <i class="fas fa-comments sidebar-icon"></i> Quản lý Đánh giá
-                        {% if pending_review_count and pending_review_count > 0 %}
-                            <span class="badge bg-info float-end">{{ pending_review_count }}</span> {# Badge màu Info cho review chờ duyệt #}
-                        {% endif %}
-                    </a>
-                </li>
-                
-                <div class="sidebar-divider"></div>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('admin.inventory') }}" class="sidebar-link {% if request.endpoint.startswith('admin.inventory') or request.endpoint == 'admin.add_stock' %}active{% endif %}">
+                            <i class="fas fa-boxes fa-fw sidebar-icon"></i>
+                            <span>Hàng tồn kho</span>
+                             {% if inventory_alert_count and inventory_alert_count > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-auto me-2">{{ inventory_alert_count }}</span>
+                             {% endif %}
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('admin.add_stock') }}" class="sidebar-link sub-link {% if request.endpoint == 'admin.add_stock' %}active{% endif %}">
+                            <i class="fas fa-plus fa-fw sidebar-icon sub-icon"></i>
+                            <span class="sub-link-text">Nhập kho mới</span>
+                        </a>
+                    </li>
 
-                <li class="sidebar-item">
-                    <a href="{{ url_for('admin.contact_messages') }}" class="sidebar-link {% if request.endpoint.startswith('admin.contact_messages') or request.endpoint == 'admin.view_message' %}active{% endif %}">
-                       <i class="fas fa-envelope sidebar-icon"></i> Hộp thư Liên hệ
-                        {# -- ĐẢM BẢO BADGE NÀY CÓ -- #}
-                        {% if unread_message_count and unread_message_count > 0 %}
-                            <span class="badge bg-primary float-end">{{ unread_message_count }}</span>
-                       {% endif %}
-                   </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('main.index') }}" class="sidebar-link">
-                        <i class="fas fa-store sidebar-icon"></i> Xem trang web
-                    </a>
-                </li>
-                
-                <li class="sidebar-item">
-                    <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
-                        <i class="fas fa-sign-out-alt sidebar-icon"></i> Đăng xuất
-                    </a>
-                </li>
+                    {% if current_user.is_admin %}
+                        <div class="sidebar-divider"></div>
+                         <li class="sidebar-heading">Quản lý Cửa hàng</li>
 
-                
-            </ul>
+                        <li class="sidebar-item">
+                             <a href="{{ url_for('admin.menu_management') }}" class="sidebar-link {% if request.endpoint in ['admin.menu_management', 'admin.add_product', 'admin.edit_product', 'admin.add_category', 'admin.edit_category'] %}active{% endif %}">
+                                <i class="fas fa-mug-hot fa-fw sidebar-icon"></i> 
+                                <span>Thực đơn & SP</span>
+                            </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.locations') }}" class="sidebar-link {% if request.endpoint.startswith('admin.locations') or request.endpoint == 'admin.add_location' or request.endpoint == 'admin.edit_location' %}active{% endif %}">
+                                <i class="fas fa-map-marked-alt fa-fw sidebar-icon"></i>
+                                <span>Địa điểm</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="{{ url_for('admin.promotions') }}" class="sidebar-link {% if request.endpoint.startswith('admin.promotions') or request.endpoint == 'admin.add_promotion' or request.endpoint == 'admin.edit_promotion' %}active{% endif %}">
+                                <i class="fas fa-tags fa-fw sidebar-icon"></i>
+                                <span>Khuyến mãi</span>
+                            </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.reports') }}" class="sidebar-link {% if request.endpoint == 'admin.reports' or request.endpoint.startswith('ai.inventory_predictions') %}active{% endif %}">
+                                <i class="fas fa-chart-line fa-fw sidebar-icon"></i> 
+                                <span>Báo cáo</span>
+                            </a>
+                        </li>
+
+                        <div class="sidebar-divider"></div>
+                         <li class="sidebar-heading">Người dùng & Nội dung</li>
+
+                        <li class="sidebar-item">
+                            <a href="{{ url_for('admin.employees') }}" class="sidebar-link {% if request.endpoint.startswith('admin.employees') or request.endpoint == 'admin.add_employee' or request.endpoint == 'admin.edit_employee' %}active{% endif %}">
+                                <i class="fas fa-user-tie fa-fw sidebar-icon"></i> 
+                                <span>Nhân viên</span>
+                            </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if request.endpoint.startswith('admin.users') or request.endpoint == 'admin.user_detail' %}active{% endif %}">
+                                <i class="fas fa-user-friends fa-fw sidebar-icon"></i> 
+                                <span>Khách hàng</span>
+                            </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.manage_reviews') }}" class="sidebar-link {% if request.endpoint.startswith('admin.manage_reviews') %}active{% endif %}">
+                                <i class="fas fa-comments fa-fw sidebar-icon"></i>
+                                <span>Đánh giá</span>
+                                 {% if pending_review_count and pending_review_count > 0 %}
+                                    <span class="badge bg-info rounded-pill ms-auto me-2">{{ pending_review_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.contact_messages') }}" class="sidebar-link {% if request.endpoint.startswith('admin.contact_messages') or request.endpoint == 'admin.view_message' %}active{% endif %}">
+                               <i class="fas fa-envelope fa-fw sidebar-icon"></i>
+                               <span>Hộp thư Liên hệ</span>
+                                {% if unread_message_count and unread_message_count > 0 %}
+                                    <span class="badge bg-primary rounded-pill ms-auto me-2">{{ unread_message_count }}</span>
+                               {% endif %}
+                           </a>
+                        </li>
+                         <li class="sidebar-item">
+                            <a href="{{ url_for('admin.interesting_stories') }}" class="sidebar-link {% if request.endpoint.startswith('admin.interesting_stories') or request.endpoint == 'admin.edit_story' %}active{% endif %}">
+                                <i class="fas fa-feather-alt fa-fw sidebar-icon"></i> 
+                                <span>Câu chuyện Thú vị</span>
+                            </a>
+                        </li>
+                        {# === BỎ Link LỊCH SỬ TRUY CẬP (ADMIN ONLY) từ sidebar === #}
+                        {# <li class="sidebar-item">
+                            <a href="{{ url_for('admin.web_visits_history') }}" class="sidebar-link {% if request.endpoint == 'admin.web_visits_history' %}active{% endif %}">
+                                <i class="fas fa-shoe-prints fa-fw sidebar-icon"></i> 
+                                <span>Lịch sử Truy cập</span>
+                            </a>
+                        </li> #}
+                     {% endif %}
+
+                    <div class="sidebar-divider"></div>
+                    <li class="sidebar-heading">Tiện ích</li>
+
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('main.index') }}" class="sidebar-link" target="_blank">
+                            <i class="fas fa-external-link-alt fa-fw sidebar-icon"></i>
+                            <span>Xem trang web</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+                            <i class="fas fa-sign-out-alt fa-fw sidebar-icon text-danger"></i>
+                            <span class="text-danger">Đăng xuất</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
         </aside>
-        
-        <!-- Main Content -->
-        <main class="admin-content flex-grow-1">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <button class="btn btn-outline-dark d-lg-none sidebar-toggle">
+
+        <div class="admin-main-content"> 
+            <header class="admin-header d-flex justify-content-between align-items-center sticky-top"> 
+                <button class="btn btn-light d-lg-none sidebar-toggle" id="sidebar-toggle-button" type="button">
                     <i class="fas fa-bars"></i>
                 </button>
-                
-                <div class="dropdown">
-                    <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Hồ sơ của tôi</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Đăng xuất</a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}
-            {% endif %}
-            {% endwith %}
-            
-            <!-- Page Content -->
-            {% block content %}{% endblock %}
-        </main>
+
+                <nav aria-label="breadcrumb" class="admin-breadcrumb d-none d-md-block">
+                     <ol class="breadcrumb mb-0 bg-light px-3 py-1 rounded-pill small"> 
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-home fa-xs"></i></a></li>
+                         {% block breadcrumb %}{% endblock %} 
+                     </ol>
+                 </nav>
+
+                 <div class="admin-header-actions d-flex align-items-center gap-2">
+                    {# ---- ICON LƯỢT TRUY CẬP ĐÃ THÊM VÀO ĐÂY (GIỮ NGUYÊN) ---- #}
+                    <a href="{{ url_for('admin.web_visits_history') }}" class="btn btn-light btn-sm position-relative" data-bs-toggle="tooltip" title="Lịch sử truy cập Web (Tổng: {{ total_web_visits | default('0') }})">
+                        <i class="fas fa-eye me-1"></i>
+                        {# HIỂN THỊ SỐ LƯỢT TRUY CẬP NẾU MUỐN, HOẶC BỎ ĐI CHO GỌN #}
+                        {# <span class="badge bg-info rounded-pill" style="font-size: 0.7em;">
+                            {{ total_web_visits | default('0') }}
+                        </span> #}
+                        <span class="visually-hidden">Lịch sử truy cập. Tổng lượt: {{ total_web_visits | default('0') }}</span>
+                    </a>
+                    {# ------------------------------------------- #}
+                     <div class="dropdown">
+                        {# --- SỬA Ở ĐÂY: Hiển thị email thay vì username nếu có thể --- #}
+                        <button class="btn btn-light dropdown-toggle btn-sm" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i> 
+                            {{ current_user.email if current_user.email else current_user.username }} {# Ưu tiên email #}
+                        </button>
+                        {# ------------------------------------------------------------ #}
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMenu">
+                             <li><a class="dropdown-item" href="{{ url_for('admin.profile') }}"><i class="fas fa-user-edit fa-fw me-2 text-muted"></i>Hồ sơ</a></li>
+                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt fa-fw me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                 </div>
+            </header>
+
+             <main class="admin-content-inner p-4"> 
+
+                 {% if self.page_header() or self.title() %} 
+                     <div class="page-header mb-4">
+                         <h1 class="page-title">
+                            {% block page_header %}{% block page_title %}{{ self.title() }}{% endblock %}{% endblock %}
+                         </h1>
+                    </div>
+                 {% endif %}
+
+                 {% with messages = get_flashed_messages(with_categories=true) %}
+                 {% if messages %}
+                     {% for category, message in messages %}
+                         {% set alert_category = category if category in ['success', 'danger', 'info', 'warning', 'primary', 'secondary'] else 'info' %}
+                         <div class="alert alert-{{ alert_category }} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                             {{ message }}
+                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button> 
+                        </div>
+                     {% endfor %}
+                 {% endif %}
+                 {% endwith %}
+
+                 {% block content %}{% endblock %}
+             </main>
+
+             <footer class="admin-footer text-center text-muted py-3 mt-auto bg-light small">
+                © <span id="currentYear"></span> Dragon Coffee Shop - Trang Quản trị.
+             </footer>
+        </div>
     </div>
-    
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> 
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-    
+
+    <script>
+         document.addEventListener('DOMContentLoaded', function () {
+             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { 
+                var existingTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                if (existingTooltip) { existingTooltip.dispose(); }
+                return new bootstrap.Tooltip(tooltipTriggerEl) 
+            });
+             const yearSpan = document.getElementById('currentYear');
+             if(yearSpan) yearSpan.textContent = new Date().getFullYear();
+             const wrapper = document.getElementById('admin-wrapper');
+             const toggleButton = document.getElementById('sidebar-toggle-button');
+             if (toggleButton && wrapper) {
+                 toggleButton.addEventListener('click', function () {
+                    wrapper.classList.toggle('sidebar-toggled');
+                    localStorage.setItem('sidebarToggled', wrapper.classList.contains('sidebar-toggled'));
+                 });
+                 if (localStorage.getItem('sidebarToggled') === 'true') {
+                    wrapper.classList.add('sidebar-toggled');
+                 }
+             } else {
+                 console.warn("Sidebar toggle button or wrapper not found.");
+             }
+             const flashAlerts = document.querySelectorAll('.admin-content-inner .alert-dismissible');
+             flashAlerts.forEach(function(alert) {
+                 setTimeout(function() {
+                     try {
+                         var bsAlert = bootstrap.Alert.getInstance(alert);
+                         if (bsAlert) { bsAlert.close(); } 
+                         else { alert.classList.remove('show'); setTimeout(() => alert.remove(), 150); }
+                     } catch (e) { console.warn("Error closing flash message:", e); alert.remove(); }
+                 }, 5500);
+             });
+         });
+     </script>
+
     {% block extra_js %}{% endblock %}
+     {% block scripts %}{% endblock %}
 </body>
 </html>
+{# END OF FILE templates/admin/base.html #}

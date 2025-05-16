@@ -1,295 +1,429 @@
+{# START OF FILE templates/admin/dashboard.html #}
 {% extends "admin/base.html" %}
+{% from "macros/_ui_helpers.html" import status_badge %} {# Import macro nếu dùng #}
 
-{% block title %}Dragon Coffee Shop - Admin Dashboard{% endblock %}
+{% block title %}Bảng điều khiển - Quản trị Dragon Coffee{% endblock %}
+{% block page_header %}Bảng điều khiển{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Bảng điều khiển</li>{% endblock %}
 
 {% block content %}
-<div class="admin-header">
-    <h1 class="admin-title">Bảng điều khiển</h1>
-    <div class="d-flex align-items-center">
-        <div class="dropdown me-2">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-download me-1"></i> Xuất khẩu
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="#">Báo cáo bán hàng (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Báo cáo hàng tồn kho (CSV)</a></li>
-                <li><a class="dropdown-item" href="#">Báo cáo khách hàng (CSV)</a></li>
-            </ul>
+{# === Card Bộ lọc Thời gian === #}
+<div class="card card-outline card-primary mb-4 shadow-sm">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter me-1"></i> Bộ lọc Thời gian</h3>
+        <div class="card-tools">
+            <div class="btn-group btn-group-sm me-2">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-1"></i> Xuất
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                     {# Sửa các link export nếu cần lọc theo ngày #}
+                    <li><a class="dropdown-item" href="{{ url_for('admin.export_orders_csv', status='completed', start_date=start_date, end_date=end_date) }}" target="_blank">Doanh thu (CSV)</a></li>
+                     <li><a class="dropdown-item" href="{{ url_for('admin.export_products_csv') }}" target="_blank">Sản phẩm (CSV)</a></li>
+                     <li><a class="dropdown-item" href="{{ url_for('admin.export_inventory') }}" target="_blank">Tồn kho (CSV)</a></li>
+                 </ul>
+             </div>
+            <a href="{{ url_for('admin.dashboard', period=period, start_date=start_date, end_date=end_date) }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-sync-alt me-1"></i> Làm mới
+            </a>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Thu gọn/Mở rộng"><i class="fas fa-minus"></i></button>
         </div>
-        <button class="btn btn-primary">
-            <i class="fas fa-sync-alt me-1"></i> Refresh
-        </button>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin.dashboard') }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3 col-6">
+                    <label for="start_date" class="form-label form-label-sm">Từ ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3 col-6">
+                    <label for="end_date" class="form-label form-label-sm">Đến ngày:</label>
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-3 col-12 mt-2 mt-md-0">
+                    {# Bỏ label trống để nút canh dưới #}
+                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-filter me-1"></i> Lọc Theo Ngày</button>
+                </div>
+                 <div class="col-md-3 col-12 mt-2 mt-md-0">
+                     {# Căn chỉnh lại nhóm nút quick select #}
+                     <div class="btn-group d-flex w-100" role="group">
+                        {% set no_specific_date = not request.args.get('start_date') and not request.args.get('end_date') %}
+                        <a href="{{ url_for('admin.dashboard', period='day') }}" class="btn btn-sm btn-outline-secondary {% if period=='day' and no_specific_date %}active{% endif %}">Ngày</a>
+                        <a href="{{ url_for('admin.dashboard', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period=='week' and no_specific_date %}active{% endif %}">Tuần</a>
+                        <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period=='month' and no_specific_date %}active{% endif %}">Tháng</a>
+                        <a href="{{ url_for('admin.dashboard', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period=='year' and no_specific_date %}active{% endif %}">Năm</a>
+                        <a href="{{ url_for('admin.dashboard', period='last7days') }}" class="btn btn-sm btn-outline-secondary {% if period=='last7days' and no_specific_date %}active{% endif %}" title="7 Ngày qua">7N</a> {# Thêm 7 ngày #}
+                    </div>
+                 </div>
+            </div>
+        </form>
+         <p class="text-muted small mt-2 mb-0"><i>Hiển thị dữ liệu từ {{ start_date }} đến {{ end_date }}</i></p>
     </div>
 </div>
+{# === Kết thúc Card Bộ lọc === #}
 
 <!-- Stats Cards -->
-<div class="row">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon sales">
-                <i class="fas fa-dollar-sign"></i>
+<div class="row inventory-stats mb-3"> {# Giảm mb-4 -> mb-3 #}
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stat-card stat-card-success h-100 shadow-sm">
+            <div class="stat-card-body">
+                <div class="stat-card-icon"><i class="fas fa-coins"></i></div> {# Thay icon $ thành coins #}
+                <div class="stat-card-content">
+                     <div class="stat-card-text">Doanh Thu</div>
+                     <div class="stat-card-number">{{ total_revenue | format_price }}</div>
+                </div>
             </div>
-            <div class="stats-info">
-                <h5>Tổng doanh thu</h5>
-                <h3>${{ "%.2f"|format(total_revenue) }}</h3>
-            </div>
+            {# Không cần footer link cho stat này trên dashboard #}
+         </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+         <div class="stat-card stat-card-info h-100 shadow-sm">
+             <div class="stat-card-body">
+                <div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
+                <div class="stat-card-content">
+                     <div class="stat-card-text">Số Đơn Hàng</div>
+                     <div class="stat-card-number">{{ total_orders }}</div>
+                </div>
+             </div>
+              <a href="{{ url_for('admin.orders') }}" class="stat-card-footer stretched-link">
+                 Quản lý Đơn hàng <i class="fas fa-arrow-circle-right"></i>
+             </a>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon orders">
-                <i class="fas fa-shopping-cart"></i>
+    <div class="col-xl-3 col-md-6 mb-3">
+         <div class="stat-card stat-card-primary h-100 shadow-sm">
+            <div class="stat-card-body">
+                <div class="stat-card-icon"><i class="fas fa-mug-hot"></i></div>
+                <div class="stat-card-content">
+                    <div class="stat-card-text">Tổng Sản Phẩm</div>
+                    <div class="stat-card-number">{{ total_products }}</div>
+                </div>
             </div>
-            <div class="stats-info">
-                <h5>Tổng số đơn hàng</h5>
-                <h3>{{ total_orders }}</h3>
-            </div>
+             <a href="{{ url_for('admin.menu_management') }}" class="stat-card-footer stretched-link">
+                 Quản lý Thực đơn <i class="fas fa-arrow-circle-right"></i>
+             </a>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon products">
-                <i class="fas fa-coffee"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Các sản phẩm</h5>
-                <h3>{{ total_products }}</h3>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="admin-card stats-card">
-            <div class="stats-icon customers">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stats-info">
-                <h5>Người sử dụng</h5>
-                <h3>{{ total_users }}</h3>
-            </div>
-        </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+         <div class="stat-card stat-card-secondary h-100 shadow-sm">
+             <div class="stat-card-body">
+                 <div class="stat-card-icon"><i class="fas fa-users"></i></div>
+                 <div class="stat-card-content">
+                    <div class="stat-card-text">Số Khách Hàng</div>
+                    <div class="stat-card-number">{{ total_users }}</div>
+                 </div>
+             </div>
+             <a href="{{ url_for('admin.users') }}" class="stat-card-footer stretched-link">
+                Quản lý Khách hàng <i class="fas fa-arrow-circle-right"></i>
+             </a>
+         </div>
     </div>
 </div>
 
 <div class="row">
-    <!-- Sales Chart -->
+    <!-- Sales Chart Card -->
     <div class="col-lg-8 mb-4">
-        <div class="admin-card">
-            <h4 class="mb-4">Tổng quan về doanh số (7 ngày qua)</h4>
-            <canvas id="salesChart" height="300" data-chart='{{ chart_data|tojson }}'></canvas> {# Thay sales_data thành chart_data #}
+         <div class="card card-chart shadow-sm h-100">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title fw-medium mb-0">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>Doanh thu (<span id="chartDateRange">{{ start_date }} đến {{ end_date }}</span>)
+                    </h3>
+                    <!-- Nút chọn loại biểu đồ -->
+                    <div class="btn-group btn-group-sm chart-type-toggle" role="group" aria-label="Chọn loại biểu đồ doanh thu">
+                        <button type="button" class="btn btn-outline-primary chart-toggle-btn active" data-chart-type="line" title="Biểu đồ đường"><i class="fas fa-chart-line"></i></button>
+                        <button type="button" class="btn btn-outline-primary chart-toggle-btn" data-chart-type="bar" title="Biểu đồ cột"><i class="fas fa-chart-bar"></i></button>
+                        <button type="button" class="btn btn-outline-primary chart-toggle-btn" data-chart-type="pie" title="Biểu đồ tròn (theo DM SP)"><i class="fas fa-chart-pie"></i></button>
+                    </div>
+                </div>
+             </div>
+             <div class="card-body">
+                <div style="position: relative; height: 320px;">
+                    {# Truyền cả 2 bộ dữ liệu vào data-attributes #}
+                    <canvas id="salesChart"
+                            data-sales-by-time='{{ chart_data|tojson|safe }}'
+                            data-sales-by-category='{{ pie_chart_data|tojson|safe }}'></canvas>
+                    <div id="salesChartMessage" class="text-center text-muted" style="position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); display: none;">
+                         Không có dữ liệu doanh thu trong khoảng thời gian này.
+                     </div>
+                </div>
+             </div>
         </div>
     </div>
-    
+
     <!-- Top Products -->
     <div class="col-lg-4 mb-4">
-        <div class="admin-card">
-            <h4 class="mb-4">Sản phẩm bán chạy nhất</h4>
-            {% if top_products %}
-            <div class="list-group">
-                {% for product, total_sold in top_products %}
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-0">{{ product.name }}</h6>
-                        <small class="text-muted">{{ product.category.name }}</small>
-                    </div>
-                    <span class="badge bg-primary rounded-pill">{{ total_sold }} sold</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-center text-muted">Hiện chưa có dữ liệu bán hàng.</p>
-            {% endif %}
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light">
+                 <h3 class="card-title fw-medium">
+                     <i class="fas fa-star me-2 text-warning"></i>SP Bán Chạy Nhất ({{ start_date }} - {{ end_date }})
+                 </h3>
+             </div>
+            <div class="card-body pt-2 pb-2"> {# Giảm padding để list sát hơn #}
+                 {% if top_products %}
+                <ul class="list-group list-group-flush">
+                    {% for item in top_products %} {# Sửa lại biến top_products thành item #}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-1 py-2">
+                         <div class="me-2 text-truncate">
+                             <a href="{{ url_for('admin.edit_product', product_id=item.product.id) }}" class="fw-medium text-dark text-decoration-none d-block mb-0" title="{{ item.product.name }}">
+                                {{ loop.index }}. {{ item.product.name }}
+                             </a>
+                            <small class="text-muted">{{ item.product.category.name if item.product.category else '' }}</small>
+                        </div>
+                         <span class="badge bg-primary rounded-pill">{{ item.total_sold }}</span>
+                     </li>
+                     {% endfor %}
+                 </ul>
+                 {% else %}
+                 <p class="text-center text-muted py-4 mb-0">Chưa có dữ liệu bán hàng.</p>
+                 {% endif %}
+             </div>
+              <div class="card-footer text-center py-2">
+                  <a href="{{ url_for('admin.reports', type='products', start_date=start_date, end_date=end_date) }}" class="btn btn-sm btn-outline-secondary">Xem báo cáo sản phẩm</a>
+              </div>
         </div>
     </div>
 </div>
 
 <div class="row">
     <!-- Recent Orders -->
-    <div class="col-lg-12 mb-4">
-        <div class="admin-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0">Đơn hàng gần đây</h4>
-                <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm">
+             <div class="card-header bg-light">
+                 <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0 fw-medium">
+                        <i class="fas fa-history me-2 text-info"></i>Đơn hàng gần đây ({{ start_date }} - {{ end_date }})
+                    </h3>
+                     <a href="{{ url_for('admin.orders', start_date=start_date, end_date=end_date) }}" class="btn btn-sm btn-outline-primary">Xem tất cả đơn</a>
+                 </div>
+             </div>
+            <div class="card-body p-0"> {# p-0 cho table full #}
+                {% if recent_orders %}
+                 <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle table-sm mb-0 admin-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Mã ĐH</th>
+                                <th>Ngày đặt</th>
+                                <th>Khách hàng</th>
+                                <th class="text-end">Tổng tiền</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td class="text-center fw-medium">{{ order.order_number }}</td>
+                                <td><small>{{ order.created_at|format_datetime('%d/%m %H:%M') }}</small></td>
+                                <td class="text-truncate" style="max-width: 150px;" title="{% if order.customer %}{{ order.customer.full_name }}{% else %}{{ order.contact_phone or 'Khách vãng lai' }}{% endif %}"><small>{% if order.customer %}{{ order.customer.full_name }}{% else %}{{ order.contact_phone or 'Khách vãng lai' }}{% endif %}</small></td>
+                                <td class="text-end fw-medium">{{ (order.final_amount or order.total_amount) | format_price }}</td>
+                                <td class="text-center">
+                                     {# Nên dùng macro #}
+                                     <span class="badge rounded-pill {{ status_badge(order.status).split(' ')[1] }} {{ status_badge(order.status).split(' ')[2] }}"> {# Tái sử dụng class từ macro #}
+                                        {# Kiểm tra xem phương thức get_status_display có được định nghĩa trên đối tượng order không #}
+                                        {% if order.get_status_display is defined %}
+                                            {{ order.get_status_display() }} {# Nếu có, gọi nó #}
+                                        {% else %}
+                                            {{ order.status | replace('_',' ') | title }} {# Nếu không, fallback về format status thô #}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="btn btn-xs btn-outline-primary py-0 px-1" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                        <i class="fas fa-eye fa-xs"></i>
+                                     </a>
+                                 </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                     </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4 mb-0">Chưa có đơn hàng nào gần đây.</p>
+                {% endif %}
             </div>
-            
-            {% if recent_orders %}
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Đặt hàng #</th>
-                            <th>Ngày</th>
-                            <th>Khách hàng</th>
-                            <th>Tổng cộng</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in recent_orders %}
-                        <tr>
-                            <td>{{ order.order_number }}</td>
-                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td>
-                                {% if order.customer %}
-                                {{ order.customer.first_name }} {{ order.customer.last_name }}
-                                {% else %}
-                                Guest
-                                {% endif %}
-                            </td>
-                            <td>${{ "%.2f"|format(order.total_amount) }}</td>
-                            <td>
-                                <span class="status-badge {{ order.status }}">{{ order.status|capitalize }}</span>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.order_details', order_id=order.id) }}" class="table-action view" data-bs-toggle="tooltip" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-center text-muted">Chưa có đơn hàng nào.</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
+         </div>
+     </div>
 
-<!-- Inventory Alerts -->
-<div class="row">
-    <div class="col-lg-12 mb-4">
-        <div class="admin-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0">Cảnh báo hàng tồn kho</h4>
-                <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-primary">Xem hàng tồn kho</a>
+    <!-- Inventory Alerts -->
+     <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+             <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0 fw-medium">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Cảnh báo Tồn kho
+                    </h3>
+                     <a href="{{ url_for('admin.inventory') }}" class="btn btn-sm btn-outline-warning">Xem kho</a>
+                 </div>
             </div>
-            
-            {% if low_inventory_items %}
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Cổ phiếu hiện tại</th>
-                            <th>Số lượng tối thiểu</th>
-                            <th>Trạng thái</th>
-                            <th>Đã bổ sung hàng lần cuối</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in low_inventory_items %}
-                        <tr>
-                            <td>{{ item.product.name }}</td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{{ item.min_quantity }}</td>
-                            <td>
-                                {% if item.quantity == 0 %}
-                                <span class="status-badge cancelled">Hết hàng</span>
-                                {% elif item.quantity < item.min_quantity %}
-                                <span class="status-badge pending">Còn ít hàng</span>
-                                {% else %}
-                                <span class="status-badge completed">Còn hàng</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.last_restocked %}
-                                {{ item.last_restocked.strftime('%Y-%m-%d') }}
-                                {% else %}
-                                Never
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.inventory') }}" class="table-action edit" data-bs-toggle="tooltip" title="Update Stock">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body p-0">
+                {% if low_inventory_items %}
+                 <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0 admin-table">
+                         <thead>
+                             <tr>
+                                 <th>Sản phẩm</th>
+                                 <th class="text-center" title="Tồn kho">Tồn</th>
+                                 <th class="text-center" title="Tối thiểu">Min</th>
+                                 {# Bỏ hành động khỏi đây cho gọn #}
+                             </tr>
+                        </thead>
+                        <tbody>
+                             {% for item in low_inventory_items %}
+                                <tr class="table-warning">
+                                     <td class="text-truncate" style="max-width: 180px;">
+                                        {% if item.product_inventory %}
+                                            <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}" title="{{ item.product_inventory.name }}">{{ item.product_inventory.name }}</a>
+                                         {% else %} Lỗi SP {% endif %}
+                                     </td>
+                                    <td class="text-center fw-bold">{{ item.quantity }}</td>
+                                     <td class="text-center text-muted">{{ item.min_quantity }}</td>
+                                 </tr>
+                             {% endfor %}
+                         </tbody>
+                    </table>
+                 </div>
+                {% else %}
+                 <div class="alert alert-success mb-0 border-0 rounded-0 py-3">
+                    <i class="fas fa-check-circle me-2"></i> Tồn kho ổn định.
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle me-2"></i> Tất cả các mặt hàng tồn kho đều ở mức phù hợp.
-            </div>
-            {% endif %}
+             {% if out_of_stock_count > 0 %}
+             <div class="card-footer bg-danger bg-opacity-10 text-center py-2">
+                 <a href="{{ url_for('admin.inventory', status_filter='out') }}" class="link-danger small fw-medium text-decoration-none">
+                     <i class="fas fa-ban me-1"></i> Có <strong>{{ out_of_stock_count }}</strong> SP đã hết hàng!
+                 </a>
+             </div>
+             {% endif %}
         </div>
-    </div>
+     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ super() }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        let currentSalesChartInstance = null;
         const salesChartCanvas = document.getElementById('salesChart');
-        if (salesChartCanvas) {
-            const chartData = JSON.parse(salesChartCanvas.dataset.chart || '{"labels":[],"values":[]}');
-            
-            new Chart(salesChartCanvas, {
-                type: 'line',
-                data: {
-                    labels: chartData.labels,
-                    datasets: [{
-                        label: 'Sales',
-                        data: chartData.values,
-                        backgroundColor: 'rgba(139, 0, 0, 0.1)',
-                        borderColor: '#8B0000',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointBackgroundColor: '#8B0000',
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('en-US', {
-                                            style: 'currency',
-                                            currency: 'USD'
-                                        }).format(context.parsed.y);
-                                    }
-                                    return label;
+        const salesChartMessage = document.getElementById('salesChartMessage');
+        const chartDateRangeSpan = document.getElementById('chartDateRange');
+
+        let salesByTimeData = null;
+        let salesByCategoryData = null;
+
+        try {
+            if (salesChartCanvas.dataset.salesByTime) salesByTimeData = JSON.parse(salesChartCanvas.dataset.salesByTime);
+        } catch (e) { console.error("Error parsing salesByTimeData:", e); }
+        try {
+            if (salesChartCanvas.dataset.salesByCategory) salesByCategoryData = JSON.parse(salesChartCanvas.dataset.salesByCategory);
+        } catch (e) { console.error("Error parsing salesByCategoryData:", e); }
+
+        function destroyCurrentSalesChart() {
+            if (currentSalesChartInstance) {
+                currentSalesChartInstance.destroy();
+                currentSalesChartInstance = null;
+            }
+        }
+
+        function renderSalesChart(chartType = 'line') {
+            destroyCurrentSalesChart();
+            if (!salesChartCanvas || !salesChartMessage) return;
+
+            let chartConfig = {};
+            let hasData = false;
+            const currentStartDate = "{{ start_date }}"; // Lấy từ Flask context
+            const currentEndDate = "{{ end_date }}";
+
+            if(chartDateRangeSpan) chartDateRangeSpan.textContent = `${currentStartDate} đến ${currentEndDate}`;
+
+
+            const baseOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: chartType === 'pie' },
+                    tooltip: {
+                        mode: 'index', intersect: false, backgroundColor: '#3B2F2F', titleFont: { size: 13 }, bodyFont: { size: 11 }, padding: 8,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || ''; if (label) { label += ': '; }
+                                let value = (chartType === 'pie') ? context.raw : context.parsed.y;
+                                let formattedValue = value.toLocaleString('vi-VN') + (chartType === 'pie' ? '' : '₫');
+                                if (chartType === 'pie' && context.chart.data.labels && context.chart.data.datasets[0].data) {
+                                    const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = total > 0 ? (value / total * 100).toFixed(1) + '%' : '0%';
+                                    return `${context.label}: ${formattedValue} (${percentage})`;
                                 }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value;
-                                }
+                                return label + formattedValue;
                             }
                         }
                     }
+                },
+                interaction: { mode: 'index', intersect: false },
+            };
+            const timeScaleOptions = {
+                x: { grid: { display: false }, ticks: { color: '#555'} },
+                y: { beginAtZero: true, grid: { color: '#e9ecef' }, ticks: { color: '#555', callback: function(v) { return v.toLocaleString('vi-VN') + '₫'; } } }
+            };
+
+            if (chartType === 'line' || chartType === 'bar') {
+                if (salesByTimeData && salesByTimeData.labels && salesByTimeData.labels.length > 0 && salesByTimeData.values && salesByTimeData.values.some(v => v > 0)) {
+                    hasData = true;
+                    chartConfig = {
+                        type: chartType,
+                        data: {
+                            labels: salesByTimeData.labels,
+                            datasets: [{
+                                label: 'Doanh thu', data: salesByTimeData.values,
+                                backgroundColor: chartType === 'bar' ? '#6F4E37' : 'rgba(111, 78, 55, 0.1)',
+                                borderColor: '#6F4E37', borderWidth: chartType === 'bar' ? 1 : 2.5,
+                                tension: 0.3, pointBackgroundColor: '#6F4E37', pointRadius: 3, pointHoverRadius: 5,
+                                fill: chartType === 'line', borderRadius: chartType === 'bar' ? 4 : 0
+                            }]
+                        },
+                        options: { ...baseOptions, scales: timeScaleOptions }
+                    };
+                    if(chartType === 'bar' && chartConfig.options.plugins.legend) chartConfig.options.plugins.legend.display = false;
                 }
-            });
+            } else if (chartType === 'pie') {
+                if (salesByCategoryData && salesByCategoryData.labels && salesByCategoryData.labels.length > 0 && salesByCategoryData.values && salesByCategoryData.values.some(v => v > 0)) {
+                    hasData = true;
+                    const pieColors = ['#8B4513', '#A0522D', '#D2691E', '#CD853F', '#F4A460', '#DEB887', '#FFE4B5'];
+                    chartConfig = {
+                        type: 'pie',
+                        data: {
+                            labels: salesByCategoryData.labels,
+                            datasets: [{
+                                label: 'Doanh thu theo DM', data: salesByCategoryData.values,
+                                backgroundColor: salesByCategoryData.labels.map((_, i) => pieColors[i % pieColors.length]),
+                                borderColor: '#fff', borderWidth: 1
+                            }]
+                        },
+                        options: { ...baseOptions, scales: {} } // Loại bỏ scales
+                    };
+                }
+            }
+
+            if (hasData) {
+                salesChartMessage.style.display = 'none'; salesChartCanvas.style.display = 'block';
+                currentSalesChartInstance = new Chart(salesChartCanvas, chartConfig);
+            } else {
+                salesChartCanvas.style.display = 'none'; salesChartMessage.style.display = 'block';
+                salesChartMessage.textContent = chartType === 'pie' ? "Không có dữ liệu doanh thu theo danh mục." : "Không có dữ liệu doanh thu cho khoảng thời gian này.";
+            }
         }
+
+        document.querySelectorAll('.chart-toggle-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                const chartType = this.dataset.chartType;
+                renderSalesChart(chartType);
+            });
+        });
+        renderSalesChart('line'); // Mặc định vẽ biểu đồ đường
     });
 </script>
 {% endblock %}

@@ -1,10 +1,11 @@
 /*
   Dragon Coffee Shop - Main Style (Upgraded Coffee Theme v2.0)
   Enhanced: More polish, elegance, modernity, and cozy details.
+  --- MODIFIED FOR COMPACT VIEW ---
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
-@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"); /* Đảm bảo đã import icon */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
 :root {
   /* Coffee-Inspired Palette (Unchanged) */
@@ -17,9 +18,9 @@
 
   /* Standard Bootstrap Colors */
   --success-color: #28a745;
-  --warning-color: #ffc107;      /* Kept for stars */
+  --warning-color: #ffc107;
   --danger-color: #dc3545;
-  --info-color: #0dcaf0; /* Using Bootstrap's info color */
+  --info-color: #0dcaf0;
 
   /* Fonts */
   --font-heading: 'Playfair Display', serif;
@@ -27,20 +28,20 @@
 
   /* Enhancement Variables */
   --transition-speed-fast: 0.2s;
-  --transition-speed-normal: 0.35s; /* Slightly slower for smoother effect */
-  --transition-timing-smooth: cubic-bezier(0.4, 0, 0.2, 1); /* Smooth curve */
-  --border-radius-soft: 10px; /* Slightly rounder */
-  --border-radius-pill: 50px;
-  --box-shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.06);
-  --box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.09);
-  --box-shadow-lifted: 0 14px 35px rgba(59, 47, 47, 0.12);
-  --border-color-subtle: #EAE0D6; /* Subtle border color variable */
+  --transition-speed-normal: 0.35s;
+  --transition-timing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius-soft: 8px; /* <<< GIẢM NHẸ Bo góc */
+  --border-radius-pill: 40px; /* <<< GIẢM NHẸ Bo góc */
+  --box-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05); /* <<< GIẢM NHẸ Shadow */
+  --box-shadow-medium: 0 6px 20px rgba(0, 0, 0, 0.07); /* <<< GIẢM NHẸ Shadow */
+  --box-shadow-lifted: 0 10px 30px rgba(59, 47, 47, 0.1); /* <<< GIẢM NHẸ Shadow */
+  --border-color-subtle: #EAE0D6;
 }
 
 /* Base Styles */
 html {
   scroll-behavior: smooth;
-  font-size: 16px;
+  font-size: 15px; /* <<< GIẢM KÍCH THƯỚC FONT HTML CƠ BẢN (từ 16px) */
 }
 
 body {
@@ -49,10 +50,10 @@ body {
   background-color: var(--light-color);
   position: relative;
   overflow-x: hidden;
-  line-height: 1.75; /* Increased for better readability */
+  line-height: 1.65; /* <<< GIẢM NHẸ Line height (từ 1.75) */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility; /* Enhance font rendering */
+  text-rendering: optimizeLegibility;
 }
 
 /* Subtle Dragon/Texture Background (Improved) */
@@ -63,7 +64,6 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* Softer gradient */
   background: linear-gradient(135deg, var(--light-color) 0%, #F5ECE0 100%);
   z-index: -2;
 }
@@ -75,11 +75,11 @@ body::after {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-image: url('/static/images/dragon_bg.svg'); /* Ensure path is correct */
+  background-image: url('/static/images/dragon_bg.svg');
   background-repeat: no-repeat;
-  background-position: center bottom; /* Adjust positioning */
-  background-size: cover; /* Or contain if it looks better */
-  opacity: 0.03; /* Even more subtle */
+  background-position: center bottom;
+  background-size: cover;
+  opacity: 0.03;
   z-index: -1;
   pointer-events: none;
 }
@@ -89,18 +89,18 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   color: var(--primary-color);
-  margin-top: 1.5em; /* Increased top margin */
-  margin-bottom: 0.6em; /* Tighter bottom margin */
-  line-height: 1.3;
-  letter-spacing: 0.5px; /* Subtle spacing */
+  margin-top: 1.3em; /* <<< GIẢM NHẸ Margin top */
+  margin-bottom: 0.5em; /* <<< GIẢM NHẸ Margin bottom */
+  line-height: 1.25; /* <<< GIẢM NHẸ Line height */
+  letter-spacing: 0.5px;
 }
 
-h1 { font-size: 3rem; }
-h2 { font-size: 2.4rem; }
-h3 { font-size: 1.9rem; }
-h4 { font-size: 1.5rem; }
-h5 { font-size: 1.2rem; }
-h6 { font-size: 1rem; }
+h1 { font-size: 2.7rem; } /* <<< GIẢM (từ 3rem) */
+h2 { font-size: 2.1rem; } /* <<< GIẢM (từ 2.4rem) */
+h3 { font-size: 1.7rem; } /* <<< GIẢM (từ 1.9rem) */
+h4 { font-size: 1.35rem; } /* <<< GIẢM (từ 1.5rem) */
+h5 { font-size: 1.1rem; }  /* <<< GIẢM (từ 1.2rem) */
+h6 { font-size: 0.95rem; } /* <<< GIẢM (từ 1rem) */
 
 
 .text-primary { color: var(--primary-color) !important; }
@@ -108,7 +108,7 @@ h6 { font-size: 1rem; }
 .text-accent { color: var(--accent-color) !important; }
 
 p {
-    margin-bottom: 1.25rem; /* More consistent spacing */
+    margin-bottom: 1.1rem; /* <<< GIẢM NHẸ Margin bottom */
 }
 
 a {
@@ -118,218 +118,213 @@ a {
 }
 a:hover {
     color: var(--primary-color);
-    text-decoration: underline; /* Add subtle underline on hover for clarity */
+    text-decoration: underline;
     text-decoration-color: var(--accent-color);
     text-underline-offset: 3px;
 }
 
 /* Improved Focus visible for accessibility */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 3px solid var(--accent-color); /* Brighter, thicker outline */
+  outline: 2px solid var(--accent-color); /* <<< GIẢM NHẸ Outline */
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(232, 168, 124, 0.3); /* Subtle glow effect */
+  box-shadow: 0 0 0 3px rgba(232, 168, 124, 0.25); /* <<< GIẢM NHẸ Shadow */
 }
-/* Reset Bootstrap's default focus shadow on forms */
 .form-control:focus, .form-select:focus {
-  box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.2); /* Keep consistent with general focus */
-  border-color: var(--secondary-color); /* Match focus outline color theme */
+  box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.15); /* <<< GIẢM NHẸ Shadow */
+  border-color: var(--secondary-color);
 }
 
 /* Container Styling */
 .content-container {
-  background-color: rgba(255, 255, 255, 0.98); /* Almost opaque white */
+  background-color: rgba(255, 255, 255, 0.98);
   border-radius: var(--border-radius-soft);
-  box-shadow: var(--box-shadow-medium); /* Slightly stronger base shadow */
-  padding: 45px 50px; /* Generous padding */
-  margin-top: 50px;
-  margin-bottom: 50px;
-  border: 1px solid var(--border-color-subtle); /* Subtle border */
+  box-shadow: var(--box-shadow-medium);
+  padding: 35px 40px; /* <<< GIẢM Padding */
+  margin-top: 40px;    /* <<< GIẢM Margin */
+  margin-bottom: 40px; /* <<< GIẢM Margin */
+  border: 1px solid var(--border-color-subtle);
 }
 
 @media (max-width: 992px) {
-  .content-container { padding: 35px 30px; }
+  .content-container { padding: 30px 25px; } /* <<< GIẢM Padding */
 }
 @media (max-width: 768px) {
   .content-container {
-    padding: 30px 20px;
-    margin-top: 35px;
-    margin-bottom: 35px;
+    padding: 25px 15px;  /* <<< GIẢM Padding */
+    margin-top: 30px;    /* <<< GIẢM Margin */
+    margin-bottom: 30px; /* <<< GIẢM Margin */
   }
 }
 
 /* Navbar Styling (Polished & Modern) */
 .navbar {
-  background-color: rgba(50, 38, 38, 0.92); /* Slightly less saturated dark chocolate */
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  background-color: rgba(50, 38, 38, 0.92);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); /* <<< GIẢM NHẸ Shadow */
+  padding-top: 0.8rem;    /* <<< GIẢM Padding */
+  padding-bottom: 0.8rem; /* <<< GIẢM Padding */
   transition: background-color var(--transition-speed-normal) var(--transition-timing-smooth);
-  /* Modern touch: subtle blur (if browser supports) */
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  position: sticky; /* Keep navbar visible */
+  position: sticky;
   top: 0;
-  z-index: 1030; /* Ensure it's above most content */
+  z-index: 1030;
 }
 
 .navbar-brand {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.9rem; /* Slightly increased */
+  font-size: 1.7rem; /* <<< GIẢM (từ 1.9rem) */
   color: var(--light-color) !important;
   transition: transform var(--transition-speed-normal) var(--transition-timing-smooth);
-  display: inline-flex; /* Align logo and text nicely */
+  display: inline-flex;
   align-items: center;
 }
 .navbar-brand:hover {
-  transform: scale(1.03); /* Subtle scale on hover */
+  transform: scale(1.03);
   color: #fff !important;
 }
 
 .navbar-brand img {
-  margin-right: 15px;
-  height: 42px; /* Slightly larger logo */
+  margin-right: 12px; /* <<< GIẢM NHẸ Margin */
+  height: 38px;       /* <<< GIẢM (từ 42px) */
   vertical-align: middle;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); /* Subtle shadow */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
 .navbar .navbar-nav .nav-link {
-  color: rgba(250, 240, 230, 0.88); /* Linen color, more opaque */
+  color: rgba(250, 240, 230, 0.88);
   font-weight: 500;
-  font-size: 1.05rem; /* Slightly larger */
+  font-size: 0.95rem; /* <<< GIẢM (từ 1.05rem) */
   transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
-  padding: 0.6rem 1.4rem; /* More padding */
+  padding: 0.5rem 1.2rem; /* <<< GIẢM Padding */
   border-radius: var(--border-radius-pill);
-  margin: 0 0.3rem;
-  position: relative; /* For potential underlines or effects */
+  margin: 0 0.2rem; /* <<< GIẢM NHẸ Margin */
+  position: relative;
 }
 
 .navbar .navbar-nav .nav-link:hover,
 .navbar .navbar-nav .nav-link.active {
-  color: #fff; /* Brighter active/hover text */
-  background-color: rgba(255, 255, 255, 0.08); /* More noticeable background highlight */
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Optional: Active link indicator */
 .navbar .navbar-nav .nav-link.active::after {
   content: '';
   position: absolute;
-  bottom: 5px; /* Adjust position */
+  bottom: 4px; /* <<< ĐIỀU CHỈNH vị trí */
   left: 50%;
   transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
+  width: 5px; /* <<< GIẢM NHẸ kích thước */
+  height: 5px;
   background-color: var(--accent-color);
   border-radius: 50%;
 }
 
 .navbar-toggler {
-  border-color: rgba(232, 168, 124, 0.5); /* Accent color border */
-  padding: 0.5rem 0.7rem;
-  border-radius: 8px; /* Softer radius */
+  border-color: rgba(232, 168, 124, 0.5);
+  padding: 0.4rem 0.6rem; /* <<< GIẢM Padding */
+  border-radius: 6px; /* <<< GIẢM Bo góc */
   transition: background-color var(--transition-speed-fast);
 }
 .navbar-toggler:hover {
   background-color: rgba(232, 168, 124, 0.1);
 }
-.navbar-toggler:focus { /* Use custom focus */
+.navbar-toggler:focus {
   box-shadow: none;
-  outline: 3px solid var(--accent-color);
+  outline: 2px solid var(--accent-color);
   outline-offset: 1px;
 }
 .navbar-toggler-icon {
-  /* Use a brighter SVG icon color */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28250, 240, 230, 0.95%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-  width: 1.5em;
-  height: 1.5em;
+  width: 1.3em; /* <<< GIẢM NHẸ Kích thước icon */
+  height: 1.3em;
 }
-
 
 .cart-icon {
   position: relative;
   color: var(--light-color);
   transition: color var(--transition-speed-fast) var(--transition-timing-smooth), transform var(--transition-speed-fast) var(--transition-timing-smooth);
-  font-size: 1.4rem; /* Slightly larger */
+  font-size: 1.3rem; /* <<< GIẢM NHẸ Kích thước icon */
 }
 .cart-icon:hover {
     color: var(--accent-color);
-    transform: scale(1.1); /* Pop effect */
+    transform: scale(1.1);
 }
 
 .cart-badge {
   position: absolute;
-  top: -9px;
-  right: -13px;
-  background-color: var(--danger-color); /* Use danger color for attention */
-  color: white; /* Ensure high contrast */
+  top: -8px;    /* <<< ĐIỀU CHỈNH vị trí */
+  right: -10px; /* <<< ĐIỀU CHỈNH vị trí */
+  background-color: var(--danger-color);
+  color: white;
   border-radius: 50%;
-  padding: 0.2em 0.55em;
-  font-size: 0.7rem;
+  padding: 0.15em 0.45em; /* <<< GIẢM Padding */
+  font-size: 0.65rem;   /* <<< GIẢM Kích thước chữ */
   font-weight: bold;
   line-height: 1;
-  border: 2px solid var(--dark-color); /* Match navbar bg */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Add depth */
+  border: 1.5px solid var(--dark-color); /* <<< GIẢM NHẸ Border */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 /* Hero Section (More Dramatic & Polished) */
 .hero-section {
-  height: 80vh; /* Taller hero */
-  min-height: 550px;
+  height: 75vh; /* <<< GIẢM CHIỀU CAO (từ 80vh) */
+  min-height: 500px; /* <<< GIẢM (từ 550px) */
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #4a3f35; /* Darker fallback */
-  background-blend-mode: overlay; /* Try overlay for a different blend */
-  background-image: linear-gradient(rgba(59, 47, 47, 0.4), rgba(59, 47, 47, 0.7)), url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=85'); /* Higher res, overlay gradient */
+  background-color: #4a3f35;
+  background-blend-mode: overlay;
+  background-image: linear-gradient(rgba(59, 47, 47, 0.4), rgba(59, 47, 47, 0.7)), url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=85');
   background-size: cover;
-  background-position: center center; /* Ensure perfect centering */
-  background-attachment: fixed; /* Parallax-like effect */
+  background-position: center center;
+  background-attachment: fixed;
   color: white;
   border-radius: var(--border-radius-soft);
   overflow: hidden;
-  margin: 30px; /* Margin around the hero */
-  box-shadow: var(--box-shadow-lifted); /* Stronger shadow */
+  margin: 25px; /* <<< GIẢM Margin */
+  box-shadow: var(--box-shadow-lifted);
 }
 
 .hero-content {
   text-align: center;
-  padding: 4rem 3rem; /* Increased padding */
-  background-color: rgba(30, 25, 25, 0.8); /* Darker, less saturated overlay for better contrast */
+  padding: 3rem 2rem; /* <<< GIẢM Padding */
+  background-color: rgba(30, 25, 25, 0.8);
   border-radius: var(--border-radius-soft);
-  max-width: 750px;
+  max-width: 700px; /* <<< GIẢM Max width */
   margin: 1rem;
-  animation: fadeIn 1.2s var(--transition-timing-smooth) 0.3s backwards; /* Smoother timing, delay */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4); /* Shadow on content box */
+  animation: fadeIn 1.2s var(--transition-timing-smooth) 0.3s backwards;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.35); /* <<< GIẢM NHẸ Shadow */
 }
 
 .hero-title {
-  font-size: 3.8rem; /* Even larger */
+  font-size: 3.2rem; /* <<< GIẢM (từ 3.8rem) */
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem; /* <<< GIẢM Margin */
   color: #fff;
-  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6); /* Deeper text shadow */
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55); /* <<< GIẢM NHẸ Shadow */
   letter-spacing: 1px;
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
-  color: rgba(250, 240, 230, 0.95); /* Brighter subtitle */
+  font-size: 1.3rem; /* <<< GIẢM (từ 1.5rem) */
+  margin-bottom: 2.5rem; /* <<< GIẢM Margin */
+  color: rgba(250, 240, 230, 0.95);
   font-weight: 300;
-  line-height: 1.8;
+  line-height: 1.7; /* <<< GIẢM Line height */
 }
 
 .btn-hero {
-  padding: 1rem 2.8rem; /* Larger button */
-  font-size: 1.25rem;
-  font-weight: 700; /* Bolder */
+  padding: 0.9rem 2.5rem; /* <<< GIẢM Padding */
+  font-size: 1.1rem;   /* <<< GIẢM Font size */
+  font-weight: 700;
   background-color: var(--accent-color);
   color: var(--dark-color);
   border: none;
   border-radius: var(--border-radius-pill);
   transition: all var(--transition-speed-normal) var(--transition-timing-smooth);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* <<< GIẢM NHẸ Shadow */
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -337,26 +332,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn-hero:hover {
   background-color: var(--secondary-color);
   color: var(--light-color);
-  transform: translateY(-5px) scale(1.05); /* Stronger lift and scale */
-  box-shadow: var(--box-shadow-lifted); /* Use defined lifted shadow */
+  transform: translateY(-4px) scale(1.04); /* <<< GIẢM NHẸ Hiệu ứng */
+  box-shadow: var(--box-shadow-medium); /* <<< Sửa thành medium shadow */
 }
 
 /* Buttons (Refined & Unified Hover) */
 .btn {
   border-radius: var(--border-radius-pill);
-  padding: 0.75rem 2rem; /* Standard padding */
+  padding: 0.65rem 1.8rem; /* <<< GIẢM Padding */
   font-weight: 600;
   transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
-  box-shadow: var(--box-shadow-soft); /* Standard soft shadow */
-  border: 2px solid transparent; /* Prepare for outline borders */
+  box-shadow: var(--box-shadow-soft);
+  border: 2px solid transparent;
   letter-spacing: 0.4px;
-  text-transform: uppercase; /* Optional: Uppercase for style */
-  font-size: 0.95rem; /* Slightly smaller default btn text */
+  text-transform: uppercase;
+  font-size: 0.85rem; /* <<< GIẢM Font size (từ 0.95rem) */
 }
 .btn:hover{
-    transform: translateY(-3px); /* Consistent lift */
-    box-shadow: var(--box-shadow-medium); /* Consistent medium shadow on hover */
+    transform: translateY(-2px); /* <<< GIẢM NHẸ Hiệu ứng */
+    box-shadow: var(--box-shadow-medium);
 }
+.btn-lg {
+    padding: 0.8rem 2.2rem; /* Giữ lại hoặc giảm nhẹ cho btn-lg */
+    font-size: 1rem;
+}
+
 
 /* Specific Button Styles Refined */
 .btn-primary {
@@ -390,7 +390,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   background-color: #D59065;
   border-color: #D59065;
   color: var(--dark-color);
-  box-shadow: var(--box-shadow-medium), 0 0 15px rgba(232, 168, 124, 0.4); /* Add accent glow */
+  box-shadow: var(--box-shadow-medium), 0 0 12px rgba(232, 168, 124, 0.35); /* <<< GIẢM NHẸ Glow */
 }
 
 .btn-outline-primary {
@@ -401,7 +401,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   background-color: var(--primary-color);
   color: var(--light-color);
 }
-/* Add other outline variants if needed */
 .btn-outline-secondary {
   color: var(--secondary-color);
   border-color: var(--secondary-color);
@@ -416,84 +415,84 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .card {
   transition: transform var(--transition-speed-normal) var(--transition-timing-smooth),
               box-shadow var(--transition-speed-normal) var(--transition-timing-smooth),
-              border-color var(--transition-speed-normal) var(--transition-timing-smooth); /* Add border transition */
+              border-color var(--transition-speed-normal) var(--transition-timing-smooth);
   border: 1px solid var(--border-color-subtle);
   border-radius: var(--border-radius-soft);
   overflow: hidden;
   background-color: #fff;
-  margin-bottom: 40px;
+  margin-bottom: 30px; /* <<< GIẢM Margin */
   box-shadow: var(--box-shadow-soft);
 }
 
 .card:hover {
-  transform: translateY(-12px); /* More lift */
+  transform: translateY(-8px); /* <<< GIẢM NHẸ Hiệu ứng (từ -12px) */
   box-shadow: var(--box-shadow-lifted);
-  border-color: var(--secondary-color); /* Highlight border on hover */
+  border-color: var(--secondary-color);
 }
 
-.card .card-img-container { /* Add container for consistent image aspect ratio */
-    height: 250px; /* Fixed height for images */
+.card .card-img-container {
+    height: 200px; /* <<< GIẢM chiều cao ảnh (từ 250px) */
     overflow: hidden;
-    position: relative; /* Needed for potential overlay effects */
+    position: relative;
 }
 
 .card .card-img-top {
-  display: block; /* Remove potential bottom space */
+  display: block;
   width: 100%;
-  height: 100%; /* Fill container */
-  object-fit: cover; /* Cover ensures aspect ratio is kept */
-  transition: transform 0.5s var(--transition-timing-smooth); /* Slower, smoother zoom */
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--transition-timing-smooth);
 }
 .card:hover .card-img-top {
-  transform: scale(1.08); /* Slightly more zoom */
+  transform: scale(1.07); /* <<< GIẢM NHẸ Hiệu ứng (từ 1.08) */
 }
 
 .card-body {
-    padding: 2rem; /* More padding */
+    padding: 1.5rem; /* <<< GIẢM Padding (từ 2rem) */
 }
 
 .card-title {
   font-family: var(--font-heading);
   color: var(--primary-color);
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
+  font-size: 1.25rem; /* <<< GIẢM (từ 1.4rem) */
+  margin-bottom: 0.8rem; /* <<< GIẢM Margin */
 }
 
 .card-text {
     color: var(--gray-color);
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.7;
+    font-size: 0.9rem; /* <<< GIẢM (từ 1rem) */
+    margin-bottom: 1.2rem; /* <<< GIẢM Margin */
+    line-height: 1.6;   /* <<< GIẢM Line height */
 }
 
 .card-price {
-  font-size: 1.45rem;
+  font-size: 1.25rem; /* <<< GIẢM (từ 1.45rem) */
   font-weight: 700;
   color: var(--secondary-color);
-  margin-bottom: 1.5rem;
-  display: block; /* Ensure it takes full width */
+  margin-bottom: 1.2rem; /* <<< GIẢM Margin */
+  display: block;
 }
 
 /* Featured Products Section (Refined Title) */
 .section-title {
   text-align: center;
-  margin-bottom: 70px; /* More space */
+  margin-bottom: 50px; /* <<< GIẢM Margin (từ 70px) */
   position: relative;
-  font-size: 2.6rem; /* Larger section titles */
+  font-size: 2.2rem; /* <<< GIẢM (từ 2.6rem) */
   font-weight: 700;
-  color: var(--primary-color); /* Ensure color */
-  padding-bottom: 15px; /* Space for the underline */
+  color: var(--primary-color);
+  padding-bottom: 12px; /* <<< GIẢM Padding */
 }
 
 .section-title::after {
   content: '';
   display: block;
-  width: 85px;
-  height: 4px;
-  background-image: linear-gradient(to right, var(--accent-color), var(--secondary-color)); /* Gradient underline */
-  margin: 0 auto; /* Center */
+  width: 70px; /* <<< GIẢM (từ 85px) */
+  height: 3.5px; /* <<< GIẢM NHẸ */
+  background-image: linear-gradient(to right, var(--accent-color), var(--secondary-color));
+  margin: 0 auto;
   border-radius: 3px;
-  position: absolute; /* Position precisely */
+  position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
@@ -501,16 +500,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .featured-badge {
   position: absolute;
-  top: 18px;
-  left: 18px; /* Position to left for variation */
+  top: 15px;   /* <<< ĐIỀU CHỈNH vị trí */
+  left: 15px;  /* <<< ĐIỀU CHỈNH vị trí */
   background-color: var(--accent-color);
   color: var(--dark-color);
-  padding: 0.4rem 0.9rem; /* More padding */
-  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem; /* <<< GIẢM Padding */
+  font-size: 0.75rem;   /* <<< GIẢM Font size */
   font-weight: bold;
-  border-radius: 5px;
+  border-radius: 4px;   /* <<< GIẢM Bo góc */
   z-index: 5;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12); /* <<< GIẢM NHẸ Shadow */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -518,103 +517,104 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* About Section */
 .about-img {
   border-radius: var(--border-radius-soft);
-  box-shadow: var(--box-shadow-lifted); /* Use lifted shadow for prominent image */
+  box-shadow: var(--box-shadow-lifted);
   width: 100%;
   height: auto;
   object-fit: cover;
 }
 
 .about-text {
-  font-size: 1.15rem;
-  line-height: 1.9;
-  color: var(--dark-color); /* Slightly darker */
-  padding-left: 1rem; /* Indent text slightly */
+  font-size: 1.05rem; /* <<< GIẢM (từ 1.15rem) */
+  line-height: 1.8;   /* <<< GIẢM (từ 1.9) */
+  color: var(--dark-color);
+  padding-left: 0.8rem; /* <<< GIẢM Padding */
 }
 .about-text p:first-of-type {
-    font-size: 1.3rem; /* Make first paragraph stand out */
+    font-size: 1.15rem; /* <<< GIẢM (từ 1.3rem) */
     font-weight: 300;
     color: var(--primary-color);
 }
 
 /* Contact Section */
 .contact-info p {
-  margin-bottom: 1.5rem; /* More spacing */
-  font-size: 1.1rem;
-  display: flex; /* Align icon and text nicely */
+  margin-bottom: 1.2rem; /* <<< GIẢM Margin */
+  font-size: 1rem;      /* <<< GIẢM (từ 1.1rem) */
+  display: flex;
   align-items: center;
 }
 
 .contact-icon {
   color: var(--secondary-color);
-  font-size: 1.8rem; /* Larger icons */
-  margin-right: 20px;
+  font-size: 1.5rem;   /* <<< GIẢM (từ 1.8rem) */
+  margin-right: 15px; /* <<< GIẢM Margin */
   vertical-align: middle;
-  width: 30px; /* Fixed width */
+  width: 25px;        /* <<< GIẢM (từ 30px) */
   text-align: center;
-  flex-shrink: 0; /* Prevent icon shrinking */
+  flex-shrink: 0;
 }
 
 .map-container {
-  height: 420px; /* Taller map */
+  height: 380px; /* <<< GIẢM (từ 420px) */
   border-radius: var(--border-radius-soft);
   overflow: hidden;
   box-shadow: var(--box-shadow-medium);
-  border: 5px solid #fff; /* Add white frame effect */
+  border: 4px solid #fff; /* <<< GIẢM Border */
 }
 .map-container iframe {
-    display: block; /* Remove potential iframe bottom space */
+    display: block;
 }
 
-/* Menu Page (Sticky Category Nav - Requires JS to add/remove 'sticky') */
+/* Menu Page */
 .category-nav-container {
-    position: sticky; /* Make the container sticky */
-    top: 86px; /* Height of navbar approx */
-    z-index: 1020; /* Below navbar, above content */
-    background-color: rgba(250, 240, 230, 0.9); /* Slightly transparent linen */
-    padding: 5px 0;
-    margin-bottom: 40px;
+    position: sticky;
+    top: 70px; /* <<< GIẢM Top (do navbar có thể nhỏ lại) */
+    z-index: 1020;
+    background-color: rgba(250, 240, 230, 0.9);
+    padding: 3px 0; /* <<< GIẢM Padding */
+    margin-bottom: 30px; /* <<< GIẢM Margin */
     transition: box-shadow 0.3s ease;
-     /* Subtle shadow when sticky - add this class with JS */
-    &.sticky {
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      background-color: rgba(255, 255, 255, 0.95); /* Whiter when sticky */
-    }
 }
+.category-nav-container.sticky {
+  box-shadow: 0 3px 8px rgba(0,0,0,0.07); /* <<< GIẢM NHẸ Shadow */
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
 
 .category-nav {
-  background-color: transparent; /* Inherit from container */
-  border-radius: var(--border-radius-pill); /* Pill shape */
-  box-shadow: none; /* Shadow on container now */
+  background-color: transparent;
+  border-radius: var(--border-radius-pill);
+  box-shadow: none;
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 10px; /* Padding inside */
+  padding: 6px 8px; /* <<< GIẢM Padding */
   border: 1px solid var(--border-color-subtle);
-  display: flex; /* Use flexbox */
-  justify-content: center; /* Center items if they fit */
+  display: flex;
+  justify-content: center;
 }
 
 .category-nav .nav-link {
   color: var(--dark-color);
-  font-weight: 600; /* Bolder */
-  padding: 12px 28px; /* Adjusted padding */
-  border-bottom: none; /* Remove bottom border */
+  font-weight: 600;
+  padding: 10px 22px; /* <<< GIẢM Padding */
+  border-bottom: none;
   transition: all var(--transition-speed-fast) var(--transition-timing-smooth);
   display: inline-block;
-  margin: 0 5px; /* Space between links */
-  border-radius: var(--border-radius-pill); /* Pill shape */
+  margin: 0 4px; /* <<< GIẢM Margin */
+  border-radius: var(--border-radius-pill);
   position: relative;
-  flex-shrink: 0; /* Prevent shrinking on smaller screens */
-  border: 1px solid transparent; /* Base border for smooth transition */
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  font-size: 0.9rem; /* <<< Thêm để thu nhỏ chữ */
 }
 
 .category-nav .nav-link.active,
 .category-nav .nav-link:hover {
-  color: var(--light-color); /* White text */
-  background-color: var(--secondary-color); /* Strong background color */
+  color: var(--light-color);
+  background-color: var(--secondary-color);
   border-color: var(--secondary-color);
-  transform: translateY(-2px); /* Slight lift */
-  box-shadow: 0 3px 8px rgba(160, 82, 45, 0.3); /* Shadow in theme color */
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(160, 82, 45, 0.25); /* <<< GIẢM NHẸ Shadow */
 }
 
 
@@ -623,77 +623,76 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: var(--border-radius-soft);
   box-shadow: var(--box-shadow-lifted);
   width: 100%;
-  /* Let height be natural, but set a max */
-  max-height: 600px;
-  object-fit: cover; /* Change back to cover if preferred */
-  background-color: #fff; /* Cleaner bg if contain is used */
+  max-height: 550px; /* <<< GIẢM (từ 600px) */
+  object-fit: cover;
+  background-color: #fff;
   border: 1px solid var(--border-color-subtle);
 }
 
 .product-detail-info {
-  padding: 15px 0 15px 45px; /* Adjust padding */
+  padding: 10px 0 10px 35px; /* <<< GIẢM Padding */
 }
 @media (max-width: 992px) {
   .product-detail-info {
-    padding: 40px 0 0 0; /* Top padding on medium/small */
+    padding: 30px 0 0 0; /* <<< GIẢM Padding */
   }
 }
 
 .product-detail-title {
-  font-size: 3.2rem;
-  margin-bottom: 5px; /* Closer to category */
-  line-height: 1.25;
+  font-size: 2.8rem; /* <<< GIẢM (từ 3.2rem) */
+  margin-bottom: 3px; /* <<< GIẢM Margin */
+  line-height: 1.2;  /* <<< GIẢM Line height */
   color: var(--primary-color);
 }
 
 .product-detail-category {
-  font-size: 1rem;
+  font-size: 0.9rem; /* <<< GIẢM (từ 1rem) */
   color: var(--gray-color);
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* <<< GIẢM Margin */
   font-style: italic;
   text-transform: uppercase;
-  letter-spacing: 1px; /* More spacing */
+  letter-spacing: 1px;
   font-weight: 600;
 }
 
 .product-detail-price {
-  font-size: 2.8rem; /* Larger price */
+  font-size: 2.4rem; /* <<< GIẢM (từ 2.8rem) */
   font-weight: 700;
   color: var(--secondary-color);
-  margin-bottom: 30px;
+  margin-bottom: 25px; /* <<< GIẢM Margin */
 }
 
 .product-detail-description {
-  font-size: 1.15rem;
-  line-height: 1.85;
-  margin-bottom: 40px;
-  color: #555; /* Keep dark gray for body text */
+  font-size: 1.05rem; /* <<< GIẢM (từ 1.15rem) */
+  line-height: 1.75; /* <<< GIẢM Line height */
+  margin-bottom: 30px; /* <<< GIẢM Margin */
+  color: #555;
 }
 
 .quantity-control {
   display: flex;
   align-items: center;
-  margin-bottom: 35px;
+  margin-bottom: 30px; /* <<< GIẢM Margin */
 }
-.quantity-label { /* Add a label */
+.quantity-label {
     font-weight: 600;
-    margin-right: 15px;
-    font-size: 1rem;
+    margin-right: 12px; /* <<< GIẢM Margin */
+    font-size: 0.95rem; /* <<< GIẢM Font size */
     color: var(--dark-color);
 }
 
 .quantity-btn {
   background-color: #fff;
-  border: 1px solid #bbb; /* Slightly darker */
+  border: 1px solid #bbb;
   color: var(--dark-color);
-  width: 44px; /* Larger click target */
-  height: 44px;
-  font-size: 1.5rem; /* Larger +/- signs */
+  width: 40px;   /* <<< GIẢM (từ 44px) */
+  height: 40px;  /* <<< GIẢM (từ 44px) */
+  font-size: 1.3rem; /* <<< GIẢM (từ 1.5rem) */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: var(--border-radius-soft); /* Match global radius */
+  border-radius: var(--border-radius-soft);
   transition: background-color var(--transition-speed-fast), border-color var(--transition-speed-fast);
 }
 .quantity-btn:hover {
@@ -706,17 +705,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .quantity-input {
-  width: 70px;
-  height: 44px;
+  width: 60px;  /* <<< GIẢM (từ 70px) */
+  height: 40px; /* <<< GIẢM (từ 44px) */
   border: 1px solid #bbb;
   text-align: center;
-  font-size: 1.2rem; /* Larger number display */
-  margin: 0 8px;
+  font-size: 1.1rem; /* <<< GIẢM (từ 1.2rem) */
+  margin: 0 6px;   /* <<< GIẢM Margin */
   border-radius: var(--border-radius-soft);
   font-weight: 600;
   color: var(--primary-color);
 }
-/* Remove browser default number input spinners */
 .quantity-input[type=number]::-webkit-inner-spin-button,
 .quantity-input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none; margin: 0;
@@ -726,240 +724,92 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* Review Section (Clearer Separation & Visuals) */
 .reviews-section h3 {
-    text-align: left; /* Align section title left */
-    margin-bottom: 30px;
+    text-align: left;
+    margin-bottom: 25px; /* <<< GIẢM Margin */
 }
-.reviews-section h3::after { /* Adjust title underline for left alignment */
-    margin: 8px 0 0 0;
+.reviews-section h3::after {
+    margin: 6px 0 0 0; /* <<< GIẢM Margin */
     left: 0;
     transform: none;
 }
 
 .review-list {
-  margin-top: 40px;
-  border-top: 1px solid var(--border-color-subtle); /* Add top separator */
-  padding-top: 40px;
+  margin-top: 30px;    /* <<< GIẢM Margin */
+  border-top: 1px solid var(--border-color-subtle);
+  padding-top: 30px;   /* <<< GIẢM Padding */
 }
 
 .review-item {
   background-color: #fff;
   border-radius: var(--border-radius-soft);
-  padding: 35px; /* More padding */
-  margin-bottom: 30px; /* More space */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  padding: 25px; /* <<< GIẢM Padding (từ 35px) */
+  margin-bottom: 25px; /* <<< GIẢM Margin */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.035); /* <<< GIẢM NHẸ Shadow */
   border: 1px solid var(--border-color-subtle);
-  position: relative; /* For potential quote icon */
+  position: relative;
 }
-/* Optional: Add a quote icon */
 .review-item::before {
-    content: '\f4b4'; /* Bootstrap Icons quote character */
+    content: '\f4b4';
     font-family: 'bootstrap-icons';
     position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 2.5rem;
-    color: var(--light-color); /* Very light color */
+    top: 15px;   /* <<< ĐIỀU CHỈNH vị trí */
+    right: 15px; /* <<< ĐIỀU CHỈNH vị trí */
+    font-size: 2rem; /* <<< GIẢM Kích thước icon */
+    color: var(--light-color);
     opacity: 0.6;
 }
 
-
 .review-author {
   font-weight: 700;
-  margin-bottom: 3px; /* Tighter */
+  margin-bottom: 2px; /* <<< GIẢM NHẸ */
   color: var(--primary-color);
-  font-size: 1.15rem;
+  font-size: 1.05rem; /* <<< GIẢM (từ 1.15rem) */
 }
 
 .review-date {
-  font-size: 0.85rem;
+  font-size: 0.8rem; /* <<< GIẢM (từ 0.85rem) */
   color: var(--gray-color);
-  margin-bottom: 15px;
+  margin-bottom: 12px; /* <<< GIẢM Margin */
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
 .star-rating {
   color: var(--warning-color);
-  margin-bottom: 18px;
+  margin-bottom: 15px; /* <<< GIẢM Margin */
 }
 .star-rating .bi {
-    font-size: 1.25rem; /* Larger stars */
-    margin-right: 4px; /* More space between stars */
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1)); /* Subtle star shadow */
+    font-size: 1.1rem; /* <<< GIẢM (từ 1.25rem) */
+    margin-right: 3px; /* <<< GIẢM Margin */
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
 }
 
 .review-text {
-    font-size: 1.05rem;
-    line-height: 1.75;
-    color: #444; /* Slightly darker text */
+    font-size: 0.95rem; /* <<< GIẢM (từ 1.05rem) */
+    line-height: 1.7;   /* <<< GIẢM Line height */
+    color: #444;
 }
-
-/* Cart and Checkout (Enhanced Clarity) */
-.cart-item {
-  background-color: #fff;
-  border-radius: var(--border-radius-soft);
-  padding: 25px; /* Increased padding */
-  margin-bottom: 25px;
-  box-shadow: var(--box-shadow-soft);
-  display: flex;
-  align-items: flex-start; /* Align items to top */
-  border: 1px solid var(--border-color-subtle);
-}
-
-.cart-item-img {
-  width: 85px; /* Larger image */
-  height: 85px;
-  object-fit: cover;
-  border-radius: var(--border-radius-soft);
-  margin-right: 30px;
-  flex-shrink: 0;
-}
-
-.cart-item-details {
-    flex-grow: 1;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    gap: 15px; /* Space between elements when wrapping */
-}
-.cart-item-info {
-    flex-grow: 1; /* Take available space */
-    margin-right: 15px;
-}
-
-
-.cart-item-title {
-    font-weight: 700; /* Bolder */
-    color: var(--primary-color);
-    margin-bottom: 8px;
-    font-size: 1.15rem;
-    line-height: 1.4;
-}
-.cart-item-price {
-    color: var(--secondary-color);
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    display: block; /* Ensure takes its own line if needed */
-}
-
-/* Cart item quantity/remove actions */
-.cart-item-actions {
-    display: flex;
-    flex-direction: column; /* Stack quantity and remove */
-    align-items: flex-end; /* Align actions to right */
-    min-width: 120px; /* Ensure minimum width */
-}
-.cart-item .quantity-control { margin-bottom: 10px; } /* Reduce bottom margin here */
-.btn-remove-item {
-    color: var(--danger-color);
-    background: none;
-    border: none;
-    padding: 5px;
-    font-size: 0.9rem;
-    text-decoration: underline;
-    cursor: pointer;
-}
-.btn-remove-item:hover {
-    color: #a02633;
-    text-decoration: none;
-}
-.btn-remove-item i { margin-right: 5px; }
-
-.cart-summary {
-  background-color: #FBF7F2; /* Even softer bg for summary */
-  border-radius: var(--border-radius-soft);
-  padding: 35px 40px; /* More padding */
-  box-shadow: var(--box-shadow-soft);
-  border: 1px solid var(--border-color-subtle);
-}
-
-.summary-title {
-    font-family: var(--font-heading);
-    color: var(--primary-color);
-    font-size: 1.8rem; /* Larger summary title */
-    margin-bottom: 30px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #DCD1C5;
-    text-align: center; /* Center title */
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px; /* More space */
-  color: var(--dark-color);
-  font-size: 1.05rem; /* Slightly larger text */
-}
-.summary-item span:first-child { color: var(--gray-color); } /* Lighter label */
-.summary-item span:last-child {
-    font-weight: 700; /* Bolder value */
-    color: var(--dark-color);
-}
-
-.summary-total {
-  font-size: 1.8rem; /* Prominent total */
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-top: 30px;
-  padding-top: 25px;
-  border-top: 2px solid var(--primary-color); /* Thicker top border */
-}
-.summary-total span { font-size: 1.2rem; font-weight: 400; color: var(--gray-color); margin-right: 10px; } /* Add label like 'Total:' */
-
-/* Form Styling (Enhanced Visuals) */
-.form-control, .form-select {
-  border-radius: var(--border-radius-soft);
-  padding: 16px 20px; /* Generous padding */
-  border: 1px solid #DCD1C5; /* Standard border */
-  transition: border-color var(--transition-speed-fast) var(--transition-timing-smooth),
-              box-shadow var(--transition-speed-fast) var(--transition-timing-smooth);
-  background-color: #fff;
-  font-size: 1rem;
-  color: var(--dark-color);
-}
-.form-control::placeholder, .form-select::placeholder {
-  color: #aaa; /* Lighter placeholder */
-  font-style: italic;
-}
-.form-control:focus, .form-select:focus {
-  border-color: var(--secondary-color); /* Focus border color */
-  /* Using focus-visible definition for glow */
-}
-
-textarea.form-control {
-    min-height: 140px; /* Taller text area */
-    resize: vertical;
-}
-
-.form-label {
-  font-weight: 700; /* Bolder labels */
-  color: var(--primary-color); /* Label color */
-  margin-bottom: 0.7rem;
-  font-size: 1rem; /* Standard label size */
-}
-
 
 /* Footer (More Luxurious & Structured) */
 .footer {
   background-color: var(--dark-color);
-  color: rgba(250, 240, 230, 0.8); /* Lighter text color */
-  padding: 80px 0 40px; /* More padding */
-  font-size: 1rem; /* Base footer text size */
+  color: rgba(250, 240, 230, 0.8);
+  padding: 60px 0 30px; /* <<< GIẢM Padding */
+  font-size: 0.9rem; /* <<< GIẢM (từ 1rem) */
 }
 
 .footer-logo {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 2.2rem;
+  font-size: 1.9rem; /* <<< GIẢM (từ 2.2rem) */
   color: var(--light-color);
-  margin-bottom: 35px;
-  display: inline-block; /* Allow text-align center */
-  text-decoration: none; /* Remove underline if it's a link */
+  margin-bottom: 30px; /* <<< GIẢM Margin */
+  display: inline-block;
+  text-decoration: none;
 }
-.footer-logo img { /* Style logo within if using an image */
-    height: 45px;
-    margin-right: 10px;
+.footer-logo img {
+    height: 40px; /* <<< GIẢM (từ 45px) */
+    margin-right: 8px; /* <<< GIẢM Margin */
     vertical-align: text-bottom;
 }
 .footer-logo:hover {
@@ -967,74 +817,72 @@ textarea.form-control {
 }
 
 .footer-text {
-  line-height: 1.85;
-  margin-bottom: 35px;
-  max-width: 400px; /* Limit width if centered */
+  line-height: 1.75; /* <<< GIẢM Line height */
+  margin-bottom: 30px; /* <<< GIẢM Margin */
+  max-width: 400px;
 }
-.footer .text-center .footer-text { /* Center text if parent is centered */
+.footer .text-center .footer-text {
     margin-left: auto;
     margin-right: auto;
 }
 
 .footer-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem; /* <<< GIẢM (từ 1.25rem) */
   font-weight: 700;
-  margin-bottom: 30px;
-  color: #fff; /* Pure white title */
+  margin-bottom: 25px; /* <<< GIẢM Margin */
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 1px;
   position: relative;
-  padding-bottom: 10px;
+  padding-bottom: 8px; /* <<< GIẢM Padding */
 }
-/* Underline for footer titles */
 .footer-title::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 40px;
-  height: 3px;
+  width: 35px; /* <<< GIẢM (từ 40px) */
+  height: 2.5px; /* <<< GIẢM (từ 3px) */
   background-color: var(--accent-color);
   border-radius: 2px;
 }
-.footer .text-center .footer-title::after { /* Center underline if title is centered */
+.footer .text-center .footer-title::after {
     left: 50%;
     transform: translateX(-50%);
 }
 
 .footer-links { list-style: none; padding: 0; margin: 0; }
-.footer-links li { margin-bottom: 15px; }
+.footer-links li { margin-bottom: 12px; } /* <<< GIẢM Margin */
 .footer-links a {
   color: rgba(250, 240, 230, 0.8);
   text-decoration: none;
   transition: color var(--transition-speed-fast) var(--transition-timing-smooth), padding-left var(--transition-speed-fast) var(--transition-timing-smooth);
   position: relative;
   display: inline-block;
+  font-size: 0.9rem; /* Thêm để thu nhỏ chữ trong link */
 }
 .footer-links a:hover {
   color: var(--accent-color);
-  padding-left: 10px; /* Indent more */
-  text-decoration: none; /* Ensure no underline conflict */
+  padding-left: 8px; /* <<< GIẢM Padding */
+  text-decoration: none;
 }
-/* Add subtle arrow on hover */
 .footer-links a:hover::before {
-    content: '\f138'; /* Bootstrap icon chevron right */
+    content: '\f138';
     font-family: 'bootstrap-icons';
     position: absolute;
-    left: -5px;
+    left: -4px; /* <<< ĐIỀU CHỈNH vị trí */
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0.8em;
+    font-size: 0.75em; /* <<< GIẢM NHẸ Kích thước icon */
     opacity: 0.7;
 }
 
 
 .social-icons {
   display: flex;
-  gap: 15px; /* Use gap for spacing */
-  margin-top: 30px;
+  gap: 12px; /* <<< GIẢM Gap (từ 15px) */
+  margin-top: 25px; /* <<< GIẢM Margin */
 }
-/* Center icons if parent is centered */
 .footer .text-center .social-icons {
     justify-content: center;
 }
@@ -1043,99 +891,83 @@ textarea.form-control {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px; /* Consistent size */
-  height: 44px;
-  background-color: rgba(255, 255, 255, 0.12); /* Slightly more visible */
+  width: 40px;   /* <<< GIẢM (từ 44px) */
+  height: 40px;  /* <<< GIẢM (từ 44px) */
+  background-color: rgba(255, 255, 255, 0.12);
   border-radius: 50%;
-  /* margin-right removed, using gap */
   color: var(--light-color);
   text-decoration: none;
-  transition: all var(--transition-speed-normal) var(--transition-timing-smooth); /* Smoother transition */
+  transition: all var(--transition-speed-normal) var(--transition-timing-smooth);
 }
 .social-link:hover {
   background-color: var(--accent-color);
   color: var(--dark-color);
-  transform: translateY(-5px) rotate(15deg); /* Pop and slight rotate */
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  transform: translateY(-4px) rotate(10deg); /* <<< GIẢM NHẸ Hiệu ứng */
+  box-shadow: 0 5px 10px rgba(0,0,0,0.18); /* <<< GIẢM NHẸ Shadow */
 }
-.social-link .bi { font-size: 1.3rem; /* Larger icons */ }
+.social-link .bi { font-size: 1.1rem; /* <<< GIẢM (từ 1.3rem) */ }
 
 .footer-bottom {
-  border-top: 1px solid rgba(250, 240, 230, 0.2); /* More visible border */
-  padding-top: 40px;
-  margin-top: 60px;
-  font-size: 0.95rem;
-  color: rgba(250, 240, 230, 0.65); /* Lighter copyright */
+  border-top: 1px solid rgba(250, 240, 230, 0.2);
+  padding-top: 30px; /* <<< GIẢM Padding */
+  margin-top: 45px;  /* <<< GIẢM Margin */
+  font-size: 0.85rem; /* <<< GIẢM (từ 0.95rem) */
+  color: rgba(250, 240, 230, 0.65);
   text-align: center;
 }
 
-
 /* Responsive fixes - Review sizes and spacing */
 @media (max-width: 1200px) {
-  h1 { font-size: 2.8rem; }
-  h2 { font-size: 2.2rem; }
-  .hero-title { font-size: 3.4rem; }
-  .product-detail-title { font-size: 2.8rem; }
-  .product-detail-price { font-size: 2.5rem; }
+  h1 { font-size: 2.5rem; } /* Giảm thêm */
+  h2 { font-size: 2.0rem; } /* Giảm thêm */
+  .hero-title { font-size: 3.0rem; } /* Giảm thêm */
+  .product-detail-title { font-size: 2.5rem; } /* Giảm thêm */
+  .product-detail-price { font-size: 2.2rem; } /* Giảm thêm */
 }
 
 @media (max-width: 992px) {
-  h1 { font-size: 2.6rem; }
-  h2 { font-size: 2.0rem; }
-  .hero-title { font-size: 3.0rem; }
-  .hero-subtitle { font-size: 1.4rem; }
-  .product-detail-title { font-size: 2.4rem; }
-  .footer { text-align: center; } /* Center footer content on medium */
-  .footer-title::after { left: 50%; transform: translateX(-50%); } /* Center underline */
-  .social-icons { justify-content: center; }
-  .footer-text { margin-left: auto; margin-right: auto; }
+  html { font-size: 14.5px; } /* Giảm thêm chút nữa */
+  h1 { font-size: 2.3rem; }
+  h2 { font-size: 1.8rem; }
+  .hero-title { font-size: 2.7rem; }
+  .hero-subtitle { font-size: 1.2rem; }
+  .product-detail-title { font-size: 2.1rem; }
 }
 
 @media (max-width: 768px) {
-  html { font-size: 15px; } /* Adjust base */
-  body { line-height: 1.7; }
-  .content-container { padding: 30px 25px; }
-  .hero-section { height: 70vh; min-height: 480px; margin: 20px; }
-  .hero-title { font-size: 2.6rem; }
-  .hero-subtitle { font-size: 1.3rem; }
-  .section-title { font-size: 2.2rem; margin-bottom: 55px;}
-  .product-detail-title { font-size: 2.1rem; }
-  .product-detail-price { font-size: 2rem; }
-  .category-nav { justify-content: flex-start; } /* Allow scrolling */
-  .footer { padding-top: 60px; }
-  .cart-item { padding: 20px; }
-  .cart-item-img { width: 70px; height: 70px; margin-right: 20px;}
+  html { font-size: 14px; } /* Giữ hoặc giảm nhẹ */
+  body { line-height: 1.65; } /* Giữ */
+  .content-container { padding: 20px 20px; } /* Giữ */
+  .hero-section { height: 65vh; min-height: 450px; margin: 15px;} /* Giữ */
+  .hero-title { font-size: 2.3rem; } /* Giữ */
+  .hero-subtitle { font-size: 1.1rem; } /* Giữ */
+  .section-title { font-size: 1.9rem; margin-bottom: 45px;} /* Giảm thêm */
+  .product-detail-title { font-size: 1.9rem; } /* Giữ */
+  .product-detail-price { font-size: 1.8rem; } /* Giữ */
+  .category-nav { justify-content: flex-start; }
+  .footer { padding-top: 50px; } /* Giữ */
 }
 
 @media (max-width: 576px) {
-  html { font-size: 14.5px; }
-  h1 { font-size: 2.2rem; }
-  .hero-content { padding: 2.5rem 1.5rem; }
-  .hero-title { font-size: 2.2rem; }
-  .hero-subtitle { font-size: 1.15rem; }
-  .btn-hero { padding: 0.9rem 2.2rem; font-size: 1.1rem; }
-  .card-body { padding: 1.5rem; }
-  .card-title { font-size: 1.3rem;}
-  .card-text { font-size: 0.95rem; }
-  .card-price { font-size: 1.3rem;}
-  .product-detail-img { max-height: 400px; }
-  .product-detail-info { padding: 25px 0 0 0;}
-  .product-detail-title { font-size: 1.9rem; }
-  .product-detail-price { font-size: 1.8rem; }
-  .cart-item { flex-direction: column; align-items: center; text-align: center; }
-  .cart-item-img { margin-right: 0; margin-bottom: 20px; }
-  .cart-item-details { width: 100%; flex-direction: column; align-items: center; gap: 5px; }
-  .cart-item-info { margin-right: 0; margin-bottom: 10px; }
-  .cart-item-actions { align-items: center; width: 100%;}
-  .cart-summary { padding: 25px; }
-  .summary-title { font-size: 1.5rem; }
-  .summary-item { font-size: 1rem; }
-  .summary-total { font-size: 1.5rem; }
+  html { font-size: 14px; }
+  h1 { font-size: 2.0rem; } /* Giảm thêm */
+  .hero-content { padding: 2rem 1.2rem; } /* Giữ */
+  .hero-title { font-size: 2.0rem; } /* Giảm thêm */
+  .hero-subtitle { font-size: 1.05rem; } /* Giảm thêm */
+  .btn-hero { padding: 0.8rem 2rem; font-size: 1rem; } /* Giảm thêm */
+  .card-body { padding: 1.2rem; } /* Giảm thêm */
+  .card-title { font-size: 1.15rem;} /* Giảm thêm */
+  .card-text { font-size: 0.85rem; } /* Giảm thêm */
+  .card-price { font-size: 1.15rem;} /* Giảm thêm */
+  .product-detail-img { max-height: 350px; } /* Giữ */
+  .product-detail-info { padding: 20px 0 0 0;} /* Giữ */
+  .product-detail-title { font-size: 1.7rem; } /* Giữ */
+  .product-detail-price { font-size: 1.6rem; } /* Giữ */
 }
 
 /* Animations (Smoother Easing) */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); } /* Slightly more pronounced move */
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .fade-in {
@@ -1143,466 +975,164 @@ textarea.form-control {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(60px); opacity: 0; }
+  from { transform: translateY(50px); opacity: 0; } /* <<< GIẢM TranslateY (từ 60px) */
   to { transform: translateY(0); opacity: 1; }
 }
 .slide-up {
-  /* Apply this class with JS Intersection Observer for scroll animations */
-  animation: slideUp 1s cubic-bezier(0.165, 0.84, 0.44, 1) backwards;
-  /* Initial state set by CSS or JS */
+  animation: slideUp 0.9s cubic-bezier(0.165, 0.84, 0.44, 1) backwards; /* <<< GIẢM Thời gian */
   opacity: 0;
 }
-/* Make slide-up elements visible when animation should run */
 .slide-up.visible {
   opacity: 1;
 }
 
-
-/* Accessibility */
-.sr-only { /* Standard screen reader only class */
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
+.sr-only {
+  position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important;
 }
 
-/* ---- AI Description & Image Results Styling --- */
 .ai-generated-description {
-  font-style: italic;
-  color: #555;
-  border-left: 4px solid var(--info-color); /* Thicker info border */
-  padding: 10px 15px;
-  margin: 20px 0;
-  background-color: rgba(13, 202, 240, 0.05); /* Very light info background */
-  border-radius: 0 5px 5px 0; /* Soft radius */
+  font-style: italic; color: #555; border-left: 3px solid var(--info-color); padding: 8px 12px; margin: 15px 0; background-color: rgba(13, 202, 240, 0.05); border-radius: 0 4px 4px 0;
 }
 
 .image-results-container {
-  padding: 10px 0;
-  background-color: #f0f0f0; /* Light gray background for image results */
+  padding: 8px 0; /* <<< GIẢM Padding */
+  background-color: #f0f0f0;
   border-radius: var(--border-radius-soft);
-  margin-top: 15px;
+  margin-top: 12px; /* <<< GIẢM Margin */
 }
 .image-results-title {
-  font-weight: 600; /* Bolder title */
-  margin-bottom: 10px !important;
-  font-size: 0.95em;
-  color: var(--dark-color);
-  padding: 0 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600; margin-bottom: 8px !important; font-size: 0.85em; color: var(--dark-color); padding: 0 12px; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.image-results-row {
-    padding: 0 10px; /* Padding around the row */
+.image-results-row { padding: 0 8px; } /* <<< GIẢM Padding */
+.image-result-item { text-align: center; margin-bottom: 8px; } /* <<< GIẢM Margin */
+.image-result-item img { border: 2px solid #ddd; border-radius: 5px; transition: transform 0.25s ease-in-out, border-color 0.25s ease-in-out; width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
 }
-.image-result-item {
-    text-align: center;
-    margin-bottom: 10px; /* Space below each item */
-}
-.image-result-item img {
-  border: 2px solid #ddd; /* Thicker border */
-  border-radius: 6px; /* Soft radius */
-  transition: transform 0.25s ease-in-out, border-color 0.25s ease-in-out;
-  width: 100%; /* Make image responsive within column */
-  aspect-ratio: 1 / 1; /* Square aspect ratio */
-  object-fit: cover;
-}
-.image-result-item:hover img {
-   transform: scale(1.1);
-   border-color: var(--secondary-color); /* Theme color border on hover */
-   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-.image-result-item span {
-   color: var(--gray-color);
-   font-size: 0.85em;
-   display: block;
-   margin-top: 5px;
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
-}
-.image-result-item:hover span {
-    color: var(--primary-color);
-    font-weight: 500;
-}
+.image-result-item:hover img { transform: scale(1.08); border-color: var(--secondary-color); box-shadow: 0 3px 6px rgba(0,0,0,0.08); /* <<< GIẢM NHẸ Shadow */ }
+.image-result-item span { color: var(--gray-color); font-size: 0.8em; display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.image-result-item:hover span { color: var(--primary-color); font-weight: 500;}
 
-
-/* --- CHATBOT STYLES (Polished) --- */
+/* --- CHATBOT STYLES --- */
 .chatbot-container {
-    position: fixed;
-    bottom: 95px; /* Above FAB */
-    right: 25px;
-    width: 370px; /* Wider */
-    max-width: calc(100vw - 50px);
-    height: 500px; /* Taller */
-    max-height: calc(100vh - 120px);
-    background-color: #fff;
-    border-radius: 15px; /* More rounded */
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18); /* Stronger shadow */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 1040;
-    transform: translateY(20px) scale(0.95) translateX(10px); /* Start slightly offset */
-    opacity: 0;
-    visibility: hidden;
-    transition: transform 0.35s var(--transition-timing-smooth),
-                opacity 0.3s ease-out,
-                visibility 0.35s;
+  position: fixed; bottom: 85px; right: 20px; /* <<< ĐIỀU CHỈNH VỊ TRÍ */
+  width: 340px; /* <<< GIẢM (từ 370px) */
+  max-width: calc(100vw - 40px); /* <<< GIẢM */
+  height: 450px; /* <<< GIẢM (từ 500px) */
+  max-height: calc(100vh - 100px); /* <<< GIẢM */
+  background-color: #fff; border-radius: 12px; /* <<< GIẢM Bo góc */
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15); /* <<< GIẢM NHẸ Shadow */
+  display: flex; flex-direction: column; overflow: hidden; z-index: 1040;
+  transform: translateY(15px) scale(0.95) translateX(8px); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.3s var(--transition-timing-smooth, ease), opacity 0.25s ease-out, visibility 0s linear 0.3s;
 }
-
 .chatbot-container:not(.collapsed) {
-    transform: translateY(0) scale(1) translateX(0);
-    opacity: 1;
-    visibility: visible;
+  transform: translateY(0) scale(1) translateX(0); opacity: 1; visibility: visible; pointer-events: auto;
+  transition: transform 0.25s var(--transition-timing-smooth, ease), opacity 0.2s ease-in, visibility 0s linear 0s;
 }
-
-/* Nút Toggle đã tích hợp vào FAB Container */
-
+.chatbot-container.collapsed {
+  transform: translateY(15px) scale(0.95) translateX(8px); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.3s var(--transition-timing-smooth, ease), opacity 0.25s ease-out, visibility 0s linear 0.3s;
+}
 .chatbot-header {
-    background-color: var(--primary-color); color: white; padding: 12px 18px; /* More padding */
-    display: flex; justify-content: space-between; align-items: center; cursor: grab;
-    border-bottom: 1px solid rgba(0,0,0,0.15);
-    border-top-left-radius: 15px; border-top-right-radius: 15px; /* Match container */
-    user-select: none; /* Prevent text selection when dragging */
+  background-color: var(--primary-color); color: white; padding: 10px 15px; /* <<< GIẢM Padding */
+  display: flex; justify-content: space-between; align-items: center; cursor: grab;
+  border-bottom: 1px solid rgba(0,0,0,0.15);
+  border-top-left-radius: 12px; border-top-right-radius: 12px; /* <<< GIẢM Bo góc */
+  user-select: none;
 }
-.chatbot-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
-.chatbot-minimize-btn {
-    background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.4em;
-    cursor: pointer; padding: 0; line-height: 1; opacity: 0.8;
-    transition: opacity 0.2s, transform 0.2s;
-}
+.chatbot-title { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; } /* <<< GIẢM Font size */
+.chatbot-minimize-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.2em; cursor: pointer; padding: 0; line-height: 1; opacity: 0.8; transition: opacity 0.2s, transform 0.2s;}
 .chatbot-minimize-btn:hover { opacity: 1; transform: scale(1.1); }
-
-.chat-messages {
-    flex-grow: 1; padding: 20px; overflow-y: auto;
-    background-color: #F9F6F2; /* Softer chat background */
-    scrollbar-width: thin;
-    scrollbar-color: #ccc #F9F6F2;
-}
-.chat-messages::-webkit-scrollbar { width: 8px; }
-.chat-messages::-webkit-scrollbar-track { background: #eee; border-radius: 4px; }
-.chat-messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; border: 2px solid #eee; }
+.chat-messages { flex-grow: 1; padding: 15px; overflow-y: auto; background-color: #F9F6F2; scrollbar-width: thin; scrollbar-color: #ccc #F9F6F2;}
+.chat-messages::-webkit-scrollbar { width: 7px; } /* <<< GIẢM */
+.chat-messages::-webkit-scrollbar-track { background: #eee; border-radius: 3px; } /* <<< GIẢM */
+.chat-messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; border: 1.5px solid #eee; } /* <<< GIẢM */
 .chat-messages::-webkit-scrollbar-thumb:hover { background: #bbb; }
-
-.message {
-    margin-bottom: 15px; padding: 10px 16px; border-radius: 20px; /* More rounded messages */
-    max-width: 88%; word-wrap: break-word; line-height: 1.5;
-    animation: messageFadeIn 0.4s var(--transition-timing-smooth) backwards; /* Animate messages */
-}
-@keyframes messageFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.user-message {
-    background-color: var(--secondary-color); /* Use secondary for user */
-    color: white; margin-left: auto; border-bottom-right-radius: 6px;
-}
-.bot-message {
-    background-color: #e5e5ea; /* Slightly different gray for bot */
-    color: #2c2c2e; /* Darker text for bot msg */
-    margin-right: auto; border-bottom-left-radius: 6px;
-}
+.message { margin-bottom: 12px; padding: 8px 14px; border-radius: 18px; max-width: 85%; word-wrap: break-word; line-height: 1.45; animation: messageFadeIn 0.35s var(--transition-timing-smooth) backwards; font-size:0.9rem;} /* <<< GIẢM FONT & PADDING */
+@keyframes messageFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.user-message { background-color: var(--secondary-color); color: white; margin-left: auto; border-bottom-right-radius: 5px; }
+.bot-message { background-color: #e5e5ea; color: #2c2c2e; margin-right: auto; border-bottom-left-radius: 5px; }
 .message p { margin-bottom: 0; }
-
-/* Bot image results refined */
-.bot-message .image-results-container {
-    background-color: transparent; /* Remove nested background */
-    padding-top: 8px;
-    margin: -5px -5px 0; /* Adjust margins to fit better */
-}
-.bot-message .image-results-title {
-    padding: 0 10px 5px; font-size: 0.85em; font-weight: 500; color: #555;
-}
-.bot-message .image-results-container .d-flex {
-    padding: 0 10px 10px; gap: 8px; /* Add gap between images */
-}
-.bot-message .image-result-item { margin-bottom: 0; } /* Remove bottom margin here */
-.bot-message .image-result-item img {
-    width: 60px; height: 60px; object-fit: cover; border-radius: 8px; /* Rounder thumbs */
-    border: 1px solid rgba(0,0,0,0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s;
-    cursor: pointer;
-}
-.bot-message .image-result-item:hover img {
-    transform: scale(1.1); box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-    border-color: var(--secondary-color);
-}
-.bot-message .image-result-item span {
-    color: #444; font-size: 0.75em; margin-top: 4px; display: block;
-    text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 60px;
-}
+.bot-message .image-results-container { background-color: transparent; padding-top: 6px; margin: -4px -4px 0;}
+.bot-message .image-results-title { padding: 0 8px 4px; font-size: 0.8em; font-weight: 500; color: #555;}
+.bot-message .image-results-container .d-flex { padding: 0 8px 8px; gap: 6px;}
+.bot-message .image-result-item img { width: 55px; height: 55px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s; cursor: pointer;}
+.bot-message .image-result-item:hover img { transform: scale(1.08); box-shadow: 0 2px 5px rgba(0,0,0,0.12); border-color: var(--secondary-color); }
+.bot-message .image-result-item span { color: #444; font-size: 0.7em; margin-top: 3px; display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 55px;}
 .bot-message .image-result-item:hover span { color: var(--secondary-color); }
+.chat-input-container { padding: 12px; border-top: 1px solid #ddd; background-color: #fdfdfd; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+.chat-form { display: flex; align-items: center; gap: 8px; }
+#chat-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 18px; outline: none; font-size: 0.95rem; background-color: #fff; transition: border-color 0.2s, box-shadow 0.2s;}
+#chat-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2.5px rgba(111, 78, 55, 0.12);}
+#chatForm button { background-color: var(--primary-color); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; flex-shrink: 0; cursor: pointer; transition: background-color 0.2s, transform 0.2s; display: flex; align-items: center; justify-content: center;}
+#chatForm button:hover { background-color: var(--secondary-color); transform: scale(1.1); }
+#chatForm button i { font-size: 1.1rem; line-height: 1; vertical-align: middle;}
 
-.chat-input-container {
-    padding: 15px; border-top: 1px solid #ddd; background-color: #fdfdfd;
-    border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
-}
-.chat-form { display: flex; align-items: center; gap: 10px; }
-#chat-input {
-    flex-grow: 1; border: 1px solid #ccc; border-radius: 25px; /* Fully rounded */
-    padding: 12px 20px; outline: none; font-size: 1rem;
-    background-color: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-#chat-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.15);
-}
-#chatForm button {
-    background-color: var(--primary-color); color: white; border: none;
-    border-radius: 50%; /* Round button */
-    width: 44px; /* Fixed size */
-    height: 44px;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
+/* Floating Action Buttons Container */
+.floating-action-buttons-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column-reverse; gap: 12px; z-index: 1045; }
+.floating-action-button { display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background-color: var(--primary-color); color: white; font-size: 22px; text-decoration: none; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); border: none; cursor: pointer; transition: transform 0.2s var(--transition-timing-smooth), box-shadow 0.2s var(--transition-timing-smooth), background-color 0.2s ease-in-out; overflow: hidden;}
+.floating-action-button:hover { transform: translateY(-3px) scale(1.08); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.22);}
+.floating-action-button.fab-facebook { background-color: #1877F2; } .floating-action-button.fab-facebook:hover { background-color: #166fe5; }
+.floating-action-button.fab-tiktok { background-color: #000000; } .floating-action-button.fab-tiktok:hover { background-color: #333; }
+.floating-action-button.chatbot-toggle-btn { background-color: var(--secondary-color); } .floating-action-button.chatbot-toggle-btn:hover { background-color: #834322; }
+
+.custom-notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.3); /* Lớp nền mờ */
     display: flex;
     align-items: center;
     justify-content: center;
-}
-#chatForm button:hover {
-    background-color: var(--secondary-color);
-    transform: scale(1.1);
-}
-#chatForm button i {
-    font-size: 1.2rem;
-    line-height: 1; /* Align icon properly */
-    vertical-align: middle;
-}
-/* --- KẾT THÚC CHATBOT STYLES --- */
-
-
-/* ---- Styling cho Floating Action Buttons Container ---- */
-.floating-action-buttons-container {
-  position: fixed;
-  bottom: 25px; /* Lift higher */
-  right: 25px;
-  display: flex;
-  flex-direction: column-reverse; /* Stack bottom-up */
-  gap: 15px; /* Increase gap */
-  z-index: 1045; /* Ensure it's above most elements, including chatbot container if closed */
+    z-index: 2000; /* Cao hơn tất cả các element khác */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
-/* Style chung cho các nút nổi */
-.floating-action-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 55px;      /* Larger FABs */
-  height: 55px;
-  border-radius: 50%;
-  background-color: var(--primary-color); /* Default color */
-  color: white;
-  font-size: 24px;    /* Larger icons */
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
-  border: none;
-  cursor: pointer;
-  transition: transform 0.25s var(--transition-timing-smooth),
-              box-shadow 0.25s var(--transition-timing-smooth),
-              background-color 0.25s ease-in-out;
-  overflow: hidden;
+.custom-notification-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
 }
 
-.floating-action-button:hover {
-  transform: translateY(-4px) scale(1.1); /* Lift and scale effect */
-  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.25);
+.custom-notification-box {
+    background-color: white;
+    color: var(--dark-color); /* Hoặc màu text bạn muốn */
+    padding: 25px 35px; /* Padding rộng hơn */
+    border-radius: var(--border-radius-soft, 12px); /* Bo góc mềm mại */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Shadow rõ hơn */
+    text-align: center;
+    max-width: 450px; /* Giới hạn chiều rộng */
+    width: 90%; /* Chiếm 90% trên màn hình nhỏ */
+    transform: scale(0.9) translateY(10px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ */
+    display: flex; /* Canh icon và text */
+    flex-direction: column; /* Xếp dọc */
+    align-items: center;
 }
 
-/* Nút cụ thể */
-.floating-action-button.fab-facebook {
-  background-color: #1877F2;
-}
-.floating-action-button.fab-facebook:hover {
-  background-color: #166fe5;
+.custom-notification-overlay.show .custom-notification-box {
+    transform: scale(1) translateY(0);
 }
 
-.floating-action-button.fab-tiktok {
-  background-color: #000000;
-  /* TikTok's multi-color icon needs specific SVG or Font Awesome for accuracy */
-  /* Using a simple icon here */
-}
-.floating-action-button.fab-tiktok:hover {
-  background-color: #333;
+.custom-notification-box i { /* Icon */
+    font-size: 3.5rem;  /* Icon to, dễ thấy */
+    color: var(--primary-color); /* Màu icon (ví dụ: màu chính của theme) */
+    margin-bottom: 20px;
+    line-height: 1;
 }
 
-/* Style nút toggle chatbot như FAB khác */
-.floating-action-button.chatbot-toggle-btn {
-  background-color: var(--secondary-color); /* Chatbot gets secondary color */
-}
-.floating-action-button.chatbot-toggle-btn:hover {
-  background-color: #834322; /* Darker secondary on hover */
-}
-
-.card, .category-card, .promo-card {
-  /* Existing styles... */
-  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth),
-              box-shadow var(--transition-speed-normal) var(--transition-timing-smooth),
-              border-color var(--transition-speed-normal) var(--transition-timing-smooth); /* Add border transition */
-  border: 1px solid var(--border-color-subtle); /* Add base subtle border */
-}
-
-.card:hover, .category-card:hover, .promo-card:hover {
-  transform: translateY(-10px); /* More noticeable lift */
-  box-shadow: var(--box-shadow-lifted); /* Stronger shadow */
-  border-color: var(--secondary-color); /* Highlight border on hover */
-}
-
-/* --- 2. Subtle Image Zoom on Card Hover --- */
-/* Ensure you have a container if needed, or apply directly to img if card has overflow:hidden */
-.card .card-img-container { /* Add this class wrapper in HTML if you haven't */
-  overflow: hidden;
-  border-radius: var(--border-radius-soft) var(--border-radius-soft) 0 0; /* Match card top radius */
-}
-
-/* Target images within any card */
-.card .card-img-top {
-  transition: transform 0.5s var(--transition-timing-smooth); /* Slower, smoother zoom */
-}
-
-.card:hover .card-img-top {
-  transform: scale(1.06); /* Slightly increased zoom factor */
-}
-
-/* --- 3. Enhanced Button Hover Effects --- */
-.btn {
-  /* Existing styles... */
-  transition: all var(--transition-speed-normal) var(--transition-timing-smooth); /* Use normal speed */
-  box-shadow: var(--box-shadow-soft); /* Add base shadow to buttons */
-  will-change: transform; /* Hint browser for smoother transform */
-}
-
-.btn:hover {
-  /* Existing hover colors should remain */
-  transform: translateY(-4px) scale(1.03); /* Combine lift and slight scale */
-  box-shadow: var(--box-shadow-medium); /* Use medium shadow on hover */
-}
-.btn:active {
-    transform: translateY(-1px) scale(0.99); /* Press down effect */
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Inset shadow */
-}
-
-/* Special Hero Button Hover */
-.btn-hero:hover {
-  /* Existing styles... */
-  transform: translateY(-6px) scale(1.06); /* More dramatic for hero */
-  box-shadow: var(--box-shadow-lifted);
-}
-
-/* Add to cart button hover specifically */
-.add-to-cart-btn:hover {
-   /* Keep primary/outline styles but add transform/shadow */
-   /* Optional: Add a specific effect like subtle glow */
-   /* box-shadow: var(--box-shadow-medium), 0 0 15px rgba(111, 78, 55, 0.2); */
-}
+/* Điều chỉnh các icon khác nếu cần (ví dụ cho success, error) */
+.custom-notification-box i.success { color: var(--success-color); }
+.custom-notification-box i.warning { color: var(--warning-color); }
+.custom-notification-box i.danger { color: var(--danger-color); }
 
 
-/* --- 4. Navbar Brand Hover --- */
-.navbar-brand {
-  /* Existing styles... */
-  transition: transform var(--transition-speed-normal) var(--transition-timing-smooth);
-}
-.navbar-brand:hover {
-  /* Existing hover styles... */
-  transform: scale(1.03); /* Keep subtle scale */
-}
-
-/* --- 5. Featured Badge Animation --- */
-@keyframes pulse-badge {
-  0% { transform: scale(1); box-shadow: 0 3px 6px rgba(0,0,0,0.15); opacity: 1; }
-  50% { transform: scale(1.08); box-shadow: 0 5px 12px rgba(232, 168, 124, 0.4); opacity: 0.9; } /* Accent color glow */
-  100% { transform: scale(1); box-shadow: 0 3px 6px rgba(0,0,0,0.15); opacity: 1; }
-}
-
-.featured-badge {
-  /* Existing styles... */
-  animation: pulse-badge 3.5s infinite ease-in-out; /* Slow, subtle pulse */
-}
-
-.category-card {
-  position: relative; /* Cho phép định vị tuyệt đối overlay */
-  overflow: visible; /* CHO PHÉP overlay hiện ra ngoài card nếu muốn, hoặc hidden */
-}
-
-.category-overlay {
-  position: absolute;
-  bottom: 0; /* Hiển thị từ dưới lên */
-  left: 0;
-  right: 0;
-  background-color: rgba(59, 47, 47, 0.92); /* Nền Dark Chocolate mờ */
-  color: var(--light-color);
-  padding: 15px 20px;
-  border-radius: 0 0 var(--border-radius-soft) var(--border-radius-soft); /* Bo góc dưới */
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(15px) scale(0.95); /* Hiệu ứng xuất hiện từ dưới và nhỏ */
-  transition: opacity 0.3s var(--transition-timing-smooth),
-              visibility 0s linear 0.3s, /* Delay visibility để transition opacity xong */
-              transform 0.3s var(--transition-timing-smooth);
-  z-index: 2; /* Nằm trên nội dung card body */
-  pointer-events: none; /* Không bắt sự kiện chuột trên overlay */
-  border-top: 2px solid var(--secondary-color); /* Viền ngăn cách màu Sienna */
-}
-
-/* Style cho liên kết cha khi overlay hiện (có thể giảm opacity nội dung gốc) */
-.category-card-link:hover .category-card .card-body {
-    /* Optional: Làm mờ nội dung gốc khi hover */
-    /* opacity: 0.7; */
-    /* filter: blur(1px); */
-}
-
-.category-card-link:hover .category-card .category-overlay {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0) scale(1);
-  transition: opacity 0.25s var(--transition-timing-smooth),
-              visibility 0s linear 0s,
-              transform 0.25s var(--transition-timing-smooth);
-}
-
-.category-overlay .overlay-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--accent-color); /* Màu accent cho tiêu đề overlay */
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid rgba(232, 168, 124, 0.3); /* Border màu accent mờ */
-}
-
-.category-overlay .overlay-product-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 0.85rem; /* Chữ nhỏ hơn trong overlay */
-  line-height: 1.5;
-  max-height: 70px; /* Giới hạn chiều cao nếu nhiều sản phẩm */
-  overflow: hidden;
-}
-
-.category-overlay .overlay-product-list li {
-  margin-bottom: 3px;
-  white-space: nowrap; /* Tránh xuống dòng tên SP */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Thêm ... nếu quá dài */
-}
-.category-overlay .overlay-product-list li::before {
-    content: "– "; /* Dấu gạch đầu dòng đơn giản */
-    margin-right: 4px;
-    opacity: 0.6;
-}
-
-.category-overlay .overlay-no-products {
-    font-size: 0.85rem;
-    font-style: italic;
-    opacity: 0.7;
-    margin-top: 5px;
-    margin-bottom: 0;
+.custom-notification-box p { /* Message text */
+    font-size: 1.25rem; /* Chữ to, rõ */
+    font-weight: 500;   /* Hơi đậm một chút */
+    margin-bottom: 0;   /* Không cần margin dưới */
+    line-height: 1.5;
 }

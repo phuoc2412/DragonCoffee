@@ -1,0 +1,58 @@
+{# templates/admin/admin_confirm_pin.html #}
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} - Trang Quản trị{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.profile') }}">Hồ sơ</a></li>
+    <li class="breadcrumb-item active">Xác thực PIN</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+        <div class="card card-primary card-outline shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title">Xác thực Mã PIN để Chỉnh sửa Hồ sơ</h3>
+            </div>
+            <form method="POST" action="{{ url_for('admin.confirm_pin_for_edit') }}">
+                {{ confirm_form.hidden_tag() }}
+                <div class="card-body">
+                    <p class="text-muted">Vui lòng nhập Mã PIN (8 ký tự) để tiếp tục.</p>
+                    
+                    {# Hiển thị flash messages nếu có #}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% set alert_category = category if category in ['success', 'danger', 'info', 'warning'] else 'info' %}
+                                <div class="alert alert-{{ alert_category }} alert-dismissible fade show py-2 small" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.75rem 1rem;"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="input-group mb-3">
+                         {{ confirm_form.pin.label(class="form-label sr-only visually-hidden") }}
+                         <span class="input-group-text"><i class="fas fa-key"></i></span>
+                        {{ confirm_form.pin(class="form-control" + (" is-invalid" if confirm_form.pin.errors else ""), placeholder="Nhập mã PIN") }}
+                        {% if confirm_form.pin.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in confirm_form.pin.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                     <div class="form-text text-muted small">Cấm đụng vào thông tin cá nhân của người khác</div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('admin.profile') }}" class="btn btn-secondary">Hủy</a>
+                    {{ confirm_form.submit(class="btn btn-primary float-end") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

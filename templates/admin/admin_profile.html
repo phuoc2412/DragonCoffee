@@ -1,0 +1,97 @@
+{# templates/admin/admin_profile.html #}
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} - Trang Quản trị{% endblock %}
+{% block page_header %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Bảng điều khiển</a></li>
+    <li class="breadcrumb-item active">Hồ sơ</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9"> {# Điều chỉnh độ rộng cột cho cân đối hơn #}
+        <div class="card card-primary card-outline shadow-lg"> {# Thêm shadow-lg cho nổi bật hơn #}
+            <div class="card-body box-profile pt-4 pb-4"> {# Tăng padding top/bottom #}
+                <div class="text-center mb-4">
+                    {# Bọc ảnh trong div để dễ style và thêm data-attributes cho modal #}
+                    <div class="profile-user-img-wrapper" 
+                         data-bs-toggle="modal" 
+                         data-bs-target="#imageViewerModal" 
+                         data-img-src="{{ url_for('static', filename=user.avatar_url) if user.avatar_url else url_for('static', filename='images/default_avatar.png') }}">
+                        <img class="profile-user-img"
+                             src="{{ url_for('static', filename=user.avatar_url) if user.avatar_url else url_for('static', filename='images/default_avatar.png') }}"
+                             alt="Ảnh đại diện của {{ user.username }}">
+                    </div>
+                </div>
+
+                <h3 class="profile-username text-center">{{ user.full_name or user.username }}</h3>
+                <p class="profile-role-text text-center">
+                    {% if user.is_admin %}
+                        <span class="badge bg-danger">Quản trị viên Cấp Cao</span>
+                    {% elif user.is_staff %}
+                        <span class="badge bg-info">Nhân viên</span>
+                        {% if user.employee_profile and user.employee_profile.position %}
+                            ({{ user.employee_profile.position }})
+                        {% endif %}
+                    {% endif %}
+                </p>
+
+                <ul class="list-group list-group-unbordered mb-4 admin-profile-info-list"> {# Thêm class mới #}
+                    <li class="list-group-item">
+                        <b>Username:</b> <span class="float-end text-muted">{{ user.username }}</span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Email:</b> <a href="mailto:{{ user.email }}" class="float-end">{{ user.email }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Họ và Tên:</b> <span class="float-end">{{ user.full_name if user.full_name else '[Chưa cập nhật]' }}</span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Điện thoại:</b> <span class="float-end">{{ user.phone or 'Chưa cung cấp' }}</span>
+                    </li>
+                    {% if user.is_staff and user.employee_profile %}
+                    <li class="list-group-item">
+                        <b>Vị trí:</b> <span class="float-end">{{ user.employee_profile.position or 'N/A' }}</span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Ngày vào làm:</b> <span class="float-end">{{ user.employee_profile.hire_date.strftime('%d/%m/%Y') if user.employee_profile.hire_date else 'N/A' }}</span>
+                    </li>
+                    {# Có thể ẩn lương nếu không muốn hiển thị công khai cho mọi admin/staff khác #}
+                    {# <li class="list-group-item">
+                        <b>Lương:</b> <span class="float-end">{{ format_currency(user.employee_profile.salary) if user.employee_profile.salary is not none else 'N/A' }}</span>
+                    </li> #}
+                    {% endif %}
+                    <li class="list-group-item">
+                        <b>Ngày tạo tài khoản:</b> <span class="float-end text-muted"><small>{{ user.created_at.strftime('%d/%m/%Y lúc %H:%M') if user.created_at else 'N/A' }}</small></span>
+                    </li>
+                </ul>
+
+                <a href="{{ url_for('admin.confirm_pin_for_edit') }}" class="btn btn-profile-edit d-block mx-auto" style="max-width: 300px;">
+                    <i class="fas fa-user-cog me-2"></i> Chỉnh sửa Hồ sơ & Mật khẩu
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const imageViewerModalEl = document.getElementById('imageViewerModal');
+        if (imageViewerModalEl) {
+            const viewerModalImage = document.getElementById('viewerModalImage');
+            imageViewerModalEl.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget; // Button that triggered the modal
+                const imgSrc = button.getAttribute('data-img-src');
+                if (viewerModalImage && imgSrc) {
+                    viewerModalImage.src = imgSrc;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

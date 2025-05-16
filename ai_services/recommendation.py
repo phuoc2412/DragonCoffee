@@ -23,14 +23,11 @@ class RecommendationEngine:
         self.product_vectors = {}
         self.model_dir = 'ai_services/models'
         
-        # Ensure model directory exists
         os.makedirs(self.model_dir, exist_ok=True)
         
-        # Load or initialize data
         self.similarity_matrix_path = os.path.join(self.model_dir, 'product_similarity.joblib')
         self.product_vectors_path = os.path.join(self.model_dir, 'product_vectors.joblib')
         
-        # Try to load existing data
         try:
             if os.path.exists(self.similarity_matrix_path):
                 self.similarity_matrix = joblib.load(self.similarity_matrix_path)
@@ -40,7 +37,6 @@ class RecommendationEngine:
         except Exception as e:
             print(f"Error loading recommendation data: {e}")
         
-        # Initialize product data if not loaded
         if not self.similarity_matrix or not self.product_vectors:
             self.initialize_product_data()
             self.calculate_similarity_matrix()
@@ -52,27 +48,23 @@ class RecommendationEngine:
         
         print("Initializing product data for recommendations...")
         
-        # Get all products
         products = self.db.session.query(Product).filter(Product.is_available == True).all()
         
-        # Create feature vectors for each product
         for product in products:
-            # Basic product features
             self.product_features[product.id] = {
                 'name': product.name,
                 'price': product.price,
                 'category_id': product.category_id,
                 'is_featured': product.is_featured,
-                'avg_rating': 0,  # Default, will be updated if reviews exist
-                'order_count': 0  # Default, will be updated later
+                'avg_rating': 0,  
+                'order_count': 0  
             }
             
-            # Get category name
+
             category = self.db.session.query(Category).get(product.category_id)
             if category:
                 self.product_features[product.id]['category_name'] = category.name
             
-            # Get average rating if reviews exist
             avg_rating = self.db.session.query(func.avg(Review.rating)).filter(
                 Review.product_id == product.id
             ).scalar()
@@ -80,7 +72,7 @@ class RecommendationEngine:
             if avg_rating:
                 self.product_features[product.id]['avg_rating'] = float(avg_rating)
             
-            # Get order count
+
             order_count = self.db.session.query(func.sum(OrderDetail.quantity)).filter(
                 OrderDetail.product_id == product.id
             ).scalar()
@@ -88,12 +80,8 @@ class RecommendationEngine:
             if order_count:
                 self.product_features[product.id]['order_count'] = int(order_count)
         
-        # Create numerical feature vectors for similarity computation
         for product_id, features in self.product_features.items():
-            # Create vector with normalized numerical features
-            # [price, is_featured, avg_rating, order_count, category_one_hot]
-            
-            # Get all categories for one-hot encoding
+
             categories = self.db.session.query(Category).all()
             category_ids = [cat.id for cat in categories]
             
@@ -338,8 +326,6 @@ class RecommendationEngine:
         
         return result
 
-
-# Singleton instance
 recommendation_engine = None
 
 def init_recommendation_engine(db):
@@ -347,20 +333,13 @@ def init_recommendation_engine(db):
     global recommendation_engine
     recommendation_engine = RecommendationEngine(db)
     return recommendation_engine
-
 def get_recommendations(user_id=None, product_id=None, limit=5):
     """Get recommendations based on user_id or product_id"""
     if recommendation_engine is None:
         from app import db
         init_recommendation_engine(db)
-    
-    # If product_id is provided, return similar products
     if product_id:
         return recommendation_engine.get_similar_products(product_id, limit)
-    
-    # If user_id is provided, return personalized recommendations
     if user_id:
         return recommendation_engine.recommend_for_user(user_id, limit)
-    
-    # Otherwise, return popular products
     return recommendation_engine.most_popular_products(limit)

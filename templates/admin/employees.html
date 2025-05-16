@@ -112,7 +112,8 @@
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
                     <h5 class="card-title text-muted">Nhân viên pha chế</h5>
-                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Barista')|list|length }}</h3>
+                    {# SỬA Ở ĐÂY: Tìm đúng chữ "Pha chế" #}
+                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Pha chế')|list|length }}</h3>
                 </div>
             </div>
         </div>
@@ -121,7 +122,9 @@
             <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
                     <h5 class="card-title text-muted">Người quản lý</h5>
-                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Manager')|list|length }}</h3>
+                     {# SỬA Ở ĐÂY: Tìm đúng chữ bạn lưu cho Manager, ví dụ: 'Quản lý' hoặc 'Manager' nếu bạn lưu tiếng Anh #}
+                     {# Hãy thay 'Quản lý' bằng giá trị đúng nếu cần #}
+                    <h3 class="mb-0">{{ employees|selectattr('position', 'equalto', 'Quản lý')|list|length }}</h3>
                 </div>
             </div>
         </div>

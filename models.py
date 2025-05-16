@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import NUMERIC # Có thể xóa nếu không
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask import current_app
 from sqlalchemy import Text
-
+from flask import request as flask_request
 # ==================== User Model ====================
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
@@ -298,3 +298,22 @@ class Location(db.Model):
 
     def __repr__(self):
         return f'<Location {self.name}>'
+    
+
+class WebVisit(db.Model):
+    __tablename__ = 'web_visit'
+
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    ip_address = db.Column(db.String(45), nullable=True) # Hỗ trợ cả IPv4 và IPv6
+    user_agent = db.Column(db.String(255), nullable=True)
+    path = db.Column(db.String(2048), nullable=True) # URL path
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
+    user_email = db.Column(db.String(120), nullable=True) # Lưu lại email nếu user đăng nhập
+    session_id = db.Column(db.String(255), nullable=True) # Flask session ID
+
+    # Quan hệ ngược lại với User (tùy chọn, nhưng có thể hữu ích)
+    # visitor = db.relationship('User', backref='visits', lazy=True) # Nếu cần, bỏ comment
+
+    def __repr__(self):
+        return f'<WebVisit {self.id} from {self.ip_address} at {self.timestamp}>'

@@ -1,9 +1,7 @@
-// static/js/inventory.js
+// static/js/admin/inventory.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Inventory page JS loaded.");
 
-    // --- DOM Elements ---
     const searchInput = document.getElementById('inventorySearchInput');
     const statusFilter = document.getElementById('inventoryStatusFilter');
     const tableBody = document.getElementById('inventoryTableBody');
@@ -12,18 +10,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingSpinner = document.getElementById('loadingSpinnerInv');
     const paginationContainer = document.getElementById('paginationContainerInv');
     const exportCurrentCsvLink = document.getElementById('exportCurrentCsvLink');
-
-    // --- Modals ---
     const historyModal = document.getElementById('historyModal');
     const updateStockModal = document.getElementById('updateStockModal');
     const updateStockForm = document.getElementById('updateStockForm');
-    const batchFileInput = document.getElementById('batchFile'); // Added for batch update setup
-    const batchForm = document.getElementById('batchUpdateForm'); // Added for batch update setup
+    const batchFileInput = document.getElementById('batchFile');
+    const batchForm = document.getElementById('batchUpdateForm');
 
+    let debounceTimeoutInventory;
 
-    let debounceTimeoutInventory; // Timeout ID for debouncing
+    // === XỬ LÝ CHO QR CODE MODAL ===
+    const qrCodeModalElement = document.getElementById('qrCodeModal');
+    let qrCodeModalInstance = null;
+    if (qrCodeModalElement) {
+        qrCodeModalInstance = new bootstrap.Modal(qrCodeModalElement, {
+            keyboard: true,
+        });
+    }
+    const qrProductNameModalSpan = document.getElementById('qrProductNameModal');
+    const qrImageModalImg = document.getElementById('qrImageModal');
+    const qrImageContainer = document.getElementById('qrImageContainer');
+    const qrLoadingSpinner = qrImageContainer ? qrImageContainer.querySelector('.qr-image-loading') : null;
 
-    // --- Hàm Fetch Data qua API ---
     function fetchInventory(query = '', status = '') {
         if (loadingSpinner) loadingSpinner.style.display = 'flex';
         if (tableBody) tableBody.innerHTML = '';
@@ -31,11 +38,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (paginationContainer) paginationContainer.style.display = 'none';
 
         const apiUrl = `/admin/api/search-inventory?q=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}`;
-        console.log("Fetching Inventory API:", apiUrl);
 
         fetch(apiUrl)
             .then(response => {
-                if (!response.ok) { throw new Error(`Network error (${response.status})`); }
+                if (!response.ok) { throw new Error(`Lỗi mạng (${response.status})`); }
                 return response.json();
             })
             .then(data => {
@@ -44,15 +50,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success && data.html) {
                     if (tableBody) {
                         tableBody.innerHTML = data.html;
-                        reinitializeBootstrapComponents(tableBody); // Re-init Tooltips for new content
-                    } else { console.error("inventoryTableBody element not found!"); }
-
+                        reinitializeBootstrapComponents(tableBody);
+                    }
                     if (data.count === 0) {
-                        if (noInventoryMessage) noInventoryMessage.style.display = 'block';
+                        if (noInventoryMessage) {
+                           const noInvTextSpan = document.getElementById('noInventoryText');
+                           if(noInvTextSpan) noInvTextSpan.textContent = (query || (status && status !== 'all')) ? 'Không tìm thấy mặt hàng nào khớp với bộ lọc.' : 'Chưa có dữ liệu tồn kho.';
+                           noInventoryMessage.style.display = 'block';
+                        }
                     } else {
                         if (noInventoryMessage) noInventoryMessage.style.display = 'none';
                     }
-                    // Hide static pagination container when using dynamic search/filter
                     if (paginationContainer) paginationContainer.style.display = 'none';
                 } else {
                     throw new Error(data.message || "Lỗi không xác định từ API");
@@ -62,7 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Fetch Inventory Error:', error);
                 if (loadingSpinner) loadingSpinner.style.display = 'none';
                 if (noInventoryMessage) {
-                    noInventoryMessage.innerHTML = `<i class="fas fa-exclamation-circle fa-3x mb-3"></i><br>Lỗi: ${error.message}. Vui lòng thử lại.`;
+                    const noInvTextSpan = document.getElementById('noInventoryText');
+                    if(noInvTextSpan) noInvTextSpan.innerHTML = `<i class="fas fa-exclamation-circle fa-3x mb-3"></i><br>Lỗi: ${error.message}. Vui lòng thử lại.`;
                     noInventoryMessage.style.display = 'block';
                 }
                 if (tableBody) tableBody.innerHTML = '';
@@ -70,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // --- Hàm thực hiện tìm kiếm/lọc với Debounce ---
     function performInventorySearch() {
         clearTimeout(debounceTimeoutInventory);
         debounceTimeoutInventory = setTimeout(() => {
@@ -78,26 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = statusFilter ? statusFilter.value : '';
             fetchInventory(query, status);
 
-            // Cập nhật link Export
             if (exportCurrentCsvLink) {
                  const exportUrl = new URL(exportCurrentCsvLink.href, window.location.origin);
-                 exportUrl.searchParams.set('search', query); // Dùng param 'search'
-                 exportUrl.searchParams.set('status', status); // Dùng param 'status'
+                 exportUrl.searchParams.set('search', query);
+                 exportUrl.searchParams.set('status', status);
                  exportCurrentCsvLink.href = exportUrl.pathname + exportUrl.search;
-                 // console.log("Updated Export URL:", exportCurrentCsvLink.href);
             }
 
-            // Cập nhật URL trình duyệt (optional)
              const currentUrl = new URL(window.location);
-             currentUrl.searchParams.set('search', query); // Đồng bộ với form GET gốc
-             currentUrl.searchParams.set('status_filter', status); // Đồng bộ với form GET gốc
-             currentUrl.searchParams.delete('page'); // Remove page param
+             currentUrl.searchParams.set('search', query);
+             currentUrl.searchParams.set('status_filter', status);
+             currentUrl.searchParams.delete('page');
              history.pushState({}, '', currentUrl);
 
         }, 550);
     }
 
-    // --- Gán sự kiện cho Input và Select ---
     if (searchInput) {
         searchInput.addEventListener('input', performInventorySearch);
     }
@@ -105,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         statusFilter.addEventListener('change', performInventorySearch);
     }
 
-    // --- Xử lý Modal History ---
     if (historyModal) {
         historyModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
@@ -119,11 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if(productNameSpan) productNameSpan.textContent = productName;
 
             if (!historyContentDiv) {
-                 console.error("DOM Error: #historyContent not found.");
-                 if(modalTitle) modalTitle.textContent = "Lỗi UI";
-                 let modalBody = historyModal.querySelector('.modal-body');
-                 if(modalBody) modalBody.innerHTML = "<p class='text-danger'>Lỗi giao diện modal.</p>";
-                 return;
+                console.error("DOM Error: #historyContent not found.");
+                return;
             }
 
             historyContentDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
@@ -132,29 +132,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const historyUrl = `/admin/inventory/${itemId}/history`;
                 fetch(historyUrl)
                     .then(response => {
-                        if (!response.ok) { return response.text().then(text => {throw new Error(text || `Error ${response.status}`);}) }
+                        if (!response.ok) { return response.text().then(text => {throw new Error(text || `Lỗi ${response.status}`);}) }
                         return response.text();
                      })
                     .then(html => { if(historyContentDiv) historyContentDiv.innerHTML = html; })
-                    .catch(error => {
-                        if(historyContentDiv) historyContentDiv.innerHTML = `<div class="alert alert-danger p-2">Không thể tải lịch sử. Lỗi: ${error.message}</div>`;
-                        console.error("History Fetch Error:", error);
-                    });
-            } else {
-                 if(historyContentDiv) historyContentDiv.innerHTML = '<div class="alert alert-danger p-2">Lỗi: Thiếu ID Item.</div>';
-                 console.error("Missing 'data-item-id' for history modal.");
-             }
+                    .catch(error => { if(historyContentDiv) historyContentDiv.innerHTML = `<div class="alert alert-danger p-2">Không thể tải lịch sử. Lỗi: ${error.message}</div>`; });
+            } else { if(historyContentDiv) historyContentDiv.innerHTML = '<div class="alert alert-danger p-2">Lỗi: Thiếu ID Item.</div>'; }
         });
     }
 
-    // --- Xử lý Modal Update Stock (với AJAX submit) ---
     if (updateStockModal && updateStockForm) {
         updateStockModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var productName = button.getAttribute('data-product-name');
             var currentQty = button.getAttribute('data-current-quantity');
-            var currentMinQty = button.getAttribute('data-current-min-quantity') || '10'; // Default min qty if missing
-            var updateUrl = button.getAttribute('data-update-url'); // Action URL from button
+            var currentMinQty = button.getAttribute('data-current-min-quantity') || '10';
+            var updateUrl = button.getAttribute('data-update-url');
 
             const nameSpan = updateStockModal.querySelector('#updateProductName');
             const qtyInput = updateStockModal.querySelector('#updateQuantity');
@@ -162,11 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if(nameSpan) nameSpan.textContent = productName;
             if(qtyInput) qtyInput.value = currentQty;
-            if(minQtyInput) {
-                minQtyInput.placeholder = `Để trống nếu giữ (${currentMinQty})`;
-                minQtyInput.value = ''; // Always clear the min quantity input on open
-            }
-            updateStockForm.action = updateUrl || '#'; // Set form action dynamically
+            if(minQtyInput) { minQtyInput.placeholder = `Để trống nếu giữ (${currentMinQty})`; minQtyInput.value = '';}
+
+            if (updateUrl) { updateStockForm.action = updateUrl; }
+             else { updateStockForm.action = '#'; console.error("Missing update URL for modal form."); }
         });
 
         updateStockForm.addEventListener('submit', function(e) {
@@ -174,33 +166,48 @@ document.addEventListener('DOMContentLoaded', function() {
              const formData = new FormData(updateStockForm);
              const formAction = updateStockForm.action;
              const submitButton = updateStockForm.querySelector('button[type="submit"]');
-             const originalButtonText = submitButton.innerHTML;
+             const originalButtonText = 'Lưu thay đổi';
+
+             if (!formAction || formAction === '#') {
+                showToastAdmin("Lỗi cấu hình form, không thể gửi.", "danger");
+                return;
+             }
 
              submitButton.disabled = true;
              submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Đang lưu...`;
 
              const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-             const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+             const headers = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
              if (csrfToken) { headers['X-CSRFToken'] = csrfToken; }
 
              fetch(formAction, {
                 method: 'POST',
                 body: new URLSearchParams(formData).toString(),
-                headers: headers
+                headers: {
+                    ...headers,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                 }
              })
              .then(response => {
-                  if (response.ok && response.redirected && response.url.includes('/admin/inventory')) {
-                       return { success: true, message: "Cập nhật thành công!" };
+                  if (response.ok) {
+                       return response.json().catch(() => ({ success: true, message: "Cập nhật thành công (không có phản hồi JSON)!"}));
+                  } else {
+                      return response.json().then(errData => {
+                           throw new Error(errData.message || response.statusText || `Lỗi HTTP ${response.status}`);
+                      }).catch(() => {
+                           throw new Error(response.statusText || `Lỗi HTTP ${response.status}`);
+                      });
                   }
-                  return response.text().then(text => { throw new Error(text.substring(0, 200) || response.statusText || `Lỗi HTTP ${response.status}`); });
              })
              .then(result => {
-                  if (result.success) {
+                  if (result && result.success !== false) {
                        var modalInstance = bootstrap.Modal.getInstance(updateStockModal);
                        if (modalInstance) modalInstance.hide();
-                       performInventorySearch(); // Reload table data
-                       showToastAdmin("Cập nhật tồn kho thành công!", "success");
-                  } else { throw new Error(result.message || "Cập nhật thất bại."); }
+                       performInventorySearch();
+                       showToastAdmin(result.message || "Cập nhật tồn kho thành công!", "success");
+                  } else {
+                      throw new Error(result.message || "Cập nhật thất bại.");
+                  }
               })
              .catch(error => {
                   console.error("Update Stock Submit Error:", error);
@@ -215,31 +222,137 @@ document.addEventListener('DOMContentLoaded', function() {
          });
     }
 
-    // --- Xử lý Modal Batch Update ---
     if (batchFileInput && batchForm) {
         batchForm.addEventListener('submit', function(event) {
             const submitBtn = batchForm.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
-            // Submit form bình thường, xử lý ở backend
-            // Nếu muốn feedback tốt hơn có thể dùng AJAX và trả về JSON kết quả
+            if (submitBtn) {
+               submitBtn.disabled = true;
+               submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+            }
         });
     }
 
+    if (inventoryTableBody && qrCodeModalInstance && qrProductNameModalSpan && qrImageModalImg && qrImageContainer && qrLoadingSpinner) {
+        inventoryTableBody.addEventListener('click', function(event) {
+            const viewQrButton = event.target.closest('.view-qr-btn');
+            if (viewQrButton) {
+                const productId = viewQrButton.dataset.productId;
+                let productName = viewQrButton.dataset.productName;
 
-    // Hàm khởi tạo lại Bootstrap components
+                if (!productId || !productName) {
+                    console.error("Nút QR thiếu data-product-id hoặc data-product-name!");
+                    if (typeof showToastAdmin === 'function') {
+                        showToastAdmin("Lỗi: Không tìm thấy thông tin sản phẩm cho QR.", "danger");
+                    }
+                    return;
+                }
+                if (productName.includes('Lỗi SP')) productName = `SP ID: ${productId}`;
+
+                qrProductNameModalSpan.textContent = productName;
+                qrImageModalImg.src = '#';
+                qrImageModalImg.style.display = 'none';
+                qrLoadingSpinner.style.display = 'inline-block';
+                qrImageContainer.innerHTML = '';
+                qrImageContainer.appendChild(qrLoadingSpinner);
+                const newImgTag = document.createElement('img');
+                newImgTag.id = 'qrImageModal';
+                newImgTag.alt = 'QR Code';
+                newImgTag.classList.add('img-fluid');
+                newImgTag.style.maxWidth = '250px';
+                newImgTag.style.display = 'none';
+                qrImageContainer.appendChild(newImgTag);
+                const freshQrImageModalImg = document.getElementById('qrImageModal');
+
+
+                const qrImageUrl = `/admin/inventory/qr-code/${productId}?t=${new Date().getTime()}`;
+
+                freshQrImageModalImg.onload = function() {
+                    qrLoadingSpinner.style.display = 'none';
+                    this.style.display = 'block';
+                };
+                freshQrImageModalImg.onerror = function() {
+                    qrLoadingSpinner.style.display = 'none';
+                    const errorP = document.createElement('p');
+                    errorP.classList.add('text-danger','m-0','p-3');
+                    errorP.textContent = 'Lỗi tải ảnh QR.';
+                    qrImageContainer.innerHTML = '';
+                    qrImageContainer.appendChild(errorP);
+                    qrImageContainer.appendChild(this); // keep the img tag for next try if needed
+                    this.style.display = 'none';
+                };
+                freshQrImageModalImg.src = qrImageUrl;
+                qrCodeModalInstance.show();
+            }
+        });
+    } else {
+        console.warn("Một vài phần tử cho Modal QR không tìm thấy. Kiểm tra ID HTML.");
+    }
+
+    const printQrModalBtn = document.getElementById('printQrModalBtn');
+    if (printQrModalBtn && qrProductNameModalSpan) {
+        printQrModalBtn.addEventListener('click', function() {
+            const currentQrImageModalImg = document.getElementById('qrImageModal');
+            const productName = qrProductNameModalSpan.textContent;
+            const qrImgSrc = currentQrImageModalImg ? currentQrImageModalImg.src : null;
+
+            if (!qrImgSrc || qrImgSrc === '#' || qrImgSrc.endsWith('/#')) {
+                if (typeof showToastAdmin === 'function') showToastAdmin("Lỗi: Không có ảnh QR để in.", "warning");
+                return;
+            }
+
+            const printWindow = window.open('', '_blank', 'height=500,width=500');
+            if (!printWindow) {
+                if (typeof showToastAdmin === 'function') showToastAdmin("Không thể mở cửa sổ in. Vui lòng kiểm tra cài đặt trình duyệt.", "danger");
+                return;
+            }
+
+            printWindow.document.write('<html><head><title>In Mã QR - ' + productName + '</title>');
+            printWindow.document.write('<style>' +
+                'body { text-align: center; font-family: Arial, sans-serif; margin: 20px; }' +
+                'img { max-width: 90%; max-height: 350px; border: 1px solid #ccc; margin-top: 15px; display: block; margin-left: auto; margin-right: auto; }' +
+                'h4 { margin-bottom: 10px; font-size: 16px; }' +
+                'p.scan-text { font-size: 12px; color: #555; margin-top: 5px; }' +
+                '</style></head><body>');
+            printWindow.document.write('<h4>' + productName + '</h4>');
+            printWindow.document.write('<img src="' + qrImgSrc + '" alt="QR Code">');
+            printWindow.document.write('<p class="scan-text">Quét mã để truy cập nhanh.</p>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+
+            const imageToPrint = printWindow.document.querySelector('img');
+            if (imageToPrint) {
+                if (imageToPrint.complete) {
+                    printWindow.print();
+                    printWindow.close();
+                } else {
+                    imageToPrint.onload = function() {
+                        printWindow.print();
+                        printWindow.close();
+                    };
+                    setTimeout(() => {
+                         if (!printWindow.closed) {
+                             try { printWindow.print(); printWindow.close(); }
+                             catch (e) { if (!printWindow.closed) printWindow.close(); }
+                         }
+                    }, 1500);
+                }
+            } else {
+                printWindow.print();
+                printWindow.close();
+            }
+        });
+    }
+
     function reinitializeBootstrapComponents(container) {
-        // Tooltip
         var tooltipTriggerList = [].slice.call(container.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.forEach(function(tooltipTriggerEl) {
              var oldTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
              if (oldTooltip) { oldTooltip.dispose(); }
              new bootstrap.Tooltip(tooltipTriggerEl);
          });
-        // Thêm Popover hoặc components khác nếu cần
     }
 
-    // Helper Toast cho Admin (nếu chưa có ở base.js)
     function showToastAdmin(message, type = 'info') {
         let toastContainer = document.querySelector('.toast-container.position-fixed.top-0.end-0');
         if (!toastContainer) {
@@ -249,9 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(toastContainer);
         }
         const toastId = 'admin-toast-' + Date.now();
-        const bgClass = type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : (type === 'warning' ? 'bg-warning' : 'bg-info'));
-        const textClass = (type === 'warning' || type === 'light') ? 'text-dark' : 'text-white';
+        const bgClass = type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-info'));
+        const textClass = (type === 'warning' || type === 'light') ? '' : 'text-white';
         const iconClass = type === 'success' ? 'fas fa-check-circle' : (type === 'danger' ? 'fas fa-exclamation-triangle' : (type === 'warning' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'));
+        const btnCloseClass = (type === 'warning' || type === 'light') ? '' : 'btn-close-white';
 
         const toastHTML = `
             <div id="${toastId}" class="toast ${bgClass} ${textClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
@@ -260,20 +374,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="${iconClass} me-2"></i>
                         <span>${message}</span>
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close ${btnCloseClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>`;
         toastContainer.insertAdjacentHTML('beforeend', toastHTML);
         const toastEl = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastEl);
-        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
-        toast.show();
+        if(toastEl){
+           const toast = new bootstrap.Toast(toastEl);
+           toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+           toast.show();
+        }
     }
 
-    // --- KHỞI TẠO TOOLTIP BAN ĐẦU ---
-     var initialTooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+     var initialTooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
      var initialTooltipList = initialTooltipTriggerList.map(function (tooltipTriggerEl) {
-         return new bootstrap.Tooltip(tooltipTriggerEl)
+         return new bootstrap.Tooltip(tooltipTriggerEl);
      });
 
 });

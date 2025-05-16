@@ -26,16 +26,34 @@ def get_logger():
 
 def download_nltk_data():
     logger = get_logger()
-    data_to_download = ['punkt', 'stopwords', 'wordnet']
-    for item in data_to_download:
+    # Danh sách các gói NLTK cần thiết
+    resources_to_check = {
+        'tokenizers/punkt': 'punkt',      # Dùng cho tokenization
+        'corpora/stopwords': 'stopwords', # Danh sách stop words (Gây lỗi hiện tại)
+        'corpora/wordnet': 'wordnet',     # Dùng cho lemmatization
+        'corpora/omw-1.4': 'omw-1.4'     # Phụ thuộc của wordnet đa ngôn ngữ
+    }
+    all_downloaded = True
+    for resource_path, download_name in resources_to_check.items():
         try:
-            nltk.data.find(f'tokenizers/{item}' if item=='punkt' else f'corpora/{item}')
+            nltk.data.find(resource_path)
+            # logger.debug(f"NLTK resource '{download_name}' already exists.") # Bỏ comment nếu muốn log nhiều hơn
         except LookupError:
-            logger.info(f"Downloading NLTK data: {item}")
+            logger.warning(f"NLTK resource '{download_name}' not found. Attempting download...")
             try:
-                nltk.download(item, quiet=True)
+                # Tải gói dữ liệu nếu thiếu
+                nltk.download(download_name, quiet=True)
+                logger.info(f"NLTK resource '{download_name}' downloaded successfully.")
             except Exception as e:
-                logger.error(f"Failed to download NLTK data '{item}': {e}")
+                # Ghi log lỗi nếu tải thất bại
+                logger.error(f"Failed to download NLTK resource '{download_name}': {e}")
+                all_downloaded = False # Đánh dấu là tải lỗi
+    # Thông báo lỗi nếu có vấn đề
+    if not all_downloaded:
+        logger.error("One or more essential NLTK resources could not be downloaded. NLP features might fail. Check NLTK download permissions or network connection.")
+
+# --- Đặt dòng gọi hàm này NGAY SAU định nghĩa ---
+download_nltk_data() # Gọi hàm này để đảm bảo dữ liệu được kiểm tra/tải khi module được import
 
 class SentimentAnalyzer:
     def __init__(self):
